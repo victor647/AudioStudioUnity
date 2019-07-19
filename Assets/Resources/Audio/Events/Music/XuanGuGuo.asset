@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
+  m_Name: XuanGuGuo
+  m_EditorClassIdentifier: 
+  Platform: 0
+  IndependentEvent: 0
+  OverrideControls: 0
+  OverrideSpatial: 0
+  Volume: 0.6
+  Pitch: 1
+  Pan: 0
+  LowPassFilter: 0
+  LowPassResonance: 1
+  LowPassCutoff: 22000
+  HighPassFilter: 0
+  HighPassResonance: 1
+  HighPassCutoff: 10
+  SubMixer: 0
+  AudioMixer: 
+  DefaultFadeInTime: 1
+  DefaultFadeOutTime: 1
+  AvoidRepeat: 1
+  RandomOnLoop: 0
+  AudioSwitchReference:
+    Name: 
+  SwitchAssignments: []
+  SwitchImmediately: 0
+  CrossFadeTime: 0
+  Mappings: []
+  PlayLogic: 0
+  LoopCount: 0
+  ChildEvents: []
+  OverrideTransition: 0
+  TransitionInterval: 2
+  GridLength:
+    Bar: 0
+    Beat: 0
+  DefaultEntryOffset: 0
+  DefaultExitOffset: -1
+  SwitchToSamePosition: 0
+  Markers:
+  - BarNumber: 0
+    Tempo: 120
+    BeatsPerBar: 4
+    BeatDuration: 0
+    KeyCenter: 1
+  PickupBeats: 0
+  ExitPosition:
+    Bar: 41
+    Beat: 2
+  UseDefaultLoopStyle: 0
+  Clip: {fileID: 8300000, guid: bfcb8f2a1e2f1bf4d8f0e2cbe2afb75a, type: 3}

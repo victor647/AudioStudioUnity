@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a82c6e5ea08b0043880c80978d5d3c9, type: 3}
+  m_Name: Footstep_S_Rush_Dirt_08
+  m_EditorClassIdentifier: 
+  IndependentEvent: 0
+  OverrideControls: 0
+  OverrideSpatial: 0
+  Volume: 1
+  Pitch: 1
+  Pan: 0
+  LowPassFilter: 0
+  LowPassResonance: 1
+  LowPassCutoff: 22000
+  HighPassFilter: 0
+  HighPassResonance: 1
+  HighPassCutoff: 10
+  SubMixer: 0
+  AudioMixer: 
+  DefaultFadeInTime: 0
+  DefaultFadeOutTime: 0
+  AvoidRepeat: 1
+  RandomOnLoop: 0
+  AudioSwitchName: 
+  SwitchAssignments: []
+  SwitchImmediately: 0
+  CrossFadeTime: 0
+  Mappings: []
+  PlayLogic: 0
+  ChildEvents: []
+  ParentContainer: {fileID: 11400000, guid: f8da07ffcb3cd53479e9cf41e5f96f17, type: 2}
+  SpatialSetting: {fileID: 0}
+  IsUpdatePosition: 0
+  StopOnDestroy: 1
+  RandomizeVolume: 0
+  VolumeRandomRange: 0.1
+  RandomizePitch: 0
+  PitchRandomRange: 0.1
+  EnableVoiceLimit: 0
+  OverrideVoicing: 0
+  VoiceLimiter: {fileID: 11400000, guid: c8af10ca72d9233418633b0933e1546f, type: 2}
+  VoiceLimitGlobal: 8
+  VoiceLimitGameObject: 2
+  Priority: 100
+  Clip: {fileID: 8300000, guid: 0e92ea8e47244ba47932d0c1c87792f4, type: 3}
+  Loop: 0
+  SeekRandomPosition: 0
