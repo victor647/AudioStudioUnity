@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace AudioStudio
 {
@@ -29,6 +30,11 @@ namespace AudioStudio
         public static void Remove(GameObject go)
         {
             if (_instance) Destroy(_instance.gameObject, 0.1f);
+        }
+
+        private void Update()
+        {
+            MidiManager.Instance.Update();
         }
     }
 }

@@ -125,9 +125,8 @@ namespace AudioStudio
 
         private void Update()
         {
-            if (_audioLogs.Count > 200) _audioLogs.Dequeue();
-            if (_paused) return;
-            Repaint();
+            if (_audioLogs.Count > 200)
+                _audioLogs.Dequeue();
         }       
         
         private void OnGUI()
@@ -344,7 +343,9 @@ namespace AudioStudio
         {
             if (_paused) return;            
             var newLog = new AudioLog{MessageType = messageType, Time = time, ObjectType = objectType, Action = action, ObjectName = objectName, GameObject = gameObject, Message = message};
-            if (FilterLog(newLog)) _audioLogs.Enqueue(newLog);       			
+            if (FilterLog(newLog)) 
+                _audioLogs.Enqueue(newLog);       			
+            Repaint();
         }
     }
 #endif

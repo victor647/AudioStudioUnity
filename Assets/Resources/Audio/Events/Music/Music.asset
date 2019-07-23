@@ -28,19 +28,17 @@ MonoBehaviour:
   AudioMixer: 
   DefaultFadeInTime: 1
   DefaultFadeOutTime: 1
-  AvoidRepeat: 1
+  AvoidRepeat: 0
   RandomOnLoop: 0
   AudioSwitchReference:
     Name: 
-  SwitchAssignments: []
+  SwitchEventMappings: []
   SwitchImmediately: 1
   CrossFadeTime: 1
   Mappings: []
   PlayLogic: 1
   LoopCount: 1
-  ChildEvents:
-  - {fileID: 11400000, guid: c0e2b9f2f29811a48beff861e737fe37, type: 2}
-  - {fileID: 11400000, guid: cf1a5a4a2d8ecf64aab2b1afd6706de5, type: 2}
+  ChildEvents: []
   OverrideTransition: 0
   TransitionInterval: 2
   GridLength:

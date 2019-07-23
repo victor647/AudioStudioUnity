@@ -267,11 +267,11 @@ namespace AudioStudio
         {
             get
             {
-                return PlayerPrefs.GetInt("AUDIO_SOUND", 1) == 1;
+                var enabled = PlayerPrefs.GetInt("AUDIO_SOUND", 1);
+                return enabled == 1;
             }
             set
             {
-                if (SoundEnabled == value) return;
                 var volume = value ? SoundVolume : 0f;
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("SoundVolume", decibel);
@@ -285,11 +285,11 @@ namespace AudioStudio
         {
             get
             {
-                return PlayerPrefs.GetInt("AUDIO_VOICE", 1) == 1;
+                var enabled = PlayerPrefs.GetInt("AUDIO_VOICE", 1);
+                return enabled == 1;
             }
             set
             {
-                if (VoiceEnabled == value) return;
                 var volume = value ? VoiceVolume : 0f;
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("VoiceVolume", decibel);
@@ -303,12 +303,12 @@ namespace AudioStudio
         {
             get
             {
-                return PlayerPrefs.GetInt("AUDIO_MUSIC", 1) == 1;
+                var enabled = PlayerPrefs.GetInt("AUDIO_MUSIC", 1);
+                return enabled == 1;
             }
             set
             {
-                if (MusicEnabled == value) return;
-                var volume = value ? MusicVolume : -80f;
+                var volume = value ? MusicVolume : 0f;
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("MusicVolume", decibel);
                 PlayerPrefs.SetInt("AUDIO_MUSIC", value ? 1: 0);             
@@ -327,7 +327,8 @@ namespace AudioStudio
             {
                 var volume = Mathf.Clamp(value, 0f, 100f);
                 var decibel = LinearToDecibel(volume);
-                AudioMixer.SetFloat("SoundVolume", decibel);
+                if (SoundEnabled)
+                    AudioMixer.SetFloat("SoundVolume", decibel);
                 PlayerPrefs.SetFloat("SOUND_VOLUME", volume);                          
             }
         }
@@ -342,7 +343,8 @@ namespace AudioStudio
             {
                 var volume = Mathf.Clamp(value, 0f, 100f);
                 var decibel = LinearToDecibel(volume);
-                AudioMixer.SetFloat("VoiceVolume", decibel);
+                if (VoiceEnabled)
+                    AudioMixer.SetFloat("VoiceVolume", decibel);
                 PlayerPrefs.SetFloat("VOICE_VOLUME", volume);                
             }
         }
@@ -357,7 +359,8 @@ namespace AudioStudio
             {                
                 var volume = Mathf.Clamp(value, 0f, 100f);
                 var decibel = LinearToDecibel(volume);
-                AudioMixer.SetFloat("MusicVolume", decibel);
+                if (MusicEnabled)
+                    AudioMixer.SetFloat("MusicVolume", decibel);
                 PlayerPrefs.SetFloat("MUSIC_VOLUME", volume);                   
             }
         }

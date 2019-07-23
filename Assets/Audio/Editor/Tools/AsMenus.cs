@@ -47,13 +47,20 @@ namespace AudioStudio
 
         #region Window
 
-        [MenuItem("AudioStudio/Audio Profiler &F6")]
+        [MenuItem("AudioStudio/Window/Audio Profiler &F6")]
         public static void AudioProfiler()
         {
             var window = (AudioProfiler)GetWindow(typeof(AudioProfiler));
             window.position = new Rect(500, 300, 700, 500);
             window.titleContent = new GUIContent("Audio Profiler");
         }       
+        
+        [MenuItem("AudioStudio/Window/MIDI Console")]
+        public static void ShowWindow()
+        {
+            var window = GetWindow<MidiConsole>("MIDI Console");
+            window.position = new Rect(500, 300, 600, 400);
+        }
         #endregion
 
         #region Searchers    

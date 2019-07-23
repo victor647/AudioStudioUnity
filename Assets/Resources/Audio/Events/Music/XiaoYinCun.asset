@@ -32,7 +32,7 @@ MonoBehaviour:
   RandomOnLoop: 0
   AudioSwitchReference:
     Name: 
-  SwitchAssignments: []
+  SwitchEventMappings: []
   SwitchImmediately: 0
   CrossFadeTime: 0
   Mappings: []
@@ -49,10 +49,10 @@ MonoBehaviour:
   SwitchToSamePosition: 0
   Markers:
   - BarNumber: 0
-    Tempo: 120
-    BeatsPerBar: 4
+    Tempo: 0
+    BeatsPerBar: 0
     BeatDuration: 0
-    KeyCenter: 8
+    KeyCenter: 0
   PickupBeats: 0
   ExitPosition:
     Bar: 33

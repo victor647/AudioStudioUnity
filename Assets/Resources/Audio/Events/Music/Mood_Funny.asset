@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Name: Mood_Funny
   m_EditorClassIdentifier: 
   Platform: 0
-  IndependentEvent: 1
+  IndependentEvent: 0
   OverrideControls: 0
   OverrideSpatial: 0
-  Volume: 1
-  Pitch: 2
+  Volume: 0.6
+  Pitch: 1
   Pan: 0
   LowPassFilter: 0
   LowPassResonance: 1
@@ -26,13 +26,13 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 0
-  DefaultFadeOutTime: 0
+  DefaultFadeInTime: 1
+  DefaultFadeOutTime: 1
   AvoidRepeat: 1
   RandomOnLoop: 0
   AudioSwitchReference:
     Name: 
-  SwitchAssignments: []
+  SwitchEventMappings: []
   SwitchImmediately: 0
   CrossFadeTime: 0.5
   Mappings: []
@@ -61,6 +61,11 @@ MonoBehaviour:
   - BarNumber: 27
     Tempo: 95
     BeatsPerBar: 5
+    BeatDuration: 0
+    KeyCenter: 8
+  - BarNumber: 29
+    Tempo: 95
+    BeatsPerBar: 3
     BeatDuration: 0
     KeyCenter: 8
   - BarNumber: 29

@@ -108,7 +108,13 @@ namespace AudioStudio
 		{
 			PlayingStatus = PlayingStatus.Stopping;
 			TimeSamples = -1;
-			StartCoroutine(AudioSource.Stop(fadeOutTime, AudioEnd));
+			if (gameObject.activeInHierarchy)
+				StartCoroutine(AudioSource.Stop(fadeOutTime, AudioEnd));
+			else
+			{
+				AudioSource.Stop();
+				AudioEnd();
+			}
 		}
 		
 		#region Controls

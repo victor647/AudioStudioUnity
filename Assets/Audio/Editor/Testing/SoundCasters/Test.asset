@@ -12,13 +12,9 @@ MonoBehaviour:
   m_Name: Test
   m_EditorClassIdentifier: 
   AudioEvents:
-  - Name: Mood_Funny
-    EventType: 1
-  AudioSwitches:
-  - Name: Weather
-    Selection: Sunny
-  AudioParameters:
-  - Name: Music_Volume
-    Value: 50
+  - Name: Menu_Dropdown_Select
+    EventType: 0
+  AudioSwitches: []
+  AudioParameters: []
   SoundBanks:
-  - Name: Character
+  - Name: Interface

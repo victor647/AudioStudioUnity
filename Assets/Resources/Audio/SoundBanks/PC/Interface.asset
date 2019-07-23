@@ -20,4 +20,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e2f44ba6636fb234ca0b846860a0c176, type: 2}
   - {fileID: 11400000, guid: c134836d19d637249a803f1861c5f094, type: 2}
   - {fileID: 11400000, guid: 1369d5c4ddb68f348af84f6dd15f9d05, type: 2}
+  - {fileID: 11400000, guid: 1369d5c4ddb68f348af84f6dd15f9d05, type: 2}
   AudioControllers: []
