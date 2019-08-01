@@ -1,8 +1,9 @@
 using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {   
     [AddComponentMenu("AudioStudio/EmitterSound")]
     [DisallowMultipleComponent]
@@ -17,7 +18,7 @@ namespace AudioStudio
             if (AudioEvents.Length > 0)
             {
                 PlaySound();     
-                AudioManager.DebugToProfiler(MessageType.Component, ObjectType.EmitterSound, AudioAction.Activate, "OnEnable", gameObject.name);
+                AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.EmitterSound, AudioAction.Activate, "OnEnable", gameObject.name);
             }                        
         }
 
@@ -26,7 +27,7 @@ namespace AudioStudio
             if (AudioEvents.Length > 0)
             {
                 StopSound();
-                AudioManager.DebugToProfiler(MessageType.Component, ObjectType.EmitterSound, AudioAction.Deactivate, "OnDisable", gameObject.name);
+                AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.EmitterSound, AudioAction.Deactivate, "OnDisable", gameObject.name);
             }
             base.HandleDisableEvent();
         }        

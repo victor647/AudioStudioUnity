@@ -22,7 +22,7 @@ namespace AudioStudio
         
         private Queue<MidiMessage> _midiMessages = new Queue<MidiMessage>();
         private Dictionary<uint, string> _deviceNames = new Dictionary<uint, string>();
-        private Dictionary<int, string> _messageTypes = new Dictionary<int, string>
+        private static readonly Dictionary<int, string> _messageTypes = new Dictionary<int, string>
         {
             {8, "Note Off"},
             {9, "Note On"},
@@ -33,7 +33,7 @@ namespace AudioStudio
             {14, "Pitch Bend"},
             {15, "System Exclusive"},
         };
-        private Dictionary<int, string> _noteNames = new Dictionary<int, string>
+        private static readonly Dictionary<int, string> _noteNames = new Dictionary<int, string>
         {
             {0, "C"},
             {1, "C#/Db"},
@@ -117,9 +117,7 @@ namespace AudioStudio
                     {
                         case 8:
                         case 9:
-                            var octave = dataByte1 / 12;
-                            var note = dataByte1 % 12;
-                            db1 = _noteNames[note] + octave;
+                            db1 = GetNoteName(dataByte1);
                             break;
                         case 11:
                             if (dataByte1 == 1) db1 = "Modulation";
@@ -198,6 +196,13 @@ namespace AudioStudio
         {
             if (_paused || Application.isPlaying) return;
             MidiManager.Instance.Update();
+        }
+
+        public static string GetNoteName(byte noteNumber)
+        {
+            var octave = noteNumber / 12;
+            var note = noteNumber % 12;
+            return _noteNames[note] + octave;
         }
 
         [DllImport("MidiJackPlugin", EntryPoint="MidiJackCountEndpoints")]

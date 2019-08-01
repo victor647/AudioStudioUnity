@@ -1,7 +1,8 @@
 using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {    
     [AddComponentMenu("AudioStudio/LoadBank")]
     [DisallowMultipleComponent]
@@ -12,7 +13,7 @@ namespace AudioStudio
 
         protected override void HandleEnableEvent()
         {   
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SoundBank, AudioAction.Activate, "OnEnable", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SoundBank, AudioAction.Activate, "OnEnable", gameObject.name);
             foreach (var bank in Banks)
             {
                 bank.Load();
@@ -22,7 +23,7 @@ namespace AudioStudio
         protected override void HandleDisableEvent()
         {
             if (!UnloadOnDisable) return;
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SoundBank, AudioAction.Deactivate, "OnDisable", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SoundBank, AudioAction.Deactivate, "OnDisable", gameObject.name);
             foreach (var bank in Banks)
             {
                 bank.Unload();

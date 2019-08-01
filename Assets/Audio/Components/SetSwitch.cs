@@ -1,7 +1,8 @@
 ﻿using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
 	public class SetSwitch : AudioPhysicsHandler
 	{		
@@ -12,42 +13,42 @@ namespace AudioStudio
 		protected override void HandleEnableEvent()
 		{			
 			if (SetOn != TriggerCondition.EnableDisable) return;
-			AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SetSwitch, AudioAction.Activate, "OnEnable", gameObject.name);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SetSwitch, AudioAction.Activate, "OnEnable", gameObject.name);
 			SetSwitchValue(OnSwitches);
 		}
 
 		protected override void HandleDisableEvent()
 		{	
 			if (SetOn != TriggerCondition.EnableDisable) return;
-			AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SetSwitch, AudioAction.Deactivate, "OnDisable", gameObject.name);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SetSwitch, AudioAction.Deactivate, "OnDisable", gameObject.name);
 			SetSwitchValue(OffSwitches);
 		}
 		
 		private void OnTriggerEnter(Collider other)
         {
             if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SetSwitch, AudioAction.Activate, "OnTriggerEnter", gameObject.name, "Enter with " + other.gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SetSwitch, AudioAction.Activate, "OnTriggerEnter", gameObject.name, "Enter with " + other.gameObject.name);
             SetSwitchValue(OnSwitches);                        
         }
 
         private void OnTriggerExit(Collider other)
         {
             if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SetSwitch, AudioAction.Deactivate, "OnTriggerExit", gameObject.name, "Exit with " + other.gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SetSwitch, AudioAction.Deactivate, "OnTriggerExit", gameObject.name, "Exit with " + other.gameObject.name);
             SetSwitchValue(OffSwitches);                
         }      
         
         private void OnCollisionEnter(Collision other)
         {
             if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SetSwitch, AudioAction.Activate, "OnCollisionEnter", gameObject.name, "Enter with " + other.gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SetSwitch, AudioAction.Activate, "OnCollisionEnter", gameObject.name, "Enter with " + other.gameObject.name);
             SetSwitchValue(OnSwitches);                        
         }
 
         private void OnCollisionExit(Collision other)
         {
             if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SetSwitch, AudioAction.Deactivate, "OnCollisionExit", gameObject.name, "Exit with " + other.gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SetSwitch, AudioAction.Deactivate, "OnCollisionExit", gameObject.name, "Exit with " + other.gameObject.name);
             SetSwitchValue(OffSwitches);                          
         }
 

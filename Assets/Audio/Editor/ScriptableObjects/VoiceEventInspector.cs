@@ -1,8 +1,9 @@
 ﻿using System.Linq;
+using AudioStudio.Configs;
 using UnityEditor;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Editor
 {	
 	[CustomEditor(typeof(VoiceEvent)), CanEditMultipleObjects]
 	public class VoiceEventInspector : AudioEventInspector
@@ -52,7 +53,7 @@ namespace AudioStudio
 			            case VoicePlayLogic.Switch:
 				            DrawProperty("AudioSwitchName", "Switch", 100);
 				            EditorGUILayout.LabelField("Switch Assignment");
-				            AudioScriptGUI.DrawList(serializedObject.FindProperty("SwitchAssignments"));
+				            AudioScriptGUI.DrawList(serializedObject.FindProperty("SwitchClipMappings"));
 				            break;
 		            }
 

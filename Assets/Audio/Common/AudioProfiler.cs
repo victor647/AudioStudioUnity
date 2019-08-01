@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AudioStudio.Configs;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,6 +14,7 @@ namespace AudioStudio
         Sound,
         Music,
         Voice,
+        Instrument,
         Switch,
         Parameter,
         SoundBank,	
@@ -34,7 +36,7 @@ namespace AudioStudio
     }
 
     [Flags]
-    public enum MessageType
+    public enum ProfilerMessageType
     {    
         None = 0,
         All = ~0,    
@@ -82,7 +84,7 @@ namespace AudioStudio
 
         private class AudioLog
         {
-            public MessageType MessageType;
+            public ProfilerMessageType MessageType;
             public string Time;
             public ObjectType ObjectType;
             public AudioAction Action;
@@ -194,13 +196,13 @@ namespace AudioStudio
                     
                     switch (audioLog.MessageType)
                     {
-                        case MessageType.Error:
+                        case ProfilerMessageType.Error:
                             GUI.color = Color.red;
                             break;
-                        case MessageType.Warning:
+                        case ProfilerMessageType.Warning:
                             GUI.color = Color.yellow;
                             break;
-                        case MessageType.Component:
+                        case ProfilerMessageType.Component:
                             GUI.color = Color.green;
                             break;
                     }
@@ -224,13 +226,13 @@ namespace AudioStudio
         {            
             switch (audioLog.MessageType)
             {
-                case MessageType.Notification: 
+                case ProfilerMessageType.Notification: 
                     if (!_includeNotification) return false; break;                                        
-                case MessageType.Warning: 
+                case ProfilerMessageType.Warning: 
                     if (!_includeWarning) return false; break;                                        
-                case MessageType.Error: 
+                case ProfilerMessageType.Error: 
                     if (!_includeError) return false; break;                                        
-                case MessageType.Component: 
+                case ProfilerMessageType.Component: 
                     if (!_includeComponent) return false; break;                                        
             }
 
@@ -338,7 +340,7 @@ namespace AudioStudio
             _includeError = _includeNotification = _includeWarning = _includePostStop = _includePlayEnd = _includeLoadUnload = enabled;
         }
         
-        public void AddLog(MessageType messageType, ObjectType objectType, AudioAction action, string objectName,
+        public void AddLog(ProfilerMessageType messageType, ObjectType objectType, AudioAction action, string objectName,
             string gameObject, string message, string time)
         {
             if (_paused) return;            

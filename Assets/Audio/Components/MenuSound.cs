@@ -1,8 +1,9 @@
 ﻿using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/MenuSound")]
     [DisallowMultipleComponent]
@@ -13,7 +14,7 @@ namespace AudioStudio
         
         protected override void HandleEnableEvent()
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.MenuSound, AudioAction.Activate, "Open", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.MenuSound, AudioAction.Activate, "Open", gameObject.name);
             foreach (var evt in OpenEvents)
             {
                 evt.Post();
@@ -22,7 +23,7 @@ namespace AudioStudio
 
         protected override void HandleDisableEvent()
         {               
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.MenuSound, AudioAction.Deactivate, "Close", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.MenuSound, AudioAction.Deactivate, "Close", gameObject.name);
             foreach (var evt in CloseEvents)
             {
                 evt.Post();

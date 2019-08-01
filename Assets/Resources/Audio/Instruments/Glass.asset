@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87ef370c7c0fb974cafdca9ca479af46, type: 3}
+  m_Name: Glass
+  m_EditorClassIdentifier: 
+  SampleType: 1
+  MaxPolyphonicVoices: 4
+  Attack: 0
+  Release: 100
+  VelocityCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 1
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 1
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  KeyboardMappings:
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 48
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 6cd92b2d38793de4e85874aa354467ef, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 49
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: e29af7d2d591c8d40a9e12c24ee82901, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 50
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: f2e69dd012307fb4dab6bbae8ce01f55, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 51
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 06ebf77f7104d944ba8847a7a9c13908, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 52
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 827033560d99c7746810d5764509d431, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 53
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 8d71bcd12f966714c862ee9a3758dbc8, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 54
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 737e16e1893c4e94b80cf5bad9cc79a3, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 55
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: f1134d2b34e2711439e9ab71489a4625, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 56
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: ecb02171fd4339a4d8fb81e289fd8b35, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 57
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 1edc283243379824eadcd9ccb996dd9f, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 58
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 0e7b5b4879abe2d458b004e75a8194df, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 59
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 36c425d896599fc41b38b867bc93e0ed, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 60
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 49bf8ae5b8964e244a783dd091079bf5, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 61
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 9e47b7f476406bd4eb04d7ee05815d2c, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 62
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 9de7deecbd751044abaff1e8d3cecad7, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 63
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 3f50fa094f6f2794cb0596aaf4f508f0, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 64
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: feea0fe61b1961446a86307794c9fb4b, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 65
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 21a5465253860084283524e4cd1ef4d8, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 66
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: ca3a0edb0c8362b46b162e02b4f42476, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 67
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 8aa301b134476054cbb9ea2346ea4887, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 68
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: b6744b318b85ea749a76a1d48e87d9b7, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 69
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 37b4799a7fdd71248a470deafbd35a22, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 70
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: ac2352d416cac1746a41f4b282f5c9ef, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 71
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: cca3b4a3140bc1944af6a3f882684fc5, type: 3}
+  - MultiNote: 0
+    LowestNote: 0
+    CenterNote: 72
+    HighestNote: 0
+    Samples:
+    - {fileID: 8300000, guid: 4f51632924dfdbb40a6e6a4e4820d799, type: 3}

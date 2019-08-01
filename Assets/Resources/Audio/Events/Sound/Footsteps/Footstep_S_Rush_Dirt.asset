@@ -11,6 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c35d1423c3c8d874f989a858f8603d9f, type: 3}
   m_Name: Footstep_S_Rush_Dirt
   m_EditorClassIdentifier: 
+  Platform: 0
   IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
@@ -29,12 +30,13 @@ MonoBehaviour:
   DefaultFadeOutTime: 0
   AvoidRepeat: 1
   RandomOnLoop: 0
-  AudioSwitchName: 
-  SwitchAssignments: []
+  AudioSwitchReference:
+    Name: Music
+  SwitchEventMappings: []
   SwitchImmediately: 0
   CrossFadeTime: 0
   Mappings: []
-  PlayLogic: 0
+  PlayLogic: 2
   ChildEvents:
   - {fileID: 11400000, guid: d7b7011771f2596418a0b11cc17f9f7d, type: 2}
   - {fileID: 11400000, guid: fa116e6fc96da5c4b845248776a3c484, type: 2}
@@ -48,7 +50,7 @@ MonoBehaviour:
   ParentContainer: {fileID: 0}
   SpatialSetting: {fileID: 0}
   IsUpdatePosition: 0
-  StopOnDestroy: 1
+  EmitterGameObject: 1
   RandomizeVolume: 0
   VolumeRandomRange: 0.1
   RandomizePitch: 0

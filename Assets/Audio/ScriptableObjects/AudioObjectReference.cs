@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	public abstract class AudioObjectReference
 	{

@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	public partial class VoiceEvent
 	{	

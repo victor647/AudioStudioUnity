@@ -1,24 +1,27 @@
-﻿using AudioStudio;
+﻿using AudioStudio.Configs;
 using UnityEditor;
 
-[CustomEditor(typeof(VoiceLimiter)), CanEditMultipleObjects]
-public class VoiceLimiterInspector : Editor
+namespace AudioStudio.Editor
 {
+	[CustomEditor(typeof(VoiceLimiter)), CanEditMultipleObjects]
+	public class VoiceLimiterInspector : UnityEditor.Editor
+	{
 		private VoiceLimiter _limiter;
 
 		private void OnEnable()
 		{
 			_limiter = target as VoiceLimiter;
 		}
-	
-    public override void OnInspectorGUI()
-    {
-        serializedObject.Update();																
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("VoiceRemovalRule"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("MaxVoicesLimit"));
-        EditorGUILayout.PropertyField(serializedObject.FindProperty("FadeOutTime"));
-        
-        AudioScriptGUI.DrawSaveButton(_limiter);
-        serializedObject.ApplyModifiedProperties();
-    }
+
+		public override void OnInspectorGUI()
+		{
+			serializedObject.Update();
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("VoiceRemovalRule"));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("MaxVoicesLimit"));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("FadeOutTime"));
+
+			AudioScriptGUI.DrawSaveButton(_limiter);
+			serializedObject.ApplyModifiedProperties();
+		}
+	}
 }

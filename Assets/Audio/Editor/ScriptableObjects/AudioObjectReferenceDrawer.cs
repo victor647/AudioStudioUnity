@@ -1,4 +1,4 @@
-﻿using AudioStudio;
+﻿using AudioStudio.Configs;
 using UnityEditor;
 using UnityEngine;
 

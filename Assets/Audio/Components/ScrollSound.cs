@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using AudioStudio.Configs;
+using UnityEngine;
 using UnityEngine.UI;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/ScrollSound")]    
     [DisallowMultipleComponent]
@@ -24,7 +25,7 @@ namespace AudioStudio
 
         private void PlaySound()
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.ScrollSound, AudioAction.Activate, "OnScroll", gameObject.name);            
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.ScrollSound, AudioAction.Activate, "OnScroll", gameObject.name);            
             ScrollEvent.Post();       
         }
 

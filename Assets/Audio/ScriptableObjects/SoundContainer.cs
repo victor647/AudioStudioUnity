@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AudioStudio.Components;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {   
     public enum SoundPlayLogic
     {
@@ -214,7 +215,7 @@ namespace AudioStudio
                 evt.StopAll(fadeOutTime);
             }
             if (IndependentEvent) 
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.StopEvent, name, "Global");
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.StopEvent, name, "Global");
         }
 
         private void OnSwitchChanged(GameObject soundSource)
@@ -349,19 +350,19 @@ namespace AudioStudio
             
             if (voiceGlobal > VoiceLimitGlobal)
             {
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.VoiceLimit, name, "Global",
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.VoiceLimit, name, "Global",
                     "Global voice limit of " + VoiceLimitGlobal + " reaches");
                 return true;
             }
 
             if (voiceGameObject > VoiceLimitGameObject)
             {
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.VoiceLimit, name, soundSource.name,
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.VoiceLimit, name, soundSource.name,
                     "GameObject voice limit of " + VoiceLimitGameObject + " reaches");
                 return true;
             }
                              
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.PostEvent, name, soundSource.name,
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.PostEvent, name, soundSource.name,
                 "Voices: " + voiceGlobal + " global, " + voiceGameObject + " on game object");
             return false;
         }

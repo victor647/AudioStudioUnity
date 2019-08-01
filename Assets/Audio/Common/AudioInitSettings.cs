@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using AudioStudio.Components;
+using AudioStudio.Configs;
+using UnityEngine;
 using UnityEngine.Audio;
 
 namespace AudioStudio
@@ -32,8 +34,10 @@ namespace AudioStudio
 
 
         public static bool Initialized;        
-        [EnumFlag(typeof(MessageType))]
-        public MessageType ProfilerLogLevel = MessageType.Error;
+        [EnumFlag(typeof(ProfilerMessageType))]
+        public ProfilerMessageType ProfilerLogLevel = ProfilerMessageType.Error;
+        public bool UseMicrophone;
+        public bool UseMidi;
         public SoundBankReference[] StartBanks = new SoundBankReference[0];
         public AudioEventReference[] StartEvents = new AudioEventReference[0];                
         public bool PostEvents;
@@ -46,19 +50,23 @@ namespace AudioStudio
             if (Initialized) return;     
             Initialized = true;
             InitAudioManager();
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.AudioInit, AudioAction.Activate, "Initialization");  
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.SetValue, "Voice Language", "Global", AudioManager.VoiceLanguage.ToString());
+            InitGlobalAudioEmitter();
+            InitAudioListener();
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.AudioInit, AudioAction.Activate, "Initialization");  
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.SetValue, "Voice Language", "Global", AudioManager.VoiceLanguage.ToString());
             AudioAssetLoader.Init();                                                           
             if (LoadBanks) LoadInitBanks();
             AudioManager.LoadPreferenceSettings();
             if (PostEvents) PostGameStartEvents();                        
         }
 
-        public void InitializeWithoutObjects()
+        public void InitializeWithoutLoading()
         {
             if (Initialized) return;   
             Initialized = true;
-            InitAudioManager();                          
+            InitAudioManager();
+            InitGlobalAudioEmitter();
+            InitAudioListener();
             AudioAssetLoader.Init();                                                                       
             AudioManager.LoadPreferenceSettings();                        
         }
@@ -75,10 +83,18 @@ namespace AudioStudio
             AudioManager.LogLevel = ProfilerLogLevel;            
             AudioManager.AudioMixer = AudioMixer;
             AudioManager.DefaultSpatialSetting = DefaultSpatialSetting;
-            SetListener();
+        }
+
+        private void InitGlobalAudioEmitter()
+        {
+            GlobalAudioEmitter.Init();
+            if (UseMicrophone)
+                GlobalAudioEmitter.AddMicrophone();
+            if (UseMidi)
+                GlobalAudioEmitter.AddMidi();
         }
         
-        private static void SetListener()
+        private static void InitAudioListener()
         {   
             var audioListener = new GameObject("Audio Listener");
             var listener = FindObjectOfType<AudioListener>();

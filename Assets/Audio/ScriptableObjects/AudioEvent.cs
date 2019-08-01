@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	public enum Platform
 	{
@@ -18,7 +18,7 @@ namespace AudioStudio
 		Voice,
 	}
 
-	public abstract class AudioEvent : AudioObject
+	public abstract class AudioEvent : AudioConfig
 	{							
 		#region Settings				
 		public Platform Platform;

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	public enum RollOffMode
 	{

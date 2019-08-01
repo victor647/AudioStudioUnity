@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     //sound emitter when dealing with collision
     public enum PostFrom

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AudioStudio.Configs;
 using UnityEngine;
 
 namespace AudioStudio
@@ -9,6 +10,7 @@ namespace AudioStudio
 		private static Dictionary<string, SoundContainer> _soundEvents;
 		private static Dictionary<string, VoiceEvent> _voiceEvents;
 		private static Dictionary<string, MusicContainer> _musicEvents;
+		private static Dictionary<string, MusicInstrument> _musicInstruments;
 		private static List<MusicTransitionSegment> _musicTransitionSegments;
 		private static Dictionary<string, SoundBank> _soundBanks;
 		private static Dictionary<string, AudioParameter> _audioParameters;
@@ -19,7 +21,8 @@ namespace AudioStudio
 			_soundEvents = new Dictionary<string, SoundContainer>();
 			_soundBanks = new Dictionary<string, SoundBank>();
 			_voiceEvents = new Dictionary<string, VoiceEvent>();
-			_musicEvents = new Dictionary<string, MusicContainer>();            
+			_musicEvents = new Dictionary<string, MusicContainer>();
+			_musicInstruments = new Dictionary<string, MusicInstrument>();
 			_musicTransitionSegments = new List<MusicTransitionSegment>();
 			LoadAllTransitionSegments();
 			_audioSwitches = new Dictionary<string, AudioSwitch>();
@@ -32,17 +35,17 @@ namespace AudioStudio
 		{
 			if (_soundBanks.ContainsKey(bankName))
 			{
-				AudioManager.DebugToProfiler(MessageType.Warning, ObjectType.SoundBank, AudioAction.Load, bankName, "Global", "Bank already loads");
+				AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.SoundBank, AudioAction.Load, bankName, "Audio Asset Loader", "Bank already loads");
 				return;
 			}				
 			var loadPath = ShortPath(AudioPathSettings.SoundBanksPath) + $"/{AudioManager.Platform}/{bankName}";
 			var bank = Resources.Load<SoundBank>(loadPath);
 			if (!bank)
 			{                                                            
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.SoundBank, AudioAction.Load, bankName, "Audio Asset Loader", "Bank not found");                                    
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.SoundBank, AudioAction.Load, bankName, "Audio Asset Loader", "Bank not found");                                    
 				return;
 			}                        
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.SoundBank, AudioAction.Load, bankName, "Audio Asset Loader");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.SoundBank, AudioAction.Load, bankName, "Audio Asset Loader");
 			LoadBank(bank);
 		}
 		
@@ -73,19 +76,29 @@ namespace AudioStudio
 				evt.Init();
 				_soundEvents[evt.name] = evt;
 			}            
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.SoundBank, AudioAction.Load, bank.name, "Global", "Bank loads into memory");                                        
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.SoundBank, AudioAction.Load, bank.name, "Audio Asset Loader", "Bank loads into memory");                                        
 		}	
 		
 		public static void UnloadBank(string bankName)
 		{
 			if (!_soundBanks.ContainsKey(bankName))
 			{
-				AudioManager.DebugToProfiler(MessageType.Warning, ObjectType.SoundBank, AudioAction.Unload, bankName, "Global", "Bank already unloads or not found");
+				AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.SoundBank, AudioAction.Unload, bankName, "Audio Asset Loader", "Bank already unloads or not found");
 				return;
 			}				
 			UnloadBank(_soundBanks[bankName]);
 		}
 
+		public static void UnloadBanks(string nameFilter)
+		{
+			var loadedBanks = new List<string>(_soundBanks.Keys);
+			foreach (var bank in loadedBanks)
+			{
+				if (bank.Contains(nameFilter))
+					UnloadBank(bank);
+			}
+		}
+		
 		private static void UnloadBank(SoundBank bank)
 		{            			
 			foreach (var evt in bank.AudioEvents)
@@ -111,7 +124,7 @@ namespace AudioStudio
 				ac.Dispose();
 			}
 			_soundBanks.Remove(bank.name);			
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.SoundBank, AudioAction.Unload, bank.name, "Global", "Bank unloads from memory");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.SoundBank, AudioAction.Unload, bank.name, "Audio Asset Loader", "Bank unloads from memory");
 			bank.Dispose();
 			Resources.UnloadAsset(bank);            			                     
 		}		
@@ -141,10 +154,10 @@ namespace AudioStudio
 			var music = Resources.Load<MusicContainer>(loadPath);
 			if (!music)
 			{                                                            
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Music, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");                                    
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Music, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");                                    
 				return null;
 			}                        
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Load, eventName, "Audio Asset Loader");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Load, eventName, "Audio Asset Loader");
 			_musicEvents[eventName] = music;
 			music.Init();				
 			return music;
@@ -158,10 +171,10 @@ namespace AudioStudio
 			var stinger = Resources.Load<MusicStinger>(loadPath);
 			if (!stinger)
 			{                                                            
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Music, AudioAction.Load, stingerName, "Audio Asset Loader", "Stinger not found");                                    
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Music, AudioAction.Load, stingerName, "Audio Asset Loader", "Stinger not found");                                    
 				return null;
 			}                        
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Load, stingerName, "Audio Asset Loader");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Load, stingerName, "Audio Asset Loader");
 			_musicEvents[stingerName] = stinger;
 			stinger.Init();	
 			MusicTransport.Instance.QueueStinger(stinger);
@@ -175,7 +188,7 @@ namespace AudioStudio
 			{
 				foreach (var segment in segments)
 				{
-					AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Load, segment.name, "Audio Asset Loader", "Transition segment loads");
+					AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Load, segment.name, "Audio Asset Loader", "Transition segment loads");
 					_musicTransitionSegments.Add(segment);
 				}				
 			}
@@ -194,6 +207,36 @@ namespace AudioStudio
 			}
 			return null;
 		}
+
+		public static MusicInstrument LoadInstrument(string instrumentName, byte channel = 1)
+		{
+			if (_musicInstruments.ContainsKey(instrumentName)) 
+				return _musicInstruments[instrumentName] as MusicInstrument;
+			var loadPath = ShortPath(AudioPathSettings.MusicInstrumentsPath) + "/" + instrumentName;
+			var instrument = Resources.Load<MusicInstrument>(loadPath);
+			if (!instrument)
+			{                                                            
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Instrument, AudioAction.Load, instrumentName, "Audio Asset Loader", "Instrument not found");                                    
+				return null;
+			}                        
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Instrument, AudioAction.Load, instrumentName, "Audio Asset Loader");
+			_musicInstruments[instrumentName] = instrument;
+			instrument.Init(channel);
+			return instrument;
+		}
+		
+		public static void UnloadInstrument(string instrumentName)
+		{
+			
+			if (!_musicInstruments.ContainsKey(instrumentName))
+			{
+				AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Instrument, AudioAction.Unload, instrumentName, "Audio Asset Loader", "Instrument already unloads or not found");
+				return;
+			}
+			AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Instrument, AudioAction.Unload, instrumentName, "Audio Asset Loader");
+			_musicInstruments[instrumentName].Dispose();
+			_musicInstruments.Remove(instrumentName);
+		}
 		#endregion
 		
 		#region Voice
@@ -205,10 +248,10 @@ namespace AudioStudio
 			var voice = Resources.Load<VoiceEvent>(loadPath);
 			if (!voice)
 			{                                                            
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");                                    
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");                                    
 				return null;
 			}                        
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader");
 			_voiceEvents[eventName] = voice;
 			voice.Init();	
 			return voice;
@@ -226,7 +269,7 @@ namespace AudioStudio
 			var music = Resources.Load<MusicTrack>(loadPath);
 			if (!music)
 			{
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Music, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");					
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Music, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");					
 				return null;
 			}
 			var musicInstance = new WebMusicInstance(music, music.DefaultFadeInTime, music.DefaultFadeOutTime);
@@ -243,10 +286,10 @@ namespace AudioStudio
 			var voice = Resources.Load<VoiceEvent>(loadPath);
 			if (!voice)
 			{                                                            
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");                                    
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader", "Event not found");                                    
 				return null;
 			}                        
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.Load, eventName, "Audio Asset Loader");
 			_voiceEvents[eventName] = voice;
 			voice.Init();	
 			return voice;

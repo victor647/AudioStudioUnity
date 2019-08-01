@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 using UnityEngine.UI;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/ToggleSound")]
     [DisallowMultipleComponent]
@@ -28,7 +29,7 @@ namespace AudioStudio
         {            
             if(toggle.isOn)
             {
-                AudioManager.DebugToProfiler(MessageType.Component, ObjectType.ToggleSound, AudioAction.Activate, "ToggleOn", gameObject.name);
+                AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.ToggleSound, AudioAction.Activate, "ToggleOn", gameObject.name);
                 foreach (var evt in ToggleOnEvents)
                 {
                     evt.Post();
@@ -37,7 +38,7 @@ namespace AudioStudio
                 return;
             }            
             toggle.interactable = true;                    
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.ToggleSound, AudioAction.Deactivate, "ToggleOff", gameObject.name);            
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.ToggleSound, AudioAction.Deactivate, "ToggleOff", gameObject.name);            
             foreach (var evt in ToggleOffEvents)
             {
                 evt.Post();

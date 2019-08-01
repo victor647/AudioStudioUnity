@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
     using UnityEditor;
 #endif
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
     [CreateAssetMenu(fileName = "New Sound Clip", menuName = "Audio/Sound/Clip")]
     public class SoundClip : SoundContainer
@@ -241,10 +241,10 @@ namespace AudioStudio
                 var startSample = Random.Range(0, SoundClip.Clip.samples);
                 AudioSource.timeSamples = startSample;
                 var message = "Loop starts at position " + startSample * 100 / SoundClip.Clip.samples + "%";
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.Play, SoundClip.name, gameObject.name, message);
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.Play, SoundClip.name, gameObject.name, message);
             } 
             else
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.Play, SoundClip.name, gameObject.name, SoundClip.Loop ? "Loop" : "");
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.Play, SoundClip.name, gameObject.name, SoundClip.Loop ? "Loop" : "");
             PlayingStatus = PlayingStatus.Playing;  
             StartCoroutine(AudioSource.Play(fadeInTime));
         }
@@ -261,10 +261,10 @@ namespace AudioStudio
             if (AudioSource.timeSamples < TimeSamples)
             {                                        
                 if (AudioSource.isPlaying) //loop back
-                    AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.Loop, SoundClip.name, gameObject.name);
+                    AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.Loop, SoundClip.name, gameObject.name);
                 else //finish playing
                 {
-                    AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.End, SoundClip.name, gameObject.name);
+                    AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.End, SoundClip.name, gameObject.name);
                     AudioEnd();
                 }
             }
@@ -358,7 +358,7 @@ namespace AudioStudio
             AudioSource.panStereo = SoundClip.Pan;
             AudioSource.pitch = SoundClip.Pitch;
             SeekPositionAndPlay(SoundClip.CrossFadeTime);		
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.Loop, SoundClip.name, Emitter.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.Loop, SoundClip.name, Emitter.name);
         }
         
         protected override void AudioEnd()

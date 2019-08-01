@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AudioStudio.Configs;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -151,7 +152,7 @@ namespace AudioStudio
             
             if (!CurrentPlayingEvent) //no music is currently playing
             {                
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.PostEvent, evt.name, "Music Transport");
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.PostEvent, evt.name, "Music Transport");
                 CurrentPlayingEvent = evt;
                 ActiveTracks.Clear();
                 GetTracks(evt, ActiveTracks);
@@ -171,7 +172,7 @@ namespace AudioStudio
                 
                 QueuedMusicData = new TransportData(QueuedTracks[0]);
                 PrepareTransition(fadeInTime, fadeOutTime, exitOffset, entryOffset);
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.SetQueue, evt.name, "Music Transport", TransitionInterval != TransitionInterval.Immediate? "MusicEvent will play on " + TransitionInterval : "");
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.SetQueue, evt.name, "Music Transport", TransitionInterval != TransitionInterval.Immediate? "MusicEvent will play on " + TransitionInterval : "");
             }
         }
 
@@ -231,7 +232,7 @@ namespace AudioStudio
                     {
                         _triggerStingerSampleStamp += BeatsPerBar * BeatDurationSamples;
                     }
-                    AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.SetQueue, stinger.name, "Music Transport", "MusicStinger queued on NextBar");
+                    AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.SetQueue, stinger.name, "Music Transport", "MusicStinger queued on NextBar");
                     break;
                 case TransitionInterval.NextBeat:
                     _triggerStingerSampleStamp = Mathf.FloorToInt(_beatSampleStamp + BeatDurationSamples - stinger.PickUpLength * SampleRate);                                            
@@ -239,7 +240,7 @@ namespace AudioStudio
                     {
                         _triggerStingerSampleStamp += BeatDurationSamples;
                     }
-                    AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.SetQueue, stinger.name, "Music Transport", "MusicStinger queued on NextBeat");
+                    AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.SetQueue, stinger.name, "Music Transport", "MusicStinger queued on NextBeat");
                     break;
             }            
         }
@@ -249,7 +250,7 @@ namespace AudioStudio
             _triggerStingerSampleStamp = 0;
             if (PlayingTrackInstances.Count == 0)
             {
-                AudioManager.DebugToProfiler(MessageType.Warning, ObjectType.Music, AudioAction.Stinger, _queuedStinger.name, "Music Transport", "No music is playing, MusicStinger won't play");
+                AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Music, AudioAction.Stinger, _queuedStinger.name, "Music Transport", "No music is playing, MusicStinger won't play");
                 return;
             }
 
@@ -258,7 +259,7 @@ namespace AudioStudio
                 if ((keyAssignment.Keys & CurrentKey) != MusicKey.None)
                     PlayHeadAudioSource.PlayOneShot(keyAssignment.Clip, _queuedStinger.Volume);       
             }
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Stinger, _queuedStinger.name, "Music Transport", CurrentKey.ToString());
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Stinger, _queuedStinger.name, "Music Transport", CurrentKey.ToString());
         }
         #endregion
 
@@ -290,7 +291,7 @@ namespace AudioStudio
             PlayingStatus = PlayingStatus.PreEntry;
             var pickupBeats = Mathf.CeilToInt(ActiveMusicData.MusicTrack.PickupBeats);
             PlayHeadPosition = BarAndBeat.ToBarAndBeat(pickupBeats, BeatsPerBar).Negative(BeatsPerBar);
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.PreEntry, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.PreEntry, CurrentPlayingEvent.name, "Music Transport");
         }
         
         private void OnLoopStartPosition()
@@ -305,7 +306,7 @@ namespace AudioStudio
             LoopCallback?.Invoke();
             
             if (RemainingLoops != 1) //more loops to go
-                AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Loop, CurrentPlayingEvent.name, "Music Transport");
+                AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Loop, CurrentPlayingEvent.name, "Music Transport");
             else if (CurrentPlayingEvent.PlayLogic == MusicPlayLogic.SequenceContinuous)            
                 SetSequence(CurrentPlayingEvent.GetNextEvent());            
         }
@@ -359,7 +360,7 @@ namespace AudioStudio
             PlayingStatus = PlayingStatus.PostExit;
             Invoke(nameof(Stop), SamplesToTime(TrackLengthSamples - ExitPositionSamples));
             ExitCallback?.Invoke();
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.PostExit, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.PostExit, CurrentPlayingEvent.name, "Music Transport");
         }
 
         public void Stop()
@@ -379,7 +380,7 @@ namespace AudioStudio
                 if (esi) esi.Stop(fadeOutTime);                
             }            
             Invoke(nameof(ResetAll), fadeOutTime);         
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.StopEvent, CurrentPlayingEvent.name, "Music Transport", _fadeOutTime + "s fade out");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.StopEvent, CurrentPlayingEvent.name, "Music Transport", _fadeOutTime + "s fade out");
         }
 
         private void ResetAll() //reset music transport to idle
@@ -463,7 +464,7 @@ namespace AudioStudio
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
             
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.TransitionEnter, CurrentPlayingEvent.name, "Music Transport", _fadeInTime + "s fade in");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.TransitionEnter, CurrentPlayingEvent.name, "Music Transport", _fadeInTime + "s fade in");
             CreateMusicTrackInstances(_fadeInTime);            
             PreEntry();
 
@@ -478,7 +479,7 @@ namespace AudioStudio
 
         private void TransitionExit() //old music finishes playing
         {                        
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.TransitionExit, CurrentPlayingEvent.name, "Music Transport", _fadeOutTime + "s fade out");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.TransitionExit, CurrentPlayingEvent.name, "Music Transport", _fadeOutTime + "s fade out");
             foreach (var mti in _exitingTrackInstances)
             {
                 mti.Stop(_fadeOutTime);                
@@ -567,7 +568,7 @@ namespace AudioStudio
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
             
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.SequenceEnter, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.SequenceEnter, CurrentPlayingEvent.name, "Music Transport");
             CreateMusicTrackInstances(_fadeInTime);            
             PreEntry();
 
@@ -577,7 +578,7 @@ namespace AudioStudio
         
         private void SequenceExit() //old sequence track finishes
         {
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.SequenceExit, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.SequenceExit, CurrentPlayingEvent.name, "Music Transport");
             foreach (var mti in _exitingTrackInstances)
             {
                 mti.Stop(_fadeOutTime);                
@@ -712,7 +713,7 @@ namespace AudioStudio
             {			
                 mti.Pause(fadeOutTime);
             }
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Pause, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Pause, CurrentPlayingEvent.name, "Music Transport");
         }
         
         public void Resume(float fadeInTime)
@@ -721,7 +722,7 @@ namespace AudioStudio
             {			
                 mti.Resume(fadeInTime);
             }
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Resume, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Resume, CurrentPlayingEvent.name, "Music Transport");
         }
         
         public void Mute(float fadeOutTime)
@@ -730,7 +731,7 @@ namespace AudioStudio
             {			
                 mti.Mute(fadeOutTime);
             }
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Mute, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Mute, CurrentPlayingEvent.name, "Music Transport");
         }
         
         public void UnMute(float fadeInTime)
@@ -739,7 +740,7 @@ namespace AudioStudio
             {			                
                 mti.UnMute(fadeInTime);                
             }
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Unmute, CurrentPlayingEvent.name, "Music Transport");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Unmute, CurrentPlayingEvent.name, "Music Transport");
         }
         
         public void SetOutputBus(AudioMixerGroup bus)

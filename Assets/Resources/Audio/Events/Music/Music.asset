@@ -36,7 +36,7 @@ MonoBehaviour:
   SwitchImmediately: 1
   CrossFadeTime: 1
   Mappings: []
-  PlayLogic: 1
+  PlayLogic: 2
   LoopCount: 1
   ChildEvents: []
   OverrideTransition: 0

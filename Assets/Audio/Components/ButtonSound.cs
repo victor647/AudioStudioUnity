@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/ButtonSound")]
     [DisallowMultipleComponent]    
@@ -22,19 +23,19 @@ namespace AudioStudio
 
         private void PlaySound()
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.ButtonSound, AudioAction.Activate, "OnClick", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.ButtonSound, AudioAction.Activate, "OnClick", gameObject.name);
             PostEvents(ClickEvents);
         }
 
         public void OnPointerEnter(PointerEventData data)
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.ButtonSound, AudioAction.Activate, "OnPointerEnter", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.ButtonSound, AudioAction.Activate, "OnPointerEnter", gameObject.name);
             PointerEnterEvent.Post();
         }
         
         public void OnPointerExit(PointerEventData data)
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.ButtonSound, AudioAction.Deactivate, "OnPointerExit", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.ButtonSound, AudioAction.Deactivate, "OnPointerExit", gameObject.name);
             PointerExitEvent.Post();
         }
 

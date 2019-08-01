@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System;
+using AudioStudio.Components;
+using AudioStudio.Configs;
 using UnityEngine.Audio;
 
 namespace AudioStudio
@@ -18,7 +20,7 @@ namespace AudioStudio
             if (sc)
                 sc.PostEvent(soundSource, fadeInTime, callback);                                       
             else                            
-                DebugToProfiler(MessageType.Error, ObjectType.Sound, AudioAction.PostEvent, eventName, soundSource.name, "Event not found");                         
+                DebugToProfiler(ProfilerMessageType.Error, ObjectType.Sound, AudioAction.PostEvent, eventName, soundSource.name, "Event not found");                         
         }
 
         public static void StopSound(string eventName, GameObject soundSource = null, float fadeOutTime = -1f)
@@ -29,10 +31,10 @@ namespace AudioStudio
             if (sc)
             {
                 sc.Stop(soundSource, fadeOutTime);     
-                DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.StopEvent, eventName, soundSource.name);
+                DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.StopEvent, eventName, soundSource.name);
             }
             else                           
-                DebugToProfiler(MessageType.Warning, ObjectType.Sound, AudioAction.StopEvent, eventName, soundSource.name, "Event not found");            
+                DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Sound, AudioAction.StopEvent, eventName, soundSource.name, "Event not found");            
         }
 
         public static void StopAll(GameObject soundSource = null, float fadeOutTime = 0f)
@@ -41,14 +43,14 @@ namespace AudioStudio
             var instances = soundSource.GetComponentsInChildren<AudioEventInstance>();
             if (instances.Length > 0)
             {
-                DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.StopEvent, "Stop All", soundSource.name);
+                DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.StopEvent, "Stop All", soundSource.name);
                 foreach (var sci in instances)
                 {
                     sci.Stop(fadeOutTime);
                 }
             }
             else
-                DebugToProfiler(MessageType.Warning, ObjectType.Sound, AudioAction.StopEvent, "Stop All", "No playing instance found");
+                DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Sound, AudioAction.StopEvent, "Stop All", "No playing instance found");
         }
         
         public static void StopAll(string eventName, float fadeOutTime = 0f)
@@ -58,7 +60,7 @@ namespace AudioStudio
             if (sc)
                 sc.StopAll(fadeOutTime);  			
             else                           
-                DebugToProfiler(MessageType.Warning, ObjectType.Sound, AudioAction.StopEvent, eventName, "Global", "SoundEvent does not exist, stop fails");            
+                DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Sound, AudioAction.StopEvent, eventName, "Global", "SoundEvent does not exist, stop fails");            
         }
         #endregion
 
@@ -129,6 +131,16 @@ namespace AudioStudio
                 MusicTransport.Instance.QueueStinger(stinger);             
 #endif               
         }
+
+        public static void PlayInstrument(string instrumentName, byte channel = 1)
+        {
+            AudioAssetLoader.LoadInstrument(instrumentName, channel);
+        }
+        
+        public static void StopInstrument(string instrumentName)
+        {
+            AudioAssetLoader.UnloadInstrument(instrumentName);
+        }
         #endregion
 
         #region Voice        
@@ -155,7 +167,7 @@ namespace AudioStudio
             if (voice)
                 voice.Stop(soundSource, fadeOutTime);   
             else                        
-                DebugToProfiler(MessageType.Warning, ObjectType.Voice, AudioAction.StopEvent, eventName, soundSource.name, "VoiceEvent does not exist, stop fails");                           
+                DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Voice, AudioAction.StopEvent, eventName, soundSource.name, "VoiceEvent does not exist, stop fails");                           
         }
 
         public static void StopCurrentVoice()
@@ -172,7 +184,7 @@ namespace AudioStudio
             if (swc)
                 swc.SetSwitchGlobal(switchName);
             else                            
-                DebugToProfiler(MessageType.Error, ObjectType.Switch, AudioAction.SetValue, switchGroupName, "Global", "Switch not found");                                    
+                DebugToProfiler(ProfilerMessageType.Error, ObjectType.Switch, AudioAction.SetValue, switchGroupName, "Global", "Switch not found");                                    
         }
 
         public static void SetSwitch(string switchGroupName, string switchName, GameObject affectedGameObject = null)
@@ -183,7 +195,7 @@ namespace AudioStudio
             if (swc)
                 swc.SetSwitch(switchName, affectedGameObject);
             else                            
-                DebugToProfiler(MessageType.Error, ObjectType.Switch, AudioAction.SetValue, switchGroupName, "Global", "Switch not found");                                                               
+                DebugToProfiler(ProfilerMessageType.Error, ObjectType.Switch, AudioAction.SetValue, switchGroupName, "Global", "Switch not found");                                                               
         }
 
         public static string GetSwitch(string switchGroupName, GameObject affectedGameObject = null)
@@ -193,7 +205,7 @@ namespace AudioStudio
             var swc = AudioAssetLoader.GetAudioSwitch(switchGroupName);
             if (swc)
                 return swc.GetSwitch(affectedGameObject);                                
-            DebugToProfiler(MessageType.Error, ObjectType.Switch, AudioAction.GetValue, switchGroupName, "Global", "Switch not found");   	
+            DebugToProfiler(ProfilerMessageType.Error, ObjectType.Switch, AudioAction.GetValue, switchGroupName, "Global", "Switch not found");   	
             return "";
         }
         #endregion
@@ -206,7 +218,7 @@ namespace AudioStudio
             if (ap)
                 ap.SetValueGlobal(parameterValue);   
             else
-                DebugToProfiler(MessageType.Error, ObjectType.Parameter, AudioAction.SetValue, parameterName, "Global", "Parameter not found");                                    
+                DebugToProfiler(ProfilerMessageType.Error, ObjectType.Parameter, AudioAction.SetValue, parameterName, "Global", "Parameter not found");                                    
         }
 
         public static void SetParameterValue(string parameterName, float parameterValue, GameObject affectedGameObject = null)
@@ -217,7 +229,7 @@ namespace AudioStudio
             if (ap)
                 ap.SetValue(parameterValue, affectedGameObject);   
             else           
-                DebugToProfiler(MessageType.Error, ObjectType.Parameter, AudioAction.SetValue, parameterName, "Global", "Parameter not found");            
+                DebugToProfiler(ProfilerMessageType.Error, ObjectType.Parameter, AudioAction.SetValue, parameterName, "Global", "Parameter not found");            
         }
 
         public static float GetParameterValue(string parameterName, GameObject affectedGameObject = null)
@@ -227,7 +239,7 @@ namespace AudioStudio
             var ap = AudioAssetLoader.GetAudioParameter(parameterName);
             if (ap)
                 return ap.GetValue(affectedGameObject);         
-            DebugToProfiler(MessageType.Error, ObjectType.Parameter, AudioAction.GetValue, parameterName, "Global", "Parameter not found");	
+            DebugToProfiler(ProfilerMessageType.Error, ObjectType.Parameter, AudioAction.GetValue, parameterName, "Global", "Parameter not found");	
             return 0f;
         }
         #endregion
@@ -241,7 +253,12 @@ namespace AudioStudio
         public static void UnloadBank(string bankName)
         {
             AudioAssetLoader.UnloadBank(bankName);                                                   
-        }       
+        }  
+        
+        public static void UnloadBanks(string nameFilter)
+        {
+            AudioAssetLoader.UnloadBanks(nameFilter);                                                   
+        }   
         #endregion
                 
         #region PreferenceSetting
@@ -276,7 +293,7 @@ namespace AudioStudio
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("SoundVolume", decibel);
                 PlayerPrefs.SetInt("AUDIO_SOUND", value ? 1: 0);                   
-                DebugToProfiler(MessageType.Notification, ObjectType.Sound, 
+                DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, 
                     value ? AudioAction.Activate : AudioAction.Deactivate, value ? "Sound On" : "Sound Off", "Global");
             }
         }
@@ -294,7 +311,7 @@ namespace AudioStudio
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("VoiceVolume", decibel);
                 PlayerPrefs.SetInt("AUDIO_VOICE", value ? 1: 0);        
-                DebugToProfiler(MessageType.Notification, ObjectType.Voice, 
+                DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, 
                     value ? AudioAction.Activate : AudioAction.Deactivate, value ? "Voice On" : "Voice Off", "Global");
             }
         }
@@ -312,7 +329,7 @@ namespace AudioStudio
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("MusicVolume", decibel);
                 PlayerPrefs.SetInt("AUDIO_MUSIC", value ? 1: 0);             
-                DebugToProfiler(MessageType.Notification, ObjectType.Music, 
+                DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, 
                     value ? AudioAction.Activate : AudioAction.Deactivate, value ? "Music On" : "Music Off", "Global");
             }
         }
@@ -381,7 +398,7 @@ namespace AudioStudio
             {
                 if (VoiceLanguage == value) return;
                 PlayerPrefs.SetInt("VOICE_LANGUAGE", (int)value);                          
-                DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.SetValue, "Set Language", "Global", value.ToString());
+                DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.SetValue, "Set Language", "Global", value.ToString());
             }
         }        
         #endregion
@@ -423,14 +440,14 @@ namespace AudioStudio
         #endregion
         
         #region Profiler
-        public static MessageType LogLevel;
-        public static void DebugToProfiler(MessageType messageType, ObjectType objectType, AudioAction action, string eventName, string gameObject = "Global Audio Emitter", string message = "")
+        public static ProfilerMessageType LogLevel;
+        public static void DebugToProfiler(ProfilerMessageType messageType, ObjectType objectType, AudioAction action, string eventName, string gameObject = "Global Audio Emitter", string message = "")
         {
 #if UNITY_EDITOR
-            if (AudioProfiler.Instance && LogLevel!= MessageType.None)
+            if (AudioProfiler.Instance && LogLevel!= ProfilerMessageType.None)
                 AudioProfiler.Instance.AddLog(messageType, objectType, action, eventName, gameObject, message, Time.time.ToString("0.000"));
 #else
-            if ((LogLevel & messageType) != MessageType.None && Debug.unityLogger.logEnabled)
+            if ((LogLevel & messageType) != ProfilerMessageType.None && Debug.unityLogger.logEnabled)
             {
                 var log = $"AudioManager: {messageType}_{objectType}_{action}\tName: {eventName}\tGameObject: {gameObject}\tMessage: {message}";
                 Debug.Log(log);

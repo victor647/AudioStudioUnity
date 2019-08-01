@@ -82,9 +82,20 @@ namespace AudioStudio
             return _midiChannels[channel].NoteValues[noteNumber] > 0;
         }
         
-        public byte GetNoteHolding(byte channel = 0)
+        public byte GetLowestNoteHolding(byte channel = 0)
         {
             for (byte i = 0; i < 128; i++)
+            {
+                var velocity = _midiChannels[channel].NoteValues[i];
+                if (velocity > 0)
+                    return i;
+            }
+            return 255;
+        }
+        
+        public byte GetHighestNoteHolding(byte channel = 0)
+        {
+            for (byte i = 127; i < 255; i--)
             {
                 var velocity = _midiChannels[channel].NoteValues[i];
                 if (velocity > 0)

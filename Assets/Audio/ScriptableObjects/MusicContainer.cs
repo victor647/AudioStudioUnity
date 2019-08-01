@@ -2,9 +2,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using AudioStudio.Components;
 using Random = UnityEngine.Random;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
     public enum MusicPlayLogic
     {
@@ -151,7 +152,7 @@ namespace AudioStudio
                 case MusicPlayLogic.Random:
                     if (ChildEvents.Count < 2)
                     {
-                        AudioManager.DebugToProfiler(MessageType.Warning, ObjectType.Music, AudioAction.PostEvent, name, "Music Transport", "Random MusicEvent only has 1 element");
+                        AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Music, AudioAction.PostEvent, name, "Music Transport", "Random MusicEvent only has 1 element");
                         return ChildEvents[0];
                     }
                     var selectedIndex = Random.Range(0, ChildEvents.Count);

@@ -2,7 +2,7 @@
 using UnityEngine.Audio;
 using UnityEngine.UI;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     public class AudioLanguageSettings : MonoBehaviour
     {        

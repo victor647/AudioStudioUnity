@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	[CreateAssetMenu(fileName = "New Bank", menuName = "Audio/SoundBank")]
-	public class SoundBank : AudioObject
+	public class SoundBank : AudioConfig
 	{
 		#region Initialize
 		public static int GlobalBankCount;

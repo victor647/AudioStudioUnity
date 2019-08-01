@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {		
 	[CreateAssetMenu(fileName = "New Switch", menuName = "Audio/Switch")]
 	public class AudioSwitch : AudioController
@@ -27,7 +27,7 @@ namespace AudioStudio
 		{
 			if (!SwitchNames.Contains(newSwitch))
 			{
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Switch, AudioAction.SetValue, name, "Global", "Can't find switch named " + newSwitch);
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Switch, AudioAction.SetValue, name, "Global", "Can't find switch named " + newSwitch);
 				return;
 			}
 			foreach (var asi in _audioSwitchInstances)
@@ -40,7 +40,7 @@ namespace AudioStudio
 		{
 			if (!SwitchNames.Contains(newSwitch))
 			{
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Switch, AudioAction.SetValue, name, "Global", "Can't find switch named " + newSwitch);
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Switch, AudioAction.SetValue, name, "Global", "Can't find switch named " + newSwitch);
 				return;
 			}			
 			GetOrAddSwitchInstance(affectedGameObject).SetSwitch(newSwitch);			
@@ -50,7 +50,7 @@ namespace AudioStudio
 		{			
 			var asi = GetOrAddSwitchInstance(affectedGameObject);
 			var switchName = asi.CurrentSwitch;
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Switch, AudioAction.GetValue, name, asi.gameObject.name, "Switch is at " + switchName);							
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Switch, AudioAction.GetValue, name, asi.gameObject.name, "Switch is at " + switchName);							
 			return switchName;
 		}
 
@@ -96,23 +96,23 @@ namespace AudioStudio
 				{
 					CurrentSwitch = newSwitch;
 					OnSwitchChanged?.Invoke(gameObject);
-					AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Switch, AudioAction.SetValue, name, gameObject.name, "Switch is set at " + newSwitch);
+					AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Switch, AudioAction.SetValue, name, gameObject.name, "Switch is set at " + newSwitch);
 				}
 				else
-					AudioManager.DebugToProfiler(MessageType.Warning, ObjectType.Switch, AudioAction.SetValue, name, gameObject.name, "The same switch is already set");					
+					AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Switch, AudioAction.SetValue, name, gameObject.name, "The same switch is already set");					
 			}
 		}		
 	}		
 		
     [Serializable]
-    public class SwitchEventMapping
+    public struct SwitchEventMapping
     {		
         public string SwitchName;
         public AudioEvent AudioEvent;	    
     }
 	
 	[Serializable]
-	public class SwitchClipMapping
+	public struct SwitchClipMapping
 	{		
 		public string SwitchName;
 		public AudioClip Clip;	    

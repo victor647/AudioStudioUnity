@@ -1,8 +1,9 @@
 ﻿using System.Collections;
+using AudioStudio.Configs;
 using UnityEngine;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
 	[AddComponentMenu("AudioStudio/PeriodSound")]
 	[DisallowMultipleComponent]
@@ -20,14 +21,14 @@ namespace AudioStudio
 		protected override void HandleEnableEvent()
 		{			
 			_isActive = true;			
-			AudioManager.DebugToProfiler(MessageType.Component, ObjectType.PeriodSound, AudioAction.Activate, "OnEnable", gameObject.name);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.PeriodSound, AudioAction.Activate, "OnEnable", gameObject.name);
 			StartCoroutine(PlaySound());
 		}
 
 		protected override void HandleDisableEvent()
 		{
 			_isActive = false;
-			AudioManager.DebugToProfiler(MessageType.Component, ObjectType.PeriodSound, AudioAction.Deactivate, "OnDisable", gameObject.name);			
+			AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.PeriodSound, AudioAction.Deactivate, "OnDisable", gameObject.name);			
 		}
 
 		private IEnumerator PlaySound()

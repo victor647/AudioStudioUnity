@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
     [CreateAssetMenu(fileName = "New Transition Segment", menuName = "Audio/Music/Transition Segment")]
     public class MusicTransitionSegment : MusicTrack

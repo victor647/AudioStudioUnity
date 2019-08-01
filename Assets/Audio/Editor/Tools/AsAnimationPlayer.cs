@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using AudioStudio.Configs;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
 
-namespace AudioStudio{
+namespace AudioStudio.Tools
+{
     public class AsAnimationPlayer : EditorWindow
     {
         public GameObject ModelPrefab;                
@@ -20,7 +22,7 @@ namespace AudioStudio{
         {
             if (!Application.isPlaying)
                 return;
-            AudioInitSettings.Instance.InitializeWithoutObjects();
+            AudioInitSettings.Instance.InitializeWithoutLoading();
             SoundBank.Load();
             _layers = new Dictionary<AnimatorControllerLayer, ChildAnimatorState[]>();
             _model = Instantiate(ModelPrefab);

@@ -1,8 +1,9 @@
 ﻿using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/EffectSound")]
     [DisallowMultipleComponent]
@@ -13,7 +14,7 @@ namespace AudioStudio
         protected override void HandleEnableEvent()
         {
             base.HandleEnableEvent();            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.EffectSound, AudioAction.Activate, "OnEnable", gameObject.name);
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.EffectSound, AudioAction.Activate, "OnEnable", gameObject.name);
             foreach (var evt in EnableEvents)
             {
                 evt.Post(gameObject);

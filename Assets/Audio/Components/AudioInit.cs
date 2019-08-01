@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
 	[DisallowMultipleComponent]
 	public class AudioInit : MonoBehaviour

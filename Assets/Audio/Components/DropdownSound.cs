@@ -1,10 +1,11 @@
 using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/DropdownSound")]
     [DisallowMultipleComponent]
@@ -54,7 +55,7 @@ namespace AudioStudio
         {
             if (PopupEvents.Length > 0)
             {
-                AudioManager.DebugToProfiler(MessageType.Component, ObjectType.DropdownSound, AudioAction.Activate, "Popup", gameObject.name);
+                AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.DropdownSound, AudioAction.Activate, "Popup", gameObject.name);
                 PostEvents(PopupEvents);
             }
             _isPoppedUp = true;
@@ -64,7 +65,7 @@ namespace AudioStudio
         {
             if (ValueChangeEvents.Length > 0)
             {
-                AudioManager.DebugToProfiler(MessageType.Component, ObjectType.DropdownSound, AudioAction.Activate, "OnValueChange", gameObject.name);
+                AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.DropdownSound, AudioAction.Activate, "OnValueChange", gameObject.name);
                 PostEvents(ValueChangeEvents);
             }            
         }
@@ -75,7 +76,7 @@ namespace AudioStudio
             {
                 if (CloseEvents.Length > 0)
                 {
-                    AudioManager.DebugToProfiler(MessageType.Component, ObjectType.DropdownSound, AudioAction.Deactivate, "Close", gameObject.name);
+                    AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.DropdownSound, AudioAction.Deactivate, "Close", gameObject.name);
                     PostEvents(CloseEvents);
                 }
             }            

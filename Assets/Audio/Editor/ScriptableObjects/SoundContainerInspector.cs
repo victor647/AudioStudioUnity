@@ -1,8 +1,9 @@
 using System.Linq;
+using AudioStudio.Configs;
 using UnityEngine;
 using UnityEditor;
 
-namespace AudioStudio
+namespace AudioStudio.Editor
 {	
     [CustomEditor(typeof(SoundContainer)), CanEditMultipleObjects]
     public class SoundContainerInspector : AudioEventInspector
@@ -51,7 +52,7 @@ namespace AudioStudio
 	                    if (_soundContainer.SwitchImmediately) DrawProperty("CrossFadeTime", "Cross Fade Time", 116, 50);		                    	                    
                         DrawProperty("AudioSwitchReference", "Switch", 100);			
                         EditorGUILayout.LabelField("Switch Assignment");
-                        AudioScriptGUI.DrawList(serializedObject.FindProperty("SwitchAssignments"), "", AddChildEvent);
+                        AudioScriptGUI.DrawList(serializedObject.FindProperty("SwitchEventMappings"), "", AddChildEvent);
                         break;
                 }					
             }

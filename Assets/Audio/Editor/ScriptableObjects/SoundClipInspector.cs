@@ -1,7 +1,8 @@
-﻿using UnityEditor;
+﻿using AudioStudio.Configs;
+using UnityEditor;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Editor
 {
 	[CustomEditor(typeof(SoundClip)), CanEditMultipleObjects]
 	public class SoundClipInspector : SoundContainerInspector

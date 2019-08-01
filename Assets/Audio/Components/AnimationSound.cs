@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/AnimationSound")]
     [DisallowMultipleComponent]
@@ -15,13 +15,13 @@ namespace AudioStudio
 
         public void PlaySound(string eventName)
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.AnimationSound, AudioAction.Activate,"KeyFrame PlaySound", gameObject.name);            
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.AnimationSound, AudioAction.Activate,"KeyFrame PlaySound", gameObject.name);            
             AudioManager.PlaySound(eventName, gameObject);
         }
         
         public void PlayVoice(string eventName)
         {            
-            AudioManager.DebugToProfiler(MessageType.Component, ObjectType.AnimationSound, AudioAction.Activate,"KeyFrame PlayVoice", gameObject.name);            
+            AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.AnimationSound, AudioAction.Activate,"KeyFrame PlayVoice", gameObject.name);            
             AudioManager.PlayVoice(eventName);
         }
 

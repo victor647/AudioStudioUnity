@@ -1,8 +1,9 @@
 ﻿using System;
+using AudioStudio.Components;
 using UnityEngine;
 using UnityEngine.Audio;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	[Flags]
 	public enum MusicKey
@@ -178,7 +179,7 @@ namespace AudioStudio
 			AudioSource.pitch = MusicTrack.Pitch;
 			AudioSource.timeSamples = timeSamples > MusicTrack.Clip.samples? 0 : timeSamples;
 			StartCoroutine(AudioSource.Play(fadeInTime));			
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Play, MusicTrack.name, "Music Transport");
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Play, MusicTrack.name, "Music Transport");
 		}
 
 		public override void Stop(float fadeOutTime)

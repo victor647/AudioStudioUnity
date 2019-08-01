@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using Random = UnityEngine.Random;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	#region Enums	
 	public enum VoicePlayLogic 
@@ -56,7 +56,7 @@ namespace AudioStudio
 				case VoicePlayLogic.Random:
 					if (Clips.Count < 2)
 					{
-						AudioManager.DebugToProfiler(MessageType.Warning, ObjectType.Voice, AudioAction.Play, name, soundSource.name, "Random VoiceEvent only has 1 element");
+						AudioManager.DebugToProfiler(ProfilerMessageType.Warning, ObjectType.Voice, AudioAction.Play, name, soundSource.name, "Random VoiceEvent only has 1 element");
 						return Clips[0];
 					}
 					var selectedIndex = Random.Range(0, Clips.Count);
@@ -90,12 +90,12 @@ namespace AudioStudio
 #if UNITY_EDITOR || !UNITY_WEBGL
 		public override void Play(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
 		{								
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.PostEvent, name, soundSource.name);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.PostEvent, name, soundSource.name);
 			if (PlayLogic != VoicePlayLogic.Single)
 				Clip = GetClip(soundSource);
 			if (Clip == null)
 			{
-				AudioManager.DebugToProfiler(MessageType.Error, ObjectType.Voice, AudioAction.Play, name, soundSource.name, "Audio Clip is missing!");
+				AudioManager.DebugToProfiler(ProfilerMessageType.Error, ObjectType.Voice, AudioAction.Play, name, soundSource.name, "Audio Clip is missing!");
 				return;
 			}
 
@@ -107,7 +107,7 @@ namespace AudioStudio
 		public override void Stop(GameObject soundSource, float fadeOutTime)
 		{			
 			if (fadeOutTime < 0f) fadeOutTime = DefaultFadeOutTime;
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.StopEvent, name, soundSource.name);									
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.StopEvent, name, soundSource.name);									
 			foreach (var vci in VoiceEventInstances)
 			{
 				if (vci.Emitter == soundSource)
@@ -218,14 +218,14 @@ namespace AudioStudio
 		{
 			OnAudioEnd = endCallback;
 			StartCoroutine(AudioSource.Play(fadeInTime));	
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.Play, AudioSource.clip.name, gameObject.name);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.Play, AudioSource.clip.name, gameObject.name);
 		}
 
 		private void FixedUpdate()
 		{
 			if (AudioSource.timeSamples < TimeSamples && !AudioSource.loop)
 			{
-				AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Voice, AudioAction.End, AudioSource.clip.name, gameObject.name);
+				AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Voice, AudioAction.End, AudioSource.clip.name, gameObject.name);
 				AudioEnd();
 			}
 			TimeSamples = AudioSource.timeSamples;

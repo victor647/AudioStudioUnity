@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Name: AudioInitSettings
   m_EditorClassIdentifier: 
   ProfilerLogLevel: 4
+  UseMicrophone: 1
+  UseMidi: 1
   StartBanks: []
   StartEvents: []
   PostEvents: 0

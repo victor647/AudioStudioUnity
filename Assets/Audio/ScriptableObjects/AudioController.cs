@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
-	public abstract class AudioObject : ScriptableObject
+	public abstract class AudioConfig : ScriptableObject
 	{		
 		public virtual void OnValidate()
 		{
@@ -11,7 +11,7 @@ namespace AudioStudio
 		public abstract void CleanUp();
 	}
 	
-	public abstract class AudioController : AudioObject
+	public abstract class AudioController : AudioConfig
 	{
 		public abstract void Init();
 		public abstract void Dispose();

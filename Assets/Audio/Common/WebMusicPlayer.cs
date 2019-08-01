@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using AudioStudio.Configs;
 using UnityEngine;
 
 namespace AudioStudio
@@ -133,7 +134,7 @@ namespace AudioStudio
 
 		public void PlayMusic(WebMusicInstance music)
 		{
-            AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Music, AudioAction.Play, music.Track.name, "Web Music Player");
+            AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Music, AudioAction.Play, music.Track.name, "Web Music Player");
             if (CurrentPlaying == null)
 			{
 				CurrentPlaying = music;

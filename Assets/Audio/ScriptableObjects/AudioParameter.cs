@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	[CreateAssetMenu(fileName = "New Parameter", menuName = "Audio/Parameter")]
 	public class AudioParameter : AudioController
@@ -63,7 +63,7 @@ namespace AudioStudio
 		{			
 			var api = GetOrAddParameterInstance(affectedGameObject);
 			var value = api.CurrentValue;
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Parameter, AudioAction.GetValue, name, api.gameObject.name, "Parameter is at value " + value);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Parameter, AudioAction.GetValue, name, api.gameObject.name, "Parameter is at value " + value);
 			return value;
 		}
 
@@ -113,7 +113,7 @@ namespace AudioStudio
 			public void SetParameterValue(float newValue)
 			{
 				if (_targetSetValue == newValue) return;
-				AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Parameter, AudioAction.SetValue, name, gameObject.name, "Set Parameter value at " + newValue.ToString("0.000"));
+				AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Parameter, AudioAction.SetValue, name, gameObject.name, "Set Parameter value at " + newValue.ToString("0.000"));
 				_targetSetValue = newValue;		
 				SlewValue(newValue);
 			}

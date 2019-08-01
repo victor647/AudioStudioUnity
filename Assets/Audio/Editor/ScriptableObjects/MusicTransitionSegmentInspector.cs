@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using AudioStudio.Configs;
+using UnityEngine;
 using UnityEditor;
 
-namespace AudioStudio
+namespace AudioStudio.Editor
 {
     [CustomEditor(typeof(MusicTransitionSegment)), CanEditMultipleObjects]
     public class MusicTransitionSegmentInspector : MusicTrackInspector

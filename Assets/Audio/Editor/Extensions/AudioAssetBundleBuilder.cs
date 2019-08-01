@@ -4,7 +4,8 @@ using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
- 
+using AudioStudio.Configs;
+
 namespace AudioStudio
 {
     public static class AudioAssetBundleBuilder

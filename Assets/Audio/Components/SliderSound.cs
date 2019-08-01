@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using AudioStudio.Configs;
+using UnityEngine;
 using UnityEngine.UI;
 
-namespace AudioStudio
+namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/SliderSound")]
     [DisallowMultipleComponent]
@@ -18,7 +19,7 @@ namespace AudioStudio
             {
                 s.onValueChanged.AddListener(x =>
                 {
-                    AudioManager.DebugToProfiler(MessageType.Component, ObjectType.SliderSound, AudioAction.Activate, "OnDrag", gameObject.name);
+                    AudioManager.DebugToProfiler(ProfilerMessageType.Component, ObjectType.SliderSound, AudioAction.Activate, "OnDrag", gameObject.name);
                     ConnectedParameter.SetValue(s.value * ValueScale);                    
                     DragEvent.Post();                  
                 });

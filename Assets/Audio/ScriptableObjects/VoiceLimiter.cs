@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace AudioStudio
+namespace AudioStudio.Configs
 {
 	public class AudioVoiceInstance
 	{
@@ -82,7 +82,7 @@ namespace AudioStudio
 
 		private void DebugMessage(string soundName, string rule)
 		{
-			AudioManager.DebugToProfiler(MessageType.Notification, ObjectType.Sound, AudioAction.VoiceLimit, soundName, null, "Voice limit of " + MaxVoicesLimit + " reached, " + rule);
+			AudioManager.DebugToProfiler(ProfilerMessageType.Notification, ObjectType.Sound, AudioAction.VoiceLimit, soundName, null, "Voice limit of " + MaxVoicesLimit + " reached, " + rule);
 		}
 	}
 }

@@ -1,21 +1,23 @@
 using UnityEngine;
 using UnityEditor;
-using AudioStudio;
+using AudioStudio.Components;
 
-[CustomEditor(typeof(AnimationSound)), CanEditMultipleObjects]
-public class AnimationSoundInspector : AsComponentInspector
+namespace AudioStudio.Editor
 {
-    private AnimationSound _component;
-
-    private void OnEnable()
+    [CustomEditor(typeof(AnimationSound)), CanEditMultipleObjects]
+    public class AnimationSoundInspector : AsComponentInspector
     {
-        _component = target as AnimationSound;
-    }
+        private AnimationSound _component;
 
-    public override void OnInspectorGUI()
-    {           
-        AudioScriptGUI.CheckLinkedComponent<Animator>(_component);
-        ShowButtons(_component);    
+        private void OnEnable()
+        {
+            _component = target as AnimationSound;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            AudioScriptGUI.CheckLinkedComponent<Animator>(_component);
+            ShowButtons(_component);
+        }
     }
 }
-
