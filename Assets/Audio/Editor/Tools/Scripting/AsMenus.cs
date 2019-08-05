@@ -75,7 +75,7 @@ namespace AudioStudio.Tools
         public static void AudioStudioBackUp()
         {
             var window = GetWindow<AsImplementationBackup>();
-            window.position = new Rect(500, 300, 500, 450);
+            window.position = new Rect(500, 300, 500, 400);
             window.titleContent = new GUIContent("BackUp");
         }
 

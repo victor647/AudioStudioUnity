@@ -440,14 +440,13 @@ namespace AudioStudio
         #endregion
         
         #region Profiler
-        public static ProfilerMessageType LogLevel;
         public static void DebugToProfiler(ProfilerMessageType messageType, ObjectType objectType, AudioAction action, string eventName, string gameObject = "Global Audio Emitter", string message = "")
         {
 #if UNITY_EDITOR
-            if (AudioProfiler.Instance && LogLevel!= ProfilerMessageType.None)
+            if (AudioProfiler.Instance)
                 AudioProfiler.Instance.AddLog(messageType, objectType, action, eventName, gameObject, message, Time.time.ToString("0.000"));
 #else
-            if ((LogLevel & messageType) != ProfilerMessageType.None && Debug.unityLogger.logEnabled)
+            if (messageType == MessageType.Error && Debug.unityLogger.logEnabled)
             {
                 var log = $"AudioManager: {messageType}_{objectType}_{action}\tName: {eventName}\tGameObject: {gameObject}\tMessage: {message}";
                 Debug.Log(log);

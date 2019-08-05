@@ -33,9 +33,7 @@ namespace AudioStudio
         }
 
 
-        public static bool Initialized;        
-        [EnumFlag(typeof(ProfilerMessageType))]
-        public ProfilerMessageType ProfilerLogLevel = ProfilerMessageType.Error;
+        public static bool Initialized;
         public bool UseMicrophone;
         public bool UseMidi;
         public SoundBankReference[] StartBanks = new SoundBankReference[0];
@@ -79,8 +77,7 @@ namespace AudioStudio
             AudioManager.Platform = Platform.Mobile;
 #elif UNITY_WEBGL
             AudioManager.Platform = Platform.Web;       
-#endif   
-            AudioManager.LogLevel = ProfilerLogLevel;            
+#endif
             AudioManager.AudioMixer = AudioMixer;
             AudioManager.DefaultSpatialSetting = DefaultSpatialSetting;
         }

@@ -8,6 +8,9 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.Xml.Linq;
 using AudioStudio.Components;
+#if UNITY_2018_3_OR_NEWER
+using UnityEditor.Experimental.SceneManagement;
+#endif
 
 namespace AudioStudio.Tools
 {           
@@ -186,7 +189,8 @@ namespace AudioStudio.Tools
         private void ParsePrefab(string prefabPath)
         {            
             var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(prefabPath, typeof(GameObject));
-            if (prefab) ParseGameObject(prefab, prefabPath, true);            
+            if (prefab) 
+                ParsePrefabGameObject(prefab, prefabPath);            
         }
         
         private void ParseScene(string scenePath)
@@ -196,24 +200,64 @@ namespace AudioStudio.Tools
             GameObject[] gameObjects = scene.GetRootGameObjects();
             foreach (var gameObject in gameObjects)
             {                
-                ParseGameObject(gameObject, scenePath, false);
+                ParseSceneGameObject(gameObject, scenePath);
             }                
         }        
         
-        private void ParseGameObject(GameObject gameObject, string rootPath, bool parsingPrefab)
+        private void ParsePrefabGameObject(GameObject gameObject, string rootPath)
         {                                    
             var components = gameObject.GetComponentsInChildren<AsComponent>(true);            
             foreach (var component in components)
             {
-                if (!parsingPrefab && PrefabUtility.GetPrefabType(component.gameObject) != PrefabType.None) continue;
                 var type = component.GetType();
                 if (!ComponentsInSearch.ContainsKey(type) || !ComponentsInSearch[type]) continue;
-                if (SeparateXmlFiles)                
-                    ParseComponent(component, type, rootPath, parsingPrefab ? _outputTypes[type].XPrefabs : _outputTypes[type].XScenes);                
-                else                
-                    ParseComponent(component, type, rootPath, parsingPrefab ? _xPrefabs : _xScenes);                             
+                ParseComponent(component, type, rootPath, SeparateXmlFiles ? _outputTypes[type].XPrefabs : _xPrefabs);
             }
         }  
+        
+#if UNITY_2018_3_OR_NEWER
+        private void ParseSceneGameObject(GameObject gameObject, string rootPath)
+        {                                    
+            var components = gameObject.GetComponentsInChildren<AsComponent>(true);            
+            foreach (var component in components)
+            {
+
+                var type = component.GetType();
+                var prefab = PrefabUtility.GetNearestPrefabInstanceRoot(component.gameObject);
+                if (prefab)
+                {
+                    var overrides = PrefabUtility.GetObjectOverrides(prefab, true);
+                    foreach (var objectOverride in overrides)
+                    {
+                        var c = objectOverride.instanceObject as AsComponent;
+                        if (c == component)
+                        {
+                            if (ComponentsInSearch.ContainsKey(type) && ComponentsInSearch[type])
+                                ParseComponent(component, type, rootPath, SeparateXmlFiles ? _outputTypes[type].XScenes : _xScenes);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if (ComponentsInSearch.ContainsKey(type) && ComponentsInSearch[type])
+                        ParseComponent(component, type, rootPath, SeparateXmlFiles ? _outputTypes[type].XScenes : _xScenes);
+                }
+            }
+        } 
+#else
+        private void ParseSceneGameObject(GameObject gameObject, string rootPath)
+        {                                    
+            var components = gameObject.GetComponentsInChildren<AsComponent>(true);            
+            foreach (var component in components)
+            {
+                if (PrefabUtility.GetPrefabType(component.gameObject) != PrefabType.None) continue;
+                var type = component.GetType();
+                if (ComponentsInSearch.ContainsKey(type) && ComponentsInSearch[type]) 
+                    ParseComponent(component, type, rootPath, SeparateXmlFiles ? _outputTypes[type].XScenes : _xScenes);
+            }
+        }  
+#endif
         
         private XElement WriteComponentToXml(AsComponent component, Type type, string rootPath, XElement xComponent)
         {                        
@@ -233,9 +277,8 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Update
-        private static string ComputeComponentID(Component component, string type = "", string path = "", string gameObject = "")
+        private static string ComputeComponentID(Component component, string type, string path = "", string gameObject = "")
         {
-            if (type == "") type = component.GetType().Name;
             if (path == "") path = FindComponentPath(component);
             if (gameObject == "") gameObject = GetGameObjectPath(component.transform);
             return AudioUtility.GenerateID(type + path + gameObject).ToString();		
@@ -244,21 +287,26 @@ namespace AudioStudio.Tools
         private static string FindComponentPath(Component component)
         {
             var go = component.gameObject;
-            var path = AssetDatabase.GetAssetPath(go);            
+            var path = AssetDatabase.GetAssetPath(go);
             if (string.IsNullOrEmpty(path))
             {
+#if UNITY_2018_3_OR_NEWER
+                var stage = PrefabStageUtility.GetCurrentPrefabStage();
+                path = stage != null ? stage.prefabAssetPath : SceneManager.GetActiveScene().path;
+#else
                 if (PrefabUtility.GetPrefabType(go) != PrefabType.None)
-                {                    
+                {   
 #if UNITY_2018_1_OR_NEWER
                     var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
 #else
                     var prefab = PrefabUtility.GetPrefabParent(go);
-#endif                                        
+#endif                          
                     path = AssetDatabase.GetAssetPath(prefab);
                 } 
                 else                
-                    path = SceneManager.GetActiveScene().path;                					
-            }        
+                    path = SceneManager.GetActiveScene().path;
+#endif
+            }
             return path;
         }        
         
@@ -282,7 +330,7 @@ namespace AudioStudio.Tools
         private XElement FindComponentNode(AsComponent component)
         {
             var type = component.GetType();
-            var id = ComputeComponentID(component);
+            var id = ComputeComponentID(component, type.Name);
             LoadOrCreateXmlDoc(type);                        
             var node = _outputTypes[type].XPrefabs.Descendants("Component").FirstOrDefault(xComponent => AudioUtility.GetXmlAttribute(xComponent, "ID") == id);
             if (node != null) return node;                   
@@ -298,8 +346,7 @@ namespace AudioStudio.Tools
             var xComponent = FindComponentNode(component);
             if (xComponent != null)
             {
-                xComponent.Remove();         
-                //_outputTypes[type].RefreshElements();
+                xComponent.Remove();
                 AudioUtility.WriteXml(filePath, _outputTypes[type].XRoot);                              
             }            
             DestroyImmediate(component, true);
@@ -334,11 +381,23 @@ namespace AudioStudio.Tools
                 else                
                     _outputTypes[type].XPrefabs.Add(WriteComponentToXml(component, type, path, xComponent));                                                
             }
-            //_outputTypes[type].RefreshElements();
             AudioUtility.WriteXml(filePath, _outputTypes[type].XRoot);
             return true;
         }
-
+        
+#if UNITY_2018_3_OR_NEWER
+        public static void SaveComponentAsset(GameObject go)
+        {
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (stage != null) //in prefab edit mode, apply to prefab
+                PrefabUtility.SavePrefabAsset(go);
+            else //save prefab to scene
+            {
+                var scene = SceneManager.GetActiveScene();
+                EditorSceneManager.SaveScene(scene, scene.path, false);
+            }
+        }
+#else
         public static void SaveComponentAsset(GameObject go)
         {
             EditorUtility.SetDirty(go);
@@ -347,7 +406,7 @@ namespace AudioStudio.Tools
                 if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go)))
                 {
 #if UNITY_2018_1_OR_NEWER
-                var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
+                    var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
 #else
                     var prefab = PrefabUtility.GetPrefabParent(go);
 #endif
@@ -363,6 +422,7 @@ namespace AudioStudio.Tools
                 EditorSceneManager.SaveScene(scene, scene.path, false);			
             }		
         }
+#endif
         
         private static AsComponent GetComponentFromXml(XElement xComponent, bool addIfNotFound)
         {                                      
@@ -393,7 +453,6 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Compare
-
         protected internal void Compare()
         {            
             var filePath = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
@@ -409,7 +468,6 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Import
-
         protected internal void Import()
         {            
             CleanUp();
@@ -462,18 +520,21 @@ namespace AudioStudio.Tools
             {
                 var xPrefabName = AudioUtility.GetXmlAttribute(xComponent, "Asset");
                 if (xPrefabName != prefabName) continue;
-                
-                var prefabPath = AudioUtility.CombinePath(AudioUtility.GetXmlAttribute(xComponent, "Path"), xPrefabName);                    
+                var fullPath = AudioUtility.CombinePath(AudioUtility.GetXmlAttribute(xComponent, "Path"), xPrefabName);                    
                 var type = AudioUtility.StringToType(AudioUtility.GetXmlAttribute(xComponent, "Type"));
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(fullPath);
                 if (prefab == null)
                 {
-                    Debug.LogWarning("Import Failed: Can't find prefab at " + prefabPath);
+                    Debug.LogError("Import Failed: Can't find prefab at " + fullPath);
                     continue;
                 }                
                 var objName = AudioUtility.GetXmlAttribute(xComponent, "GameObject");
                 var child = GetGameObject(prefab, objName);
-                if (child == null) continue;
+                if (child == null)
+                {
+                    Debug.LogError("Import Failed: Can't find game object at " + objName + " in prefab " + fullPath);
+                    continue;
+                }
                 var component = child.GetComponent(type) as AsComponent;
                 if (!component) component = child.AddComponent(type) as AsComponent;
                 if (RefreshComponent(component, xComponent))
@@ -502,16 +563,19 @@ namespace AudioStudio.Tools
                     if (EditorUtility.DisplayCancelableProgressBar("Reading Scenes", fullPath, i * 1.0f / totalCount)) break;
 
                     var type = AudioUtility.StringToType(AudioUtility.GetXmlAttribute(xComponent, "Type"));
-                    EditorSceneManager.OpenScene(fullPath);
-                    var scene = SceneManager.GetActiveScene();
-                    GameObject[] rootGameObjects = scene.GetRootGameObjects();
+                    var scene = EditorSceneManager.OpenScene(fullPath);
+                    var rootGameObjects = scene.GetRootGameObjects();
                     var objName = AudioUtility.GetXmlAttribute(xComponent, "GameObject");
 
                     var sceneEdited = false;
                     foreach (var rootGameObject in rootGameObjects)
                     {
                         var child = GetGameObject(rootGameObject, objName);
-                        if (child == null) continue;
+                        if (child == null)
+                        {
+                            Debug.LogError("Import Failed: Can't find game object at " + objName + " in prefab " + fullPath);
+                            continue;
+                        }
                         var component = child.GetComponent(type) as AsComponent;
                         if (isCompare)
                         {
@@ -573,13 +637,16 @@ namespace AudioStudio.Tools
                     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(fullPath);
                     if (prefab == null)
                     {
-                        Debug.LogWarning("Import Failed: Can't find prefab at " + fullPath);
+                        Debug.LogError("Import Failed: Can't find prefab at " + fullPath);
                         continue;
                     }
-
                     var objName = AudioUtility.GetXmlAttribute(xComponent, "GameObject");
                     var child = GetGameObject(prefab, objName);
-                    if (child == null) continue;
+                    if (child == null)
+                    {
+                        Debug.LogError("Import Failed: Can't find game object at " + objName + " in prefab " + fullPath);
+                        continue;
+                    }
                     var component = child.GetComponent(type) as AsComponent;
                     if (isCompare)
                     {

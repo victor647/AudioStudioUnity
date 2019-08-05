@@ -94,7 +94,7 @@ namespace AudioStudio.Tools
         {
             if (typeName == "") return null;
             var assembly = Assembly.Load("Assembly-CSharp");
-            return (assembly.GetType(typeName) ?? assembly.GetType("AudioStudio." + typeName)) ??
+            return (assembly.GetType(typeName) ?? assembly.GetType("AudioStudio.Components." + typeName)) ??
                    Type.GetType("UnityEngine." + typeName + ", UnityEngine");
         }  
         

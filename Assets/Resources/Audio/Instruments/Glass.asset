@@ -20,30 +20,30 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
-      inSlope: 0
+      value: 0.24375153
+      inSlope: 1
       outSlope: 1
-      tangentMode: 0
+      tangentMode: 34
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     - serializedVersion: 3
       time: 1
-      value: 1
+      value: 1.2437515
       inSlope: 1
-      outSlope: 0
-      tangentMode: 0
+      outSlope: 1
+      tangentMode: 34
       weightedMode: 0
-      inWeight: 0
-      outWeight: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
   KeyboardMappings:
-  - MultiNote: 0
-    LowestNote: 0
-    CenterNote: 48
-    HighestNote: 0
+  - MultiNote: 1
+    LowestNote: 23
+    CenterNote: 36
+    HighestNote: 50
     Samples:
     - {fileID: 8300000, guid: 6cd92b2d38793de4e85874aa354467ef, type: 3}
   - MultiNote: 0

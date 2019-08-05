@@ -29,7 +29,6 @@ namespace AudioStudio.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("PostEvents"));
             if (_component.PostEvents)
                 AudioScriptGUI.DrawList(serializedObject.FindProperty("StartEvents"), "", AddEvent);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ProfilerLogLevel"));
             AudioScriptGUI.DrawSaveButton(_component);
             serializedObject.ApplyModifiedProperties();
         }
