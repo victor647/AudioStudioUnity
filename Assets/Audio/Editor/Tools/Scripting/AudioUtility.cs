@@ -8,37 +8,12 @@ using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Reflection;
-using AudioStudio.Components;
+using UnityEditor.VersionControl;
 
 namespace AudioStudio.Tools
 {
     public static class AudioUtility
-    {            
-        
-        #region VersionControl
-        public static void RunCommand(string cmd,string arguments)
-        {
-            var process = new Process
-            {
-                StartInfo =
-                {
-                    FileName = cmd,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                    Arguments = arguments
-                }
-            };
-
-            process.Start();            
-            
-            var reader = process.StandardOutput;
-            reader.ReadToEnd();          
-            process.WaitForExit();
-            process.Close();
-        }
-        #endregion
-
+    {
         #region XML
         public static void WriteXml(string fileName, XElement xRoot)
         {
@@ -67,14 +42,21 @@ namespace AudioStudio.Tools
         #region TypeCast
         public static float StringToFloat(string s)
         {
-            var outValue = 0f;
+            float outValue;
             float.TryParse(s, out outValue);
             return outValue;
         }
 
+        public static byte StringToByte(string s)
+        {
+            byte outValue;
+            byte.TryParse(s, out outValue);
+            return outValue;
+        }
+        
         public static bool StringToBool(string s)
         {
-            var outValue = false;
+            bool outValue;
             bool.TryParse(s, out outValue);
             return outValue;
         }
@@ -111,44 +93,78 @@ namespace AudioStudio.Tools
             list.Remove(element);
             array = list.ToArray();
         }
-        #endregion                              
-
-        public static bool IsSoundAnimationEvent(AnimationEvent animationEvent)
+        
+        public static uint GenerateUniqueID(string in_name)
         {
-            return typeof(AnimationSound).GetMethods().Where(method => method.IsPublic).Any(method => animationEvent.functionName == method.Name);
-        }
+            var buffer = Encoding.UTF8.GetBytes(in_name.ToLower());
+            var hval = 2166136261;
 
+            for (var i = 0; i < buffer.Length; i++)
+            {
+                hval *= 16777619;
+                hval ^= buffer[i];
+            }
+            return hval;
+        }
+        #endregion
+
+        #region FileIO
+        public static void CheckoutLockedFile(string filePath)
+        {
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.Exists) return;			
+            if (fileInfo.IsReadOnly)
+            {
+                if (Provider.isActive)
+                    Provider.Checkout(filePath, CheckoutMode.Asset);					
+                fileInfo.IsReadOnly = false;
+            }
+        }
+        
+        public static void CheckDirectoryExist(string directory)
+        {
+            if (directory != null && !Directory.Exists(directory)) 
+                Directory.CreateDirectory(directory);				
+        }
+        
         public static string ShortPath(string longPath)
         {
             longPath = longPath.Replace("\\", "/");
             var index = longPath.IndexOf("Assets", StringComparison.Ordinal);
             return index >= 0 ? longPath.Substring(index) : longPath;
-        }        
+        }
 
         public static string CombinePath(string path1, string path2, string path3 = "")
         {
             var path = Path.Combine(path1, path2);
-            if (path3 != "") path = Path.Combine(path, path3);
+            if (path3 != "") 
+                path = Path.Combine(path, path3);
             return path.Replace("\\", "/");            
         }
-
-        public static uint GenerateID(string in_name)
+        #endregion
+        
+        #region Process
+        public static void RunCommand(string cmd, string arguments)
         {
-            var buffer = System.Text.Encoding.UTF8.GetBytes(in_name.ToLower());
-
-            // Start with the basis value
-            var hval = 2166136261;
-
-            for (var i = 0; i < buffer.Length; i++)
+            var process = new Process
             {
-                // multiply by the 32 bit FNV magic prime mod 2^32
-                hval *= 16777619;
+                StartInfo =
+                {
+                    FileName = cmd,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    Arguments = arguments
+                }
+            };
 
-                // xor the bottom with the current octet
-                hval ^= buffer[i];
-            }
-
-            return hval;
+            process.Start();            
+            
+            var reader = process.StandardOutput;
+            reader.ReadToEnd();          
+            process.WaitForExit();
+            process.Close();
         }
+        #endregion
     }
 }

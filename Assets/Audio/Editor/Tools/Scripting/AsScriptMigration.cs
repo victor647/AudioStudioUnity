@@ -169,7 +169,7 @@ namespace AudioStudio.Tools
 			{
 				if (!data.WillCopy) continue;
 				var folderPath = Path.GetDirectoryName(data.TargetFilePath);
-				if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+				AudioUtility.CheckDirectoryExist(folderPath);
 				if (data.TargetFile != null && data.TargetFile.IsReadOnly)
 				{
 					if (Provider.isActive)

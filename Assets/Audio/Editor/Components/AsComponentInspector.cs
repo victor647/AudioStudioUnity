@@ -7,7 +7,9 @@ namespace AudioStudio.Editor
 {
 	public abstract class AsComponentInspector : UnityEditor.Editor
 	{
-		protected string OnLabel(AudioPhysicsHandler aph)
+		protected bool BackedUp;
+		
+		protected static string OnLabel(AudioPhysicsHandler aph)
 		{
 			switch (aph.SetOn)
 			{
@@ -22,7 +24,7 @@ namespace AudioStudio.Editor
 			return string.Empty;
 		}
 
-		protected string OffLabel(AudioPhysicsHandler aph)
+		protected static string OffLabel(AudioPhysicsHandler aph)
 		{
 			switch (aph.SetOn)
 			{
@@ -35,6 +37,11 @@ namespace AudioStudio.Editor
 			}
 
 			return string.Empty;
+		}
+		
+		protected void CheckXmlExistence(AsComponent component)
+		{
+			BackedUp = AsComponentBackup.Instance.FindComponentNode(component) != null;
 		}
 
 		protected void ShowPhysicsSettings(AudioPhysicsHandler aph, bool is3D)
@@ -90,21 +97,24 @@ namespace AudioStudio.Editor
 		protected virtual void UpdateXml(Object component, XmlAction action)
 		{
 			var c = (AsComponent) component;
+			var go = c.gameObject;
+			var edited = false;
 			switch (action)
 			{
 				case XmlAction.Remove:
 					AsComponentBackup.Instance.RemoveComponentNode(c);
-					DestroyImmediate(component, true);
+					edited = true;
 					break;
 				case XmlAction.Save:
-					AsComponentBackup.Instance.UpdateComponentNode(c);
+					edited = AsComponentBackup.Instance.UpdateComponentNode(c);
 					break;
 				case XmlAction.Revert:
-					AsComponentBackup.Instance.RevertComponentToXml(c);
+					edited = AsComponentBackup.Instance.RevertComponentToXml(c);
 					break;
 			}
-
-			AssetDatabase.SaveAssets();
+			BackedUp = true;
+			if (edited)
+				AsComponentBackup.SaveComponentAsset(go);
 		}
 	}
 }

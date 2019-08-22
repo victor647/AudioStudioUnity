@@ -34,7 +34,7 @@ namespace AudioStudio.Tools
         protected internal void Export()
         {
             CleanUp();
-            CheckoutLocked(DefaultXmlPath);			
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);			
             var fileName = EditorUtility.SaveFilePanel("Export to", XmlDocPath, "AudioStates.xml", ".xml");
             if (string.IsNullOrEmpty(fileName)) return;			
             FindFiles(ParseAnimator, "Exporting animation controllers...", "*.controller");			
@@ -82,17 +82,7 @@ namespace AudioStudio.Tools
             xComponent.SetAttributeValue("Asset", asset);
             xComponent.SetAttributeValue("Layer", layer);
             xComponent.SetAttributeValue("AnimationState", stateName);
-            var xSettings = new XElement("Settings");			
-            xSettings.SetAttributeValue("AudioState", s.AnimationAudioState.ToString());						            
-            xSettings.SetAttributeValue("ResetStateOnExit", s.ResetStateOnExit);
-            xComponent.Add(xSettings);
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.EnterEvents, xEvents, "Enter");
-            ExportEvents(s.ExitEvents, xEvents, "Exit");
-            xComponent.Add(xEvents);
-            var xSwitches = new XElement("Switches");
-            ExportSwitches(s.EnterSwitches, xSwitches, "Enter");            
-            xComponent.Add(xSwitches);
+            AsComponentBackup.AudioStateExporter(s, xComponent);
             TotalCount++;
             return xComponent;
         }
@@ -104,7 +94,7 @@ namespace AudioStudio.Tools
         {            
             var filePath = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
             if (string.IsNullOrEmpty(filePath)) return;               
-            XRoot = XDocument.Load(filePath).Element("Root");
+            XRoot = XDocument.Load(filePath).Root;
             
             ImportComponents(true);                                                
             AsAudioStateCompare.ShowWindow();          
@@ -114,10 +104,11 @@ namespace AudioStudio.Tools
         #endregion
 		
         #region Update
-        private XElement FindComponentNode(string fullPath, string layer, string state)
+
+        public XElement FindComponentNode(string fullPath, string layer, string state)
         {            
             LoadOrCreateXmlDoc();            			
-            var xComponents = XRoot.Descendants("Component");
+            var xComponents = XRoot.Elements("Component");
             foreach (var xComponent in xComponents)
             {
                 if (AudioUtility.GetXmlAttribute(xComponent, "Layer") == layer &&
@@ -135,7 +126,7 @@ namespace AudioStudio.Tools
             var xComponent = FindComponentNode(fullPath, layer, state);
             if (xComponent != null)
             {				
-                if (AudioStateImporter(component, xComponent))
+                if (AsComponentBackup.AudioStateImporter(component, xComponent))
                 {                    
                     EditorUtility.SetDirty(component);
                     return true;
@@ -147,7 +138,7 @@ namespace AudioStudio.Tools
 
         public bool UpdateComponentNode(string fullPath, string layer, string state, AudioState component)
         {
-            CheckoutLocked(DefaultXmlPath);												
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);												
             var xComponent = FindComponentNode(fullPath, layer, state);
             if (xComponent != null)
             {				
@@ -167,7 +158,7 @@ namespace AudioStudio.Tools
 		
         protected internal void RemoveComponentNode(string fullPath, string layer, string state)
         {
-            CheckoutLocked(DefaultXmlPath);
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);
             var xComponent = FindComponentNode(fullPath, layer, state);
             if (xComponent != null)
             {
@@ -220,7 +211,7 @@ namespace AudioStudio.Tools
             var fileName = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
             if (string.IsNullOrEmpty(fileName)) return;      
 			
-            XRoot = XDocument.Load(fileName).Element("Root");
+            XRoot = XDocument.Load(fileName).Root;
             ImportComponents(false);
             EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
             AssetDatabase.SaveAssets();
@@ -232,7 +223,7 @@ namespace AudioStudio.Tools
         {
             try
             {
-                var xComponents = XRoot.Descendants("Component").ToList();
+                var xComponents = XRoot.Elements("Component").ToList();
                 TotalCount = xComponents.Count;				
                 var current = 0;
                 foreach (var xComponent in xComponents)
@@ -247,7 +238,7 @@ namespace AudioStudio.Tools
                         else
                         {
                             var tempComponent = Instantiate(component);
-                            if (AudioStateImporter(tempComponent, xComponent))
+                            if (AsComponentBackup.AudioStateImporter(tempComponent, xComponent))
                                 AsCompareWindow.ModifiedComponents.Add(xComponent, "Unhandled");
                             DestroyImmediate(tempComponent, true);
                         }						
@@ -255,7 +246,7 @@ namespace AudioStudio.Tools
                     else
                     {
                         var component = GetComponentFromXml(xComponent, true);						
-                        if (AudioStateImporter(component, xComponent))
+                        if (AsComponentBackup.AudioStateImporter(component, xComponent))
                         {
                             EditorUtility.SetDirty(component);
                             EditedCount++;
@@ -267,7 +258,7 @@ namespace AudioStudio.Tools
             }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
+                Debug.LogException(e);
                 EditorUtility.ClearProgressBar();
             } 
         }
@@ -331,17 +322,6 @@ namespace AudioStudio.Tools
             }			
             return null;
         }
-
-        private static bool AudioStateImporter(AudioState audioState, XElement node)
-        {
-            var xSettings = node.Element("Settings");
-            var modified = ImportEnum(ref audioState.AnimationAudioState, AudioUtility.GetXmlAttribute(xSettings, "AudioState"));						            
-            modified |= ImportBool(ref audioState.ResetStateOnExit, AudioUtility.GetXmlAttribute(xSettings, "ResetStateOnExit"));
-            modified |= ImportEvents(ref audioState.EnterEvents, node, "Enter");
-            modified |= ImportEvents(ref audioState.ExitEvents, node, "Exit");
-            modified |= ImportSwitches(ref audioState.EnterSwitches, node, "Enter");
-            return modified;
-        }
         #endregion
 
         private class AsAudioStateCompare : AsCompareWindow
@@ -402,7 +382,7 @@ namespace AudioStudio.Tools
             protected override void RevertComponent(XElement node)
             {
                 var audioState = GetComponentFromXml(node, true);
-                if (AudioStateImporter(audioState, node))
+                if (AsComponentBackup.AudioStateImporter(audioState, node))
                 {
                     EditorUtility.SetDirty(audioState);				
                 }            									         

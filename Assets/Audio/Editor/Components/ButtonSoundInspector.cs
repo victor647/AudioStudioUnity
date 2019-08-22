@@ -16,6 +16,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as ButtonSound;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()
@@ -39,6 +40,16 @@ namespace AudioStudio.Editor
             {
                 AudioUtility.AddToArray(ref _component.ClickEvents, new AudioEventReference(evt.name));
             }
+        }
+
+        protected override void Refresh()
+        {
+            foreach (var evt in _component.ClickEvents)
+            {
+                AsComponentBackup.RefreshEvent(evt);
+            }
+            AsComponentBackup.RefreshEvent(_component.PointerEnterEvent);
+            AsComponentBackup.RefreshEvent(_component.PointerExitEvent);
         }
     }
 }

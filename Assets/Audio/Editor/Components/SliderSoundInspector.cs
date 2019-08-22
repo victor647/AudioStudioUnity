@@ -1,6 +1,6 @@
 using UnityEditor;
 using AudioStudio.Components;
-
+using AudioStudio.Tools;
 using UnityEngine.UI;
 
 
@@ -14,6 +14,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as SliderSound;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()
@@ -28,6 +29,12 @@ namespace AudioStudio.Editor
             serializedObject.ApplyModifiedProperties();
             AudioScriptGUI.CheckLinkedComponent<Slider>(_component);
             ShowButtons(_component);
+        }
+        
+        protected override void Refresh()
+        {
+            AsComponentBackup.RefreshEvent(_component.DragEvent);
+            AsComponentBackup.RefreshParameter(_component.ConnectedParameter);
         }
     }
 }

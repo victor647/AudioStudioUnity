@@ -22,7 +22,7 @@ namespace AudioStudio.Tools
 			var newText = text.Replace(_oldString, _newString);			
 			if (text != newText)
 			{				
-				CheckoutLocked(path);
+				AudioUtility.CheckoutLockedFile(path);
 				File.WriteAllText(path, newText);
 				EditorUtility.SetDirty(go);
 			}						

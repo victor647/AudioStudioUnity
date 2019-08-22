@@ -74,7 +74,7 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Implementation Backup  &F9")]
         public static void AudioStudioBackUp()
         {
-            var window = GetWindow<AsImplementationBackup>();
+            var window = GetWindow<AsBackupWindow>();
             window.position = new Rect(500, 300, 500, 400);
             window.titleContent = new GUIContent("BackUp");
         }
@@ -124,6 +124,12 @@ namespace AudioStudio.Tools
         {
             var window = GetWindow<AsComponentLink>();
             window.position = new Rect(500, 300, 500, 500);
+        }
+
+        [MenuItem("AudioStudio/Tools/Build AssetBundles")]
+        private static void BuildAssetBundles()
+        {
+            AudioAssetBundleBuilder.BuildAssetBundles();
         }
         #endregion
         

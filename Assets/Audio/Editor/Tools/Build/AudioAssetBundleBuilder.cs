@@ -1,16 +1,14 @@
 ﻿using System;
 using UnityEngine;
 using UnityEditor;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using AudioStudio.Configs;
+using AudioStudio.Tools;
 
 namespace AudioStudio
 {
     public static class AudioAssetBundleBuilder
     {
-        [MenuItem("AudioStudio/Build AssetBundles")]
         public static void BuildAssetBundles()
         {														
             SetLabels<SoundBank>(AudioPathSettings.SoundBanksPath, "bank");
@@ -19,19 +17,18 @@ namespace AudioStudio
             AssetDatabase.RemoveUnusedAssetBundleNames();	
             AssetDatabase.SaveAssets();
 			
-            var buildPath = Directory.GetParent(Application.dataPath) + "/AssetBundles";
-            if (!Directory.Exists(buildPath))
-                Directory.CreateDirectory(buildPath);			
+            var buildPath = Path.Combine(Application.dataPath, "../AssetBundles");
+            AudioUtility.CheckDirectoryExist(buildPath);		
             BuildPipeline.BuildAssetBundles(buildPath, BuildAssetBundleOptions.None,
                 BuildTarget.StandaloneWindows);			
         }
 
         private static void SetLabels<T>(string loadPath, string bundleType) where T: ScriptableObject
         {
-            string [] resourcePaths = Directory.GetFiles(Application.dataPath + loadPath, "*.asset", SearchOption.AllDirectories);
+            string [] resourcePaths = Directory.GetFiles(AudioUtility.CombinePath(Application.dataPath, loadPath), "*.asset", SearchOption.AllDirectories);
             foreach (var resourcePath in resourcePaths)
             {
-                var shortPath = resourcePath.Substring(resourcePath.IndexOf("Assets/", StringComparison.Ordinal));
+                var shortPath = AudioUtility.ShortPath(resourcePath);
                 var importer = AssetImporter.GetAtPath(shortPath);				
                 var asset = AssetDatabase.LoadAssetAtPath<T>(shortPath);
                 if (!importer) continue;

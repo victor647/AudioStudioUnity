@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using System.IO;
 using System.Xml.Linq;
+using AudioStudio.Components;
 
 namespace AudioStudio.Tools
 {
@@ -46,7 +47,7 @@ namespace AudioStudio.Tools
 		protected internal void Export()
 		{
 			CleanUp();			
-			CheckoutLocked(AudioUtility.CombinePath(XmlDocPath, "AnimationEvents.xml"));
+			AudioUtility.CheckoutLockedFile(AudioUtility.CombinePath(XmlDocPath, "AnimationEvents.xml"));
 			var fileName = EditorUtility.SaveFilePanel("Export to", XmlDocPath, "AnimationEvents.xml", ".xml");
 			if (string.IsNullOrEmpty(fileName)) return;			
 			if (IncludeA) FindFiles(ParseClip, "Exporting animation clips...", "*.anim");
@@ -85,7 +86,7 @@ namespace AudioStudio.Tools
 				var hasAudioEvents = false;
 				foreach (var evt in clip.events)
 				{
-					if (AudioUtility.IsSoundAnimationEvent(evt))				
+					if (IsSoundAnimationEvent(evt))				
 					{
 						hasAudioEvents = true;
 						xClip.Add(ParseEvent(evt));					
@@ -125,7 +126,7 @@ namespace AudioStudio.Tools
 				var hasEvents = false;
 				foreach (var evt in clip.events)
 				{
-					if (IncludeNonAudioEvents || AudioUtility.IsSoundAnimationEvent(evt))
+					if (IncludeNonAudioEvents || IsSoundAnimationEvent(evt))
 					{
 						hasEvents = true;
 						xClip.Add(ParseEvent(evt));	
@@ -158,14 +159,14 @@ namespace AudioStudio.Tools
 			LoadOrCreateXmlDoc();
 			var xa = XRoot.Element("Anims");
 			if (xa == null) return;
-			var xClips = xa.Descendants("AnimationClip").ToList();
+			var xClips = xa.Elements("AnimationClip").ToList();
 			var clipPath = AssetDatabase.GetAssetPath(clip);
 			
 			foreach (var xClip in xClips)
 			{
 				var fileName = AudioUtility.CombinePath(AudioUtility.GetXmlAttribute(xClip, "Path"), AudioUtility.GetXmlAttribute(xClip, "Asset"));
 				if (clipPath == fileName)
-					ImportClip(clip, xClip.Descendants("AnimationEvent"));
+					ImportClip(clip, xClip.Elements("AnimationEvent"));
 			}
 		}
 		
@@ -174,7 +175,7 @@ namespace AudioStudio.Tools
 			LoadOrCreateXmlDoc();
 			var xm = XRoot.Element("Models");
 			if (xm == null) return;
-			var xModels = xm.Descendants("Model").ToList();
+			var xModels = xm.Elements("Model").ToList();
 
 			foreach (var xModel in xModels)
 			{
@@ -192,7 +193,7 @@ namespace AudioStudio.Tools
 			var fileName = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
 			if (string.IsNullOrEmpty(fileName)) return;
 			
-			XRoot = XDocument.Load(fileName).Element("Root");
+			XRoot = XDocument.Load(fileName).Root;
 			ImportFromAnims();
 			ImportFromModels();
 			EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
@@ -205,7 +206,7 @@ namespace AudioStudio.Tools
 		{						
 			var xa = XRoot.Element("Anims");
 			if (xa == null) return;
-			var xClips = xa.Descendants("AnimationClip").ToList();												
+			var xClips = xa.Elements("AnimationClip").ToList();												
 			TotalCount += xClips.Count;		
 			var searchPath = AudioUtility.ShortPath(SearchPath);
 			for (var i = 0; i < xClips.Count; i++)
@@ -216,7 +217,7 @@ namespace AudioStudio.Tools
 				var fileName = AudioUtility.CombinePath(path, AudioUtility.GetXmlAttribute(xClip, "Asset"));
 				var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(fileName);
 				if (EditorUtility.DisplayCancelableProgressBar("Modifying clips", fileName, i * 1.0f / xClips.Count)) break;
-				ImportClip(clip, xClip.Descendants("AnimationEvent"));				
+				ImportClip(clip, xClip.Elements("AnimationEvent"));				
 			}
 		}		
 		
@@ -224,7 +225,7 @@ namespace AudioStudio.Tools
 		{
 			var xm = XRoot.Element("Models");
 			if (xm == null) return;
-			var xModels = xm.Descendants("Model").ToList();						
+			var xModels = xm.Elements("Model").ToList();						
 			TotalCount += xModels.Count;			
 			var searchPath = AudioUtility.ShortPath(SearchPath);
 			for (var i = 0; i < xModels.Count; i++)
@@ -247,10 +248,10 @@ namespace AudioStudio.Tools
 			var newClips = new List<ModelImporterClipAnimation>(); 
 			foreach (var clip in modelImporter.clipAnimations)
 			{
-				foreach (var xClip in xModel.Descendants("AnimationClip"))
+				foreach (var xClip in xModel.Elements("AnimationClip"))
 				{
 					if (AudioUtility.GetXmlAttribute(xClip, "ClipName") != clip.name) continue;
-					if (ImportClip(clip, xClip.Descendants("AnimationEvent"))) modified = true;
+					if (ImportClip(clip, xClip.Elements("AnimationEvent"))) modified = true;
 				}					
 				newClips.Add(clip);
 			}
@@ -265,7 +266,7 @@ namespace AudioStudio.Tools
 		
 		private void ImportClip(AnimationClip clip, IEnumerable<XElement> xEvents)
         {
-            var events = IncludeNonAudioEvents ? new List<AnimationEvent>() : clip.events.Where(evt => !AudioUtility.IsSoundAnimationEvent(evt)).ToList();                        	                                    
+            var events = IncludeNonAudioEvents ? new List<AnimationEvent>() : clip.events.Where(evt => !IsSoundAnimationEvent(evt)).ToList();                        	                                    
             GenerateEventList(events, xEvents);
             if (events.Count != clip.events.Length)            
 	            AnimationUtility.SetAnimationEvents(clip, events.ToArray());    	                        						
@@ -275,7 +276,7 @@ namespace AudioStudio.Tools
 		
 		private bool ImportClip(ModelImporterClipAnimation clip, IEnumerable<XElement> xEvents)
 		{
-			var events = IncludeNonAudioEvents ? new List<AnimationEvent>() : clip.events.Where(evt => !AudioUtility.IsSoundAnimationEvent(evt)).ToList();
+			var events = IncludeNonAudioEvents ? new List<AnimationEvent>() : clip.events.Where(evt => !IsSoundAnimationEvent(evt)).ToList();
 			GenerateEventList(events, xEvents);
 			if (events.Count != clip.events.Length)
 			{
@@ -306,6 +307,11 @@ namespace AudioStudio.Tools
 			}
 		}
 
+		public static bool IsSoundAnimationEvent(AnimationEvent animationEvent)
+		{
+			return typeof(AnimationSound).GetMethods().Where(method => method.IsPublic).Any(method => animationEvent.functionName == method.Name);
+		}
+		
 		private static bool CompareAnimationEvent(AnimationEvent a, AnimationEvent b)
 		{			
 			return a.time == b.time && a.stringParameter == b.stringParameter && a.functionName == b.functionName;

@@ -15,6 +15,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as EmitterSound;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()
@@ -33,6 +34,14 @@ namespace AudioStudio.Editor
             foreach (var evt in events)
             {
                 AudioUtility.AddToArray(ref _component.AudioEvents, new AudioEventReference(evt.name));
+            }
+        }
+        
+        protected override void Refresh()
+        {
+            foreach (var evt in _component.AudioEvents)
+            {
+                AsComponentBackup.RefreshEvent(evt);
             }
         }
     }

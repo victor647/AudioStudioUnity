@@ -16,6 +16,14 @@ namespace AudioStudio.Editor
 		private void OnEnable()
 		{
 			_component = target as AudioPlayableAsset;
+			CheckXmlExistence();
+		}
+		
+		private void CheckXmlExistence()
+		{
+			var path = AssetDatabase.GetAssetPath(_component);
+			var clip = AsTimelineAudioBackup.GetClipFromComponent(_component);
+			BackedUp = AsTimelineAudioBackup.Instance.FindComponentNode(path, clip) != null;
 		}
 
 		public override void OnInspectorGUI()
@@ -55,8 +63,22 @@ namespace AudioStudio.Editor
 			}
 		}
 
+		protected override void Refresh()
+		{
+			foreach (var evt in _component.StartEvents)
+			{
+				AsComponentBackup.RefreshEvent(evt);
+			}
+
+			foreach (var evt in _component.EndEvents)
+			{
+				AsComponentBackup.RefreshEvent(evt);
+			}
+		}
+		
 		protected override void UpdateXml(Object component, XmlAction action)
 		{
+			var edited = false;
 			var apa = (AudioPlayableAsset) component;
 			var path = AssetDatabase.GetAssetPath(component);
 			var clip = AsTimelineAudioBackup.GetClipFromComponent(apa);
@@ -67,14 +89,15 @@ namespace AudioStudio.Editor
 					DestroyImmediate(apa, true);
 					break;
 				case XmlAction.Save:
-					AsTimelineAudioBackup.Instance.UpdateComponentNode(path, clip, apa);
+					edited = AsTimelineAudioBackup.Instance.UpdateComponentNode(path, clip, apa);
 					break;
 				case XmlAction.Revert:
-					AsTimelineAudioBackup.Instance.RevertComponentToXml(path, clip, apa);
+					edited = AsTimelineAudioBackup.Instance.RevertComponentToXml(path, clip, apa);
 					break;
 			}
-
-			AssetDatabase.SaveAssets();
+			BackedUp = true;
+			if (edited) 
+				AssetDatabase.SaveAssets();
 		}
 	}
 }

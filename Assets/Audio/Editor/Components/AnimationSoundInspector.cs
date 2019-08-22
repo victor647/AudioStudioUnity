@@ -12,6 +12,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as AnimationSound;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()

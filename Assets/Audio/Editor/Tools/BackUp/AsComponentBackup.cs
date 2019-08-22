@@ -8,13 +8,10 @@ using UnityEngine.SceneManagement;
 using UnityEditor.SceneManagement;
 using System.Xml.Linq;
 using AudioStudio.Components;
-#if UNITY_2018_3_OR_NEWER
-using UnityEditor.Experimental.SceneManagement;
-#endif
 
 namespace AudioStudio.Tools
 {           
-    public class AsComponentBackup : AsSearchers
+    public partial class AsComponentBackup : AsSearchers
     {
         private class ComponentDataBase
         {            
@@ -36,9 +33,9 @@ namespace AudioStudio.Tools
         private delegate void ComponentExporter(AsComponent component, XElement node);
 
         protected internal readonly Dictionary<Type, bool> ComponentsInSearch = new Dictionary<Type, bool>();
-        private static readonly Dictionary<Type, ComponentExporter> Exporters = new Dictionary<Type, ComponentExporter>();
-        private static readonly Dictionary<Type, ComponentImporter> Importers = new Dictionary<Type, ComponentImporter>();
-        private Dictionary<Type, ComponentDataBase> _outputTypes = new Dictionary<Type, ComponentDataBase>();
+        private static readonly Dictionary<Type, ComponentExporter> _exporters = new Dictionary<Type, ComponentExporter>();
+        private static readonly Dictionary<Type, ComponentImporter> _importers = new Dictionary<Type, ComponentImporter>();
+        private readonly Dictionary<Type, ComponentDataBase> _outputTypes = new Dictionary<Type, ComponentDataBase>();
         protected internal bool SeparateXmlFiles = true;
         
         private XElement _xPrefabs = new XElement("Prefabs");
@@ -67,32 +64,13 @@ namespace AudioStudio.Tools
         #endregion       
         
         #region Init                
-
-        private void OnEnable()
-        {                                    
-            RegisterComponent<AnimationSound>();
-            RegisterComponent<AudioTag>(AudioTagImporter, AudioTagExporter);      
-            RegisterComponent<ButtonSound>(ButtonSoundImporter, ButtonSoundExporter);
-            RegisterComponent<ColliderSound>(ColliderSoundImporter, ColliderSoundExporter);
-            RegisterComponent<DropdownSound>(DropdownSoundImporter, DropdownSoundExporter);
-            RegisterComponent<EffectSound>(EffectSoundImporter, EffectSoundExporter);
-            RegisterComponent<EmitterSound>(EmitterSoundImporter, EmitterSoundExporter);
-            RegisterComponent<LoadBank>(LoadBankImporter, LoadBankExporter);
-            RegisterComponent<MenuSound>(MenuSoundImporter, MenuSoundExporter);
-            RegisterComponent<PeriodSound>(PeriodSoundImporter, PeriodSoundExporter);
-            RegisterComponent<ScrollSound>(ScrollSoundImporter, ScrollSoundExporter);            
-            RegisterComponent<SliderSound>(SliderSoundImporter, SliderSoundExporter);
-            RegisterComponent<ToggleSound>(ToggleSoundImporter, ToggleSoundExporter);
-            RegisterComponent<SetSwitch>(SetSwitchImporter, SetSwitchExporter);
-        }
-
         private void RegisterComponent<T>(ComponentImporter importer = null, ComponentExporter exporter = null)
         {
             var t = typeof(T);            
             ComponentsInSearch[t] = true;   
             _outputTypes[t] = new ComponentDataBase();
-            Importers[t] = importer;
-            Exporters[t] = exporter;
+            _importers[t] = importer;
+            _exporters[t] = exporter;
         }    
         
         protected override void CleanUp()
@@ -104,7 +82,6 @@ namespace AudioStudio.Tools
         #endregion
 
         #region Export
-
         protected internal void Export()
         {
             var completed = false;
@@ -115,21 +92,19 @@ namespace AudioStudio.Tools
                 foreach (var component in ComponentsInSearch)
                 {
                     if (component.Value)                                            
-                        CheckoutLocked(IndividualXmlPath(component.Key));                                                                    
+                        AudioUtility.CheckoutLockedFile(IndividualXmlPath(component.Key));                                                                    
                 }
             }
             else
             {                
-                CheckoutLocked(AudioUtility.CombinePath(XmlDocPath, "AudioStudioComponents.xml"));
+                AudioUtility.CheckoutLockedFile(AudioUtility.CombinePath(XmlDocPath, "AudioStudioComponents.xml"));
                 fileName = EditorUtility.SaveFilePanel("Export to", XmlDocPath, "AudioStudioComponents.xml", "xml");
                 if (string.IsNullOrEmpty(fileName)) return;    
                 
             }
             
             if (IncludeA)
-            {
-                completed |= FindFiles(ParsePrefab, "Exporting Prefabs", "*.prefab");                
-            }
+                completed |= FindFiles(ParsePrefab, "Exporting Prefabs", "*.prefab");
             if (IncludeB)
             {
                 var currentScene = SceneManager.GetActiveScene().path;
@@ -169,7 +144,7 @@ namespace AudioStudio.Tools
                 ComponentsInSearch[type] = true;
             }
             SearchPath = searchPath;
-            CheckoutLocked(xmlPath);
+            AudioUtility.CheckoutLockedFile(xmlPath);
             FindFiles(ParsePrefab, "Exporting Prefabs", "*.prefab");                           
             FindFiles(ParseScene, "Exporting Scenes", "*.unity");
             
@@ -270,20 +245,22 @@ namespace AudioStudio.Tools
             xComponent.SetAttributeValue("Path", path);            
             xComponent.SetAttributeValue("Asset", fileName);
             xComponent.SetAttributeValue("GameObject", gameObject);   
-            if (Exporters.ContainsKey(type))
-                Exporters[type](component, xComponent);
+            if (_exporters.ContainsKey(type))
+                _exporters[type](component, xComponent);
             return xComponent;
+        }
+        
+        private static string ComputeComponentID(Component component, string type, string path = "", string gameObject = "")
+        {
+            if (path == "") 
+                path = FindComponentPath(component);
+            if (gameObject == "") 
+                gameObject = GetGameObjectPath(component.transform);
+            return AudioUtility.GenerateUniqueID(type + path + gameObject).ToString();		
         }
         #endregion
         
         #region Update
-        private static string ComputeComponentID(Component component, string type, string path = "", string gameObject = "")
-        {
-            if (path == "") path = FindComponentPath(component);
-            if (gameObject == "") gameObject = GetGameObjectPath(component.transform);
-            return AudioUtility.GenerateID(type + path + gameObject).ToString();		
-        }
-
         private static string FindComponentPath(Component component)
         {
             var go = component.gameObject;
@@ -291,7 +268,7 @@ namespace AudioStudio.Tools
             if (string.IsNullOrEmpty(path))
             {
 #if UNITY_2018_3_OR_NEWER
-                var stage = PrefabStageUtility.GetCurrentPrefabStage();
+                var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
                 path = stage != null ? stage.prefabAssetPath : SceneManager.GetActiveScene().path;
 #else
                 if (PrefabUtility.GetPrefabType(go) != PrefabType.None)
@@ -313,28 +290,30 @@ namespace AudioStudio.Tools
         private void LoadOrCreateXmlDoc(Type type)
         {
             var path = IndividualXmlPath(type);
-            var xRoot = XDocument.Load(path).Element("Root");
-            if (xRoot == null)
+            if (!File.Exists(path))
             {
-                var cdb = new ComponentDataBase();			
+                var cdb = new ComponentDataBase();	
+                cdb.RefreshElements();
                 AudioUtility.WriteXml(path, cdb.XRoot);
             }
             else
             {
+                var xRoot = XDocument.Load(path).Root;
+                if (xRoot == null) return;
                 _outputTypes[type].XRoot = xRoot;
                 _outputTypes[type].XPrefabs = xRoot.Element("Prefabs");
                 _outputTypes[type].XScenes = xRoot.Element("Scenes");
             }                                                       
         }
-        
-        private XElement FindComponentNode(AsComponent component)
+
+        public XElement FindComponentNode(AsComponent component)
         {
             var type = component.GetType();
             var id = ComputeComponentID(component, type.Name);
             LoadOrCreateXmlDoc(type);                        
-            var node = _outputTypes[type].XPrefabs.Descendants("Component").FirstOrDefault(xComponent => AudioUtility.GetXmlAttribute(xComponent, "ID") == id);
+            var node = _outputTypes[type].XPrefabs.Elements("Component").FirstOrDefault(xComponent => AudioUtility.GetXmlAttribute(xComponent, "ID") == id);
             if (node != null) return node;                   
-            node = _outputTypes[type].XScenes.Descendants("Component").FirstOrDefault(xComponent => AudioUtility.GetXmlAttribute(xComponent, "ID") == id);
+            node = _outputTypes[type].XScenes.Elements("Component").FirstOrDefault(xComponent => AudioUtility.GetXmlAttribute(xComponent, "ID") == id);
             return node;
         }
 
@@ -342,7 +321,7 @@ namespace AudioStudio.Tools
         {
             var type = component.GetType();
             var filePath = IndividualXmlPath(type);
-            CheckoutLocked(filePath);
+            AudioUtility.CheckoutLockedFile(filePath);
             var xComponent = FindComponentNode(component);
             if (xComponent != null)
             {
@@ -362,7 +341,7 @@ namespace AudioStudio.Tools
         {                                    
             var type = component.GetType();
             var filePath = IndividualXmlPath(type);
-            CheckoutLocked(filePath);
+            AudioUtility.CheckoutLockedFile(filePath);
             var xComponent = FindComponentNode(component);
             if (xComponent != null)
             {
@@ -388,7 +367,7 @@ namespace AudioStudio.Tools
 #if UNITY_2018_3_OR_NEWER
         public static void SaveComponentAsset(GameObject go)
         {
-            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
             if (stage != null) //in prefab edit mode, apply to prefab
                 PrefabUtility.SavePrefabAsset(go);
             else //save prefab to scene
@@ -457,7 +436,7 @@ namespace AudioStudio.Tools
         {            
             var filePath = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
             if (string.IsNullOrEmpty(filePath)) return;               
-            XRoot = XDocument.Load(filePath).Element("Root");
+            XRoot = XDocument.Load(filePath).Root;
             
             if (IncludeA) ImportFromPrefabs(true);
             if (IncludeB) ImportFromScenes(true);    
@@ -477,7 +456,7 @@ namespace AudioStudio.Tools
             var filePath = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
             if (filePath == null) return;   
             
-            XRoot = XDocument.Load(filePath).Element("Root");
+            XRoot = XDocument.Load(filePath).Root;
             
             if (IncludeA)
                 ImportFromPrefabs(false);
@@ -514,7 +493,7 @@ namespace AudioStudio.Tools
             LoadOrCreateXmlDoc();       
             _xPrefabs = XRoot.Element("Prefabs");
             if (_xPrefabs == null) return;
-            var xComponents = _xPrefabs.Descendants("Component");
+            var xComponents = _xPrefabs.Elements("Component");
             prefabName += ".prefab";            
             foreach (var xComponent in xComponents)
             {
@@ -551,7 +530,7 @@ namespace AudioStudio.Tools
                 var currentScene = SceneManager.GetActiveScene().path;
                 _xScenes = XRoot.Element("Scenes");
                 if (_xScenes == null || !_xScenes.HasElements) return;
-                var xComponents = _xScenes.Descendants("Component").ToList();                
+                var xComponents = _xScenes.Elements("Component").ToList();                
                 var totalCount = xComponents.Count;
                 TotalCount += totalCount;                
                 var searchPath = AudioUtility.ShortPath(SearchPath);
@@ -623,7 +602,7 @@ namespace AudioStudio.Tools
             {
                 _xPrefabs = XRoot.Element("Prefabs");
                 if (_xPrefabs == null || !_xPrefabs.HasElements) return;
-                var xComponents = _xPrefabs.Descendants("Component").ToList();                
+                var xComponents = _xPrefabs.Elements("Component").ToList();                
                 var totalCount = xComponents.Count;
                 TotalCount += totalCount;                
                 var searchPath = AudioUtility.ShortPath(SearchPath);
@@ -683,9 +662,9 @@ namespace AudioStudio.Tools
         private bool RefreshComponent(AsComponent component, XElement node)
         {
             var type = component.GetType();
-            if(Importers[type] != null && ComponentsInSearch[type])
+            if(_importers[type] != null && ComponentsInSearch[type])
             {                
-                if (Importers[type](component, node)) return true;
+                if (_importers[type](component, node)) return true;
             }
             return false;
         }      
@@ -695,19 +674,19 @@ namespace AudioStudio.Tools
         protected internal void Combine()
         {
             CleanUp();
-            CheckoutLocked(DefaultXmlPath);
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);
             foreach (var type in ComponentsInSearch.Keys)
             {                
                 LoadOrCreateXmlDoc(type);
             }            
             foreach (var cdb in _outputTypes.Values)
             {
-                foreach (var xPrefab in cdb.XPrefabs.Descendants("Component"))
+                foreach (var xPrefab in cdb.XPrefabs.Elements("Component"))
                 {
                     _xPrefabs.Add(xPrefab);
                     TotalCount++;
                 }
-                foreach (var xScene in cdb.XScenes.Descendants("Component"))
+                foreach (var xScene in cdb.XScenes.Elements("Component"))
                 {
                     _xScenes.Add(xScene);
                     EditedCount++;
@@ -720,244 +699,7 @@ namespace AudioStudio.Tools
         }
         #endregion        
         
-        #region ComponentExporters               
-        private void AudioTagExporter(Component component, XElement node)
-        {
-            var s = (AudioTag) component; 
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("Tags", s.Tags); 
-            node.Add(xSettings);
-        }
         
-        private void ButtonSoundExporter(Component component, XElement node)
-        {
-            var s = (ButtonSound) component;
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.ClickEvents, xEvents, "Click");
-            ExportEvent(s.PointerEnterEvent, xEvents, "PointerEnter");
-            ExportEvent(s.PointerExitEvent, xEvents, "PointerExit");
-            node.Add(xEvents);
-        }
-
-        private void ColliderSoundExporter(Component component, XElement node)
-        {
-            var s = (ColliderSound) component;            
-            ExportPhysicsSettings(s, node);            
-            ExportParameter(s.CollisionForceParameter, node);
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.EnterEvents, xEvents, "Enter");
-            ExportEvents(s.ExitEvents, xEvents, "Exit");
-            node.Add(xEvents);                                                          
-        }
-
-        private void DropdownSoundExporter(Component component, XElement node)
-        {
-            var s = (DropdownSound) component;
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.PopupEvents, xEvents, "Popup");
-            ExportEvents(s.ValueChangeEvents, xEvents, "ValueChange");
-            ExportEvents(s.CloseEvents, xEvents, "Close");
-            node.Add(xEvents);
-        }
-
-        private void EffectSoundExporter(Component component, XElement node)
-        {
-            var s = (EffectSound) component;
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.EnableEvents, xEvents, "Enable");
-            node.Add(xEvents);
-        }
-
-        private void EmitterSoundExporter(Component component, XElement node)
-        {
-            var s = (EmitterSound) component;            
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("FadeInTime", s.FadeInTime);
-            xSettings.SetAttributeValue("FadeOutTime", s.FadeOutTime);
-            node.Add(xSettings);          
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.AudioEvents, xEvents);                        
-            node.Add(xEvents);                                                  
-        }
-                        
-        private void LoadBankExporter(Component component, XElement node)
-        {
-            var s = (LoadBank) component;    
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("UnloadOnDisable", s.UnloadOnDisable);
-            node.Add(xSettings);
-            ExportBanks(s.Banks, node);
-        }    
-        
-        private void MenuSoundExporter(Component component, XElement node)
-        {
-            var s = (MenuSound) component;                   
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.OpenEvents, xEvents, "Open");
-            ExportEvents(s.CloseEvents, xEvents, "Close");
-            node.Add(xEvents);                                                          
-        }
-
-        private void PeriodSoundExporter(Component component, XElement node)
-        {
-            var s = (PeriodSound) component;                     
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("InitialDelay", s.InitialDelay);
-            xSettings.SetAttributeValue("MinInterval", s.MinInterval);
-            xSettings.SetAttributeValue("MaxInterval", s.MaxInterval);                                                    
-            node.Add(xSettings);            
-            ExportEvent(s.AudioEvent, node);
-        } 
-        
-        private void SetSwitchExporter(Component component, XElement node)
-        {
-            var s = (SetSwitch) component;                    
-            ExportPhysicsSettings(s, node);
-            var xSettings = new XElement("Settings");      
-            xSettings.SetAttributeValue("IsGlobal", s.IsGlobal);
-            node.Add(xSettings);     
-            var xSwitches = new XElement("Switches");
-            ExportSwitches(s.OnSwitches, xSwitches, "On");
-            ExportSwitches(s.OffSwitches, xSwitches, "Off");            
-            node.Add(xSwitches);            
-        }                            
-        
-        private void ToggleSoundExporter(Component component, XElement node)
-        {
-            var s = (ToggleSound) component;                      
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(s.ToggleOnEvents, xEvents, "ToggleOn");
-            ExportEvents(s.ToggleOffEvents, xEvents, "ToggleOff");
-            node.Add(xEvents);           
-        }
-
-        private void ScrollSoundExporter(Component component, XElement node)
-        {
-            var s = (ScrollSound) component;                                           
-            ExportEvent(s.ScrollEvent, node);            
-        }
-
-        private void SliderSoundExporter(Component component, XElement node)
-        {
-            var s = (SliderSound) component;                
-            ExportParameter(s.ConnectedParameter, node);
-            ExportEvent(s.DragEvent, node);                                                                                                                               
-        }       
-        #endregion 
-        
-        #region ComponentImporters                
-        private bool AudioTagImporter(Component component, XElement node)
-        {
-            var s = (AudioTag) component;    
-            var xSettings = node.Element("Settings");
-            return ImportEnum(ref s.Tags, AudioUtility.GetXmlAttribute(xSettings, "Tags"));            
-        }
-        
-        private bool ButtonSoundImporter(Component component, XElement node)
-        {
-            var s = (ButtonSound) component;
-            var modified = ImportEvents(ref s.ClickEvents, node, "Click");
-            modified |= ImportEvent(ref s.PointerEnterEvent, node, "PointerEnter");
-            modified |= ImportEvent(ref s.PointerExitEvent, node, "PointerExit");
-            return modified;
-        }
-
-        private bool ColliderSoundImporter(Component component, XElement node)
-        {
-            var s = (ColliderSound) component;
-            var modified = ImportPhysicsSettings(s, node);            
-            modified |= ImportParameter(ref s.CollisionForceParameter, out s.ValueScale, node);
-            modified |= ImportEvents(ref s.EnterEvents, node, "Enter");
-            modified |= ImportEvents(ref s.ExitEvents, node, "Exit");
-            return modified;
-        }
-        
-        private bool DropdownSoundImporter(Component component, XElement node)
-        {            
-            var s = (DropdownSound) component;
-            var modified = ImportEvents(ref s.ValueChangeEvents, node, "ValueChange");
-            modified |= ImportEvents(ref s.PopupEvents, node, "Popup");
-            modified |= ImportEvents(ref s.CloseEvents, node, "Close");
-            return modified;
-        }
-    
-        private bool EffectSoundImporter(Component component, XElement node)
-        {
-            var s = (EffectSound) component;
-            var modified = ImportEvents(ref s.EnableEvents, node, "Enable");
-            return modified;
-        }
-
-        private bool EmitterSoundImporter(Component component, XElement node)
-        {
-            var s = (EmitterSound) component;
-            var xSettings = node.Element("Settings");                        
-            var modified = ImportEvents(ref s.AudioEvents, node);
-            modified |= ImportFloat(ref s.FadeInTime, AudioUtility.GetXmlAttribute(xSettings, "FadeInTime"));
-            modified |= ImportFloat(ref s.FadeOutTime, AudioUtility.GetXmlAttribute(xSettings, "FadeOutTime"));            
-            return modified;
-        }
-                        
-        private bool LoadBankImporter(Component component, XElement node)
-        {
-            var s = (LoadBank) component;    
-            var xSettings = node.Element("Settings");
-            var modified = ImportBool(ref s.UnloadOnDisable, AudioUtility.GetXmlAttribute(xSettings, "UnloadOnDisable"));
-            modified |= ImportBanks(ref s.Banks, node);
-            return modified;
-        }    
-        
-        private bool MenuSoundImporter(Component component, XElement node)
-        {
-            var s = (MenuSound) component;                   
-            return ImportEvents(ref s.OpenEvents, node, "Open") ||            
-                   ImportEvents(ref s.CloseEvents, node, "Close");            
-        }
-
-        private bool PeriodSoundImporter(Component component, XElement node)
-        {
-            var s = (PeriodSound) component;           
-            var xSettings = node.Element("Settings");            
-            var modified = ImportEvent(ref s.AudioEvent, node.Element("AudioEvent"));
-            modified |= ImportFloat(ref s.InitialDelay, AudioUtility.GetXmlAttribute(xSettings, "InitialDelay"));
-            modified |= ImportFloat(ref s.MinInterval, AudioUtility.GetXmlAttribute(xSettings, "MinInterval"));
-            modified |= ImportFloat(ref s.MaxInterval, AudioUtility.GetXmlAttribute(xSettings, "MaxInterval"));
-            return modified;
-        }
-        
-        private bool SetSwitchImporter(Component component, XElement node)
-        {
-            var s = (SetSwitch) component;                    
-            var modified = ImportPhysicsSettings(s, node);
-            var xSettings = node.Element("Settings");              
-            modified |= ImportBool(ref s.IsGlobal, AudioUtility.GetXmlAttribute(xSettings, "IsGlobal"));
-            modified |= ImportSwitches(ref s.OnSwitches, node, "On");
-            modified |= ImportSwitches(ref s.OffSwitches, node, "Off");                           
-            return modified;           
-        }                            
-        
-        private bool ToggleSoundImporter(Component component, XElement node)
-        {
-            var s = (ToggleSound) component;
-            var modified = ImportEvents(ref s.ToggleOnEvents, node, "ToggleOn");
-            modified |= ImportEvents(ref s.ToggleOffEvents, node, "ToggleOff");
-            return modified;
-        }
-
-        private bool ScrollSoundImporter(Component component, XElement node)
-        {
-            var s = (ScrollSound) component;                                           
-            return ImportEvent(ref s.ScrollEvent, node);            
-        }
-
-        private bool SliderSoundImporter(Component component, XElement node)
-        {
-            var s = (SliderSound) component;
-            var modified = ImportParameter(ref s.ConnectedParameter, out s.ValueScale, node);
-            modified |= ImportEvent(ref s.DragEvent, node);
-            return modified;
-        }       
-        #endregion
 
         private class AsComponentCompare : AsCompareWindow
         {               
@@ -1027,7 +769,7 @@ namespace AudioStudio.Tools
                 SaveComponentAsset(go);                
             }
 
-            private bool IsMissing(AsComponent component)
+            private static bool IsMissing(AsComponent component)
             {
                 if (!component)
                 {

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using AudioStudio.Components;
+using AudioStudio.Tools;
 
 namespace AudioStudio.Editor
 {
@@ -12,6 +13,7 @@ namespace AudioStudio.Editor
 		private void OnEnable()
 		{
 			_component = target as PeriodSound;
+			CheckXmlExistence(_component);
 		}
 
 		public override void OnInspectorGUI()
@@ -28,6 +30,11 @@ namespace AudioStudio.Editor
 			EditorGUILayout.PropertyField(serializedObject.FindProperty("AudioEvent"));
 			serializedObject.ApplyModifiedProperties();
 			ShowButtons(_component);
+		}
+		
+		protected override void Refresh()
+		{
+			AsComponentBackup.RefreshEvent(_component.AudioEvent);
 		}
 	}
 }

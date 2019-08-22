@@ -104,9 +104,9 @@ namespace AudioStudio.Tools
             string[] audioFilePaths = Directory.GetFiles(Path.Combine(Application.dataPath, sourceFolder), "*" + extension, SearchOption.AllDirectories);			
             for (var i = 0; i < audioFilePaths.Length; i++)
             {
-                var savePathLong = audioFilePaths[i].Replace(sourceFolder, AudioPathSettings.MusicEventsPath).Replace(extension, ".asset").Replace("Music_", "");                
-                var loadPathShort = audioFilePaths[i].Substring(audioFilePaths[i].IndexOf("Assets", StringComparison.Ordinal));
-                var savePathShort = savePathLong.Substring(savePathLong.IndexOf("Assets", StringComparison.Ordinal));                
+                var savePathLong = audioFilePaths[i].Replace(sourceFolder, AudioPathSettings.MusicEventsPath).Replace(extension, ".asset").Replace("Music_", "");
+                var loadPathShort = AudioUtility.ShortPath(audioFilePaths[i]);
+                var savePathShort = AudioUtility.ShortPath(savePathLong);              
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Music Tracks", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;
                 var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(loadPathShort);
                 
@@ -122,8 +122,7 @@ namespace AudioStudio.Tools
                     continue;
                 }               
                 savePathLong = Path.GetDirectoryName(savePathLong);								
-                if (!Directory.Exists(savePathLong)) 
-                    Directory.CreateDirectory(savePathLong);												                
+                AudioUtility.CheckDirectoryExist(savePathLong);												                
                 var newTrack = CreateInstance<MusicTrack>();
                 newTrack.name = clip.name.Substring(6);                
                 if (_platform == Platform.Web)
@@ -144,8 +143,8 @@ namespace AudioStudio.Tools
             for (var i = 0; i < audioFilePaths.Length; i++)
             {				
                 var savePathLong = audioFilePaths[i].Replace(Path.Combine(AudioPathSettings.OriginalsPath, "Sound"), AudioPathSettings.SoundEventsPath).Replace(".wav", ".asset");				
-                var loadPathShort = audioFilePaths[i].Substring(audioFilePaths[i].IndexOf("Assets", StringComparison.Ordinal));
-                var savePathShort = savePathLong.Substring(savePathLong.IndexOf("Assets", StringComparison.Ordinal));
+                var loadPathShort = AudioUtility.ShortPath(audioFilePaths[i]);
+                var savePathShort = AudioUtility.ShortPath(savePathLong);
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Sound Clips", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;
 				
                 var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(loadPathShort);                
@@ -163,8 +162,7 @@ namespace AudioStudio.Tools
                 }               
                 
                 savePathLong = Path.GetDirectoryName(savePathLong);								
-                if (!Directory.Exists(savePathLong)) 
-                    Directory.CreateDirectory(savePathLong);				
+                AudioUtility.CheckDirectoryExist(savePathLong);				
                 var newClip = CreateInstance<SoundClip>();	                
                 newClip.name = clip.name;				
                 newClip.Clip = clip;                
@@ -181,7 +179,7 @@ namespace AudioStudio.Tools
             string[] soundClipPaths = Directory.GetFiles(searchPath, "*.asset", SearchOption.AllDirectories);
             for (var i = 0; i < soundClipPaths.Length; i++)
             {				                			
-                var loadPathShort = soundClipPaths[i].Substring(soundClipPaths[i].IndexOf("Assets", StringComparison.Ordinal));
+                var loadPathShort = AudioUtility.ShortPath(soundClipPaths[i]);
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Sound Containers", loadPathShort, (i + 1) * 1.0f / soundClipPaths.Length)) break;
 				
                 var clip = AssetDatabase.LoadAssetAtPath<SoundClip>(loadPathShort);
@@ -203,8 +201,7 @@ namespace AudioStudio.Tools
                     else
                     {
                         var savePathLong = Path.GetDirectoryName(soundClipPaths[i]);	
-                        if (!Directory.Exists(savePathLong)) 
-                            Directory.CreateDirectory(savePathLong);						
+                        AudioUtility.CheckDirectoryExist(savePathLong);						
                         var eventName = Path.GetFileName(eventNameLong);                                                    
                         var newRandomEvent = CreateInstance<SoundContainer>();                        
                         newRandomEvent.PlayLogic = SoundPlayLogic.Random;
@@ -225,7 +222,7 @@ namespace AudioStudio.Tools
             string[] musicTrackPaths = Directory.GetFiles(searchPath, "*.asset", SearchOption.AllDirectories);
             for (var i = 0; i < musicTrackPaths.Length; i++)
             {                	
-                var loadPathShort = musicTrackPaths[i].Substring(musicTrackPaths[i].IndexOf("Assets", StringComparison.Ordinal));                
+                var loadPathShort = AudioUtility.ShortPath(musicTrackPaths[i]);            
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Music Containers", loadPathShort, (i + 1) * 1.0f / musicTrackPaths.Length)) break;
 				
                 var track = AssetDatabase.LoadAssetAtPath<MusicTrack>(loadPathShort);	                
@@ -277,8 +274,7 @@ namespace AudioStudio.Tools
         private void AddToMusicContainer(string eventPathLong, string eventPathShort, MusicTrack track, MusicPlayLogic playLogic)
         {
             var savePathLong = Path.GetDirectoryName(eventPathLong);	
-            if (!Directory.Exists(savePathLong)) 
-                Directory.CreateDirectory(savePathLong);						
+            AudioUtility.CheckDirectoryExist(savePathLong);						
             var eventName = Path.GetFileName(eventPathLong);                                                    
             var newMusicContainer = CreateInstance<MusicContainer>();
             newMusicContainer.PlayLogic = playLogic;
@@ -300,7 +296,7 @@ namespace AudioStudio.Tools
                 string[] samplePaths = Directory.GetFiles(searchPath, "*.wav", SearchOption.AllDirectories);
                 for (var i = 0; i < samplePaths.Length; i++)
                 {
-                    var loadPathShort = samplePaths[i].Substring(samplePaths[i].IndexOf("Assets", StringComparison.Ordinal));
+                    var loadPathShort = AudioUtility.ShortPath(samplePaths[i]);
                     if (EditorUtility.DisplayCancelableProgressBar("Generating Music Instruments", loadPathShort, (i + 1) * 1.0f / samplePaths.Length)) break;
 
                     var sample = AssetDatabase.LoadAssetAtPath<AudioClip>(loadPathShort);
@@ -361,8 +357,8 @@ namespace AudioStudio.Tools
             for (var i = 0; i < audioFilePaths.Length; i++)
             {
                 var savePathLong = audioFilePaths[i].Replace(sourceFolder, AudioPathSettings.VoiceEventsPath).Replace(extension, ".asset").Replace("Vo_", "");				
-                var loadPathShort = audioFilePaths[i].Substring(audioFilePaths[i].IndexOf("Assets", StringComparison.Ordinal));
-                var savePathShort = savePathLong.Substring(savePathLong.IndexOf("Assets", StringComparison.Ordinal));
+                var loadPathShort = AudioUtility.ShortPath(audioFilePaths[i]);
+                var savePathShort = AudioUtility.ShortPath(savePathLong);
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Voice Events", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;
 				
                 var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(loadPathShort);	
@@ -391,7 +387,7 @@ namespace AudioStudio.Tools
                     else
                     {
                         savePathLong = Path.GetDirectoryName(savePathLong);	
-                        if (!Directory.Exists(savePathLong)) Directory.CreateDirectory(savePathLong);						                                                                          
+                        AudioUtility.CheckDirectoryExist(savePathLong);						                                                                          
                         var newRandomEvent = CreateInstance<VoiceEvent>();
                         newRandomEvent.PlayLogic = VoicePlayLogic.Random;
                         newRandomEvent.name = clip.name.Replace(result.Value, "");
@@ -420,7 +416,7 @@ namespace AudioStudio.Tools
                 }
                 
                 savePathLong = Path.GetDirectoryName(savePathLong);								
-                if (!Directory.Exists(savePathLong)) Directory.CreateDirectory(savePathLong);				
+                AudioUtility.CheckDirectoryExist(savePathLong);				
                 var newEvent = CreateInstance<VoiceEvent>();	
                 newEvent.name = clip.name;
                 if (_platform == Platform.Web)
@@ -513,7 +509,7 @@ namespace AudioStudio.Tools
             foreach (var audioFilePath in audioFilePaths)
             {
                 total++;                
-                var loadPathShort = audioFilePath.Substring(audioFilePath.IndexOf("Assets", StringComparison.Ordinal));
+                var loadPathShort = AudioUtility.ShortPath(audioFilePath);
                 if (EditorUtility.DisplayCancelableProgressBar(progressBarTitle, loadPathShort, total * 1.0f / audioFilePaths.Length)) break;
                 ReimportClips(loadPathShort, quality / 100f);                
             }            
@@ -585,11 +581,10 @@ namespace AudioStudio.Tools
                 var filePaths = Directory.GetFiles(path, extension, SearchOption.AllDirectories);
                 for (var i = 0; i < filePaths.Length; i++)
                 {
-                    var p = filePaths[i];
-                    if (EditorUtility.DisplayCancelableProgressBar(progressBarTitle, p, i * 1.0f / filePaths.Length)) break;
-                    var shortPath = p.Substring(p.IndexOf("Assets", StringComparison.Ordinal));
+                    var shortPath = AudioUtility.ShortPath(filePaths[i]);
                     var asset = AssetDatabase.LoadAssetAtPath<T>(shortPath);
                     if (asset) action(asset);
+                    if (EditorUtility.DisplayCancelableProgressBar(progressBarTitle, filePaths[i], i * 1.0f / filePaths.Length)) break;
                 }
             }
             catch (Exception e)

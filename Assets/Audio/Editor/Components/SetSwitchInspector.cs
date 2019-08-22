@@ -15,6 +15,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as SetSwitch;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()
@@ -45,6 +46,19 @@ namespace AudioStudio.Editor
             foreach (var evt in events)
             {
                 AudioUtility.AddToArray(ref _component.OffSwitches, new SetSwitchReference(evt.name));
+            }
+        }
+        
+        protected override void Refresh()
+        {
+            foreach (var swc in _component.OnSwitches)
+            {
+                AsComponentBackup.RefreshSwitch(swc);
+            }
+
+            foreach (var swc in _component.OffSwitches)
+            {
+                AsComponentBackup.RefreshSwitch(swc);
             }
         }
     }

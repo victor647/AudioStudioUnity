@@ -16,6 +16,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as ToggleSound;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()
@@ -44,6 +45,19 @@ namespace AudioStudio.Editor
             foreach (var evt in events)
             {
                 AudioUtility.AddToArray(ref _component.ToggleOffEvents, new AudioEventReference(evt.name));
+            }
+        }
+        
+        protected override void Refresh()
+        {
+            foreach (var evt in _component.ToggleOnEvents)
+            {
+                AsComponentBackup.RefreshEvent(evt);
+            }
+
+            foreach (var evt in _component.ToggleOffEvents)
+            {
+                AsComponentBackup.RefreshEvent(evt);
             }
         }
     }

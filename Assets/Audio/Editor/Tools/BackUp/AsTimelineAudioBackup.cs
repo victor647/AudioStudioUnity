@@ -31,7 +31,7 @@ namespace AudioStudio.Tools
         protected internal void Export()
         {
             CleanUp();
-            CheckoutLocked(DefaultXmlPath);
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);
             var fileName = EditorUtility.SaveFilePanel("Export to", XmlDocPath, "AudioPlayableAssets.xml", ".xml");
             if (string.IsNullOrEmpty(fileName)) return;                        
             FindFiles(ParseTimeline, "Exporting Timeline Assets", "*.playable");			
@@ -62,14 +62,7 @@ namespace AudioStudio.Tools
             xComponent.SetAttributeValue("Asset", Path.GetFileName(filePath));
             xComponent.SetAttributeValue("Track", trackName);
             xComponent.SetAttributeValue("ClipName", clip.displayName);
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("StartTime", (float) clip.start);
-            xSettings.SetAttributeValue("Duration", (float) clip.duration);
-            xComponent.Add(xSettings);
-            var xEvents = new XElement("AudioEvents");
-            ExportEvents(apa.StartEvents, xEvents, "Start");
-            ExportEvents(apa.EndEvents, xEvents, "End");
-            xComponent.Add(xEvents);
+            AsComponentBackup.AudioPlayableAssetExporter(apa, clip, xComponent);
             TotalCount++;
             return xComponent;
         }
@@ -81,7 +74,7 @@ namespace AudioStudio.Tools
             CleanUp();
             var filePath = EditorUtility.OpenFilePanel("Compare from", XmlDocPath, "xml");
             if (string.IsNullOrEmpty(filePath)) return;               
-            XRoot = XDocument.Load(filePath).Element("Root");            
+            XRoot = XDocument.Load(filePath).Root;            
             ImportComponents(true);                                                
             AsTimelineCompare.ShowWindow();          
             EditorUtility.ClearProgressBar();
@@ -159,10 +152,11 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Update
-        private XElement FindComponentNode(string fullPath, TimelineClip clip)
+
+        public XElement FindComponentNode(string fullPath, TimelineClip clip)
         {            
             LoadOrCreateXmlDoc();            			
-            var xComponents = XRoot.Descendants("Component");
+            var xComponents = XRoot.Elements("Component");
             foreach (var xComponent in xComponents)
             {
                 if (GetFullAssetPath(xComponent) == fullPath)
@@ -182,7 +176,7 @@ namespace AudioStudio.Tools
             var xComponent = FindComponentNode(fullPath, clip);
             if (xComponent != null)
             {                              
-                if (AudioPlayableAssetImporter(component, clip, xComponent))
+                if (AsComponentBackup.AudioPlayableAssetImporter(component, clip, xComponent))
                 {
                     EditorUtility.SetDirty(component);
                     return true;
@@ -194,7 +188,7 @@ namespace AudioStudio.Tools
 
         public bool UpdateComponentNode(string fullPath, TimelineClip clip, AudioPlayableAsset component)
         {
-            CheckoutLocked(DefaultXmlPath);
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);
             var trackName = clip.parentTrack.name;
             var xComponent = FindComponentNode(fullPath, clip);            
             if (xComponent != null)
@@ -215,7 +209,7 @@ namespace AudioStudio.Tools
         
         protected internal void RemoveComponentNode(string fullPath, TimelineClip clip)
         {
-            CheckoutLocked(DefaultXmlPath);
+            AudioUtility.CheckoutLockedFile(DefaultXmlPath);
             var xComponent = FindComponentNode(fullPath, clip);        
             if (xComponent != null)
             {
@@ -232,7 +226,7 @@ namespace AudioStudio.Tools
             CleanUp();
             var fileName = EditorUtility.OpenFilePanel("Import from", XmlDocPath, "xml");
             if (string.IsNullOrEmpty(fileName)) return;      
-            XRoot = XDocument.Load(fileName).Element("Root");            
+            XRoot = XDocument.Load(fileName).Root;            
             ImportComponents(false);
             EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
             AssetDatabase.SaveAssets();
@@ -244,7 +238,7 @@ namespace AudioStudio.Tools
         {
             try
             {                
-                var xComponents = XRoot.Descendants("Component").ToList();                
+                var xComponents = XRoot.Elements("Component").ToList();                
                 TotalCount = xComponents.Count;
                 var current = 0;
                 foreach (var xComponent in xComponents)
@@ -266,7 +260,7 @@ namespace AudioStudio.Tools
                         else 
                         {
                             var tempComponent = Instantiate(apa);
-                            if (AudioPlayableAssetImporter(tempComponent, clip, xComponent))                        
+                            if (AsComponentBackup.AudioPlayableAssetImporter(tempComponent, clip, xComponent))                        
                                 AsCompareWindow.ModifiedComponents.Add(xComponent, "Unhandled");     
                             DestroyImmediate(tempComponent, true);
                         } 
@@ -275,7 +269,7 @@ namespace AudioStudio.Tools
                     {
                         var clip = GetTimelineClipFromXml(xComponent, true);
                         var apa = (AudioPlayableAsset) clip.asset;
-                        if (AudioPlayableAssetImporter(apa, clip, xComponent))
+                        if (AsComponentBackup.AudioPlayableAssetImporter(apa, clip, xComponent))
                         {
                             EditorUtility.SetDirty(apa);
                             EditedCount++;   
@@ -293,34 +287,6 @@ namespace AudioStudio.Tools
             }            		
         }
 
-        private static bool AudioPlayableAssetImporter(AudioPlayableAsset apa, TimelineClip clip, XElement node)
-        {            
-                     
-            var xSettings = node.Element("Settings");
-            var clipName = AudioUtility.GetXmlAttribute(node, "ClipName");
-            var modified = false;
-            var start = AudioUtility.StringToFloat(AudioUtility.GetXmlAttribute(xSettings, "StartTime"));
-            if (clip.displayName != clipName)
-            {
-                clip.displayName = clipName;
-                modified = true;
-            }
-            if (clip.start != start)
-            {
-                clip.start = start;
-                modified = true;
-            }
-            var duration = AudioUtility.StringToFloat(AudioUtility.GetXmlAttribute(xSettings, "Duration"));
-            if (clip.duration != duration)
-            {
-                clip.duration = duration;
-                modified = true;
-            }
-            modified |= ImportEvents(ref apa.StartEvents, node, "Start");
-            modified |= ImportEvents(ref apa.EndEvents, node, "End");
-            return modified;
-        }
-        
         public static TimelineClip GetClipFromComponent(AudioPlayableAsset component)
         {
             var path = AssetDatabase.GetAssetPath(component);
@@ -401,7 +367,7 @@ namespace AudioStudio.Tools
             {
                 var clip = GetTimelineClipFromXml(node, true);
                 var apa = (AudioPlayableAsset) clip.asset;
-                if (AudioPlayableAssetImporter(apa, clip, node))
+                if (AsComponentBackup.AudioPlayableAssetImporter(apa, clip, node))
                 {
                     EditorUtility.SetDirty(apa);				
                 }            									         

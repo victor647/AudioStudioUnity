@@ -16,6 +16,7 @@ namespace AudioStudio.Editor
 		private void OnEnable()
 		{
 			_component = target as ColliderSound;
+			CheckXmlExistence(_component);
 		}
 
 		public override void OnInspectorGUI()
@@ -51,6 +52,21 @@ namespace AudioStudio.Editor
 			{
 				AudioUtility.AddToArray(ref _component.ExitEvents, new AudioEventReference(evt.name));
 			}
+		}
+
+		protected override void Refresh()
+		{
+			foreach (var evt in _component.EnterEvents)
+			{
+				AsComponentBackup.RefreshEvent(evt);
+			}
+
+			foreach (var evt in _component.ExitEvents)
+			{
+				AsComponentBackup.RefreshEvent(evt);
+			}
+
+			AsComponentBackup.RefreshParameter(_component.CollisionForceParameter);
 		}
 	}
 }

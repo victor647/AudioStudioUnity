@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AudioStudio.Tools
 {
-    public class AsImplementationBackup : AsSearchers
+    public class AsBackupWindow : AsSearchers
     {	
         private void OnGUI()
         {

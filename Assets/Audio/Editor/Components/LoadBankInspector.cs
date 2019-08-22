@@ -15,6 +15,7 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as LoadBank;
+            CheckXmlExistence(_component);
         }
 
         public override void OnInspectorGUI()
@@ -32,6 +33,14 @@ namespace AudioStudio.Editor
             foreach (var evt in events)
             {
                 AudioUtility.AddToArray(ref _component.Banks, new SoundBankReference(evt.name));
+            }
+        }
+        
+        protected override void Refresh()
+        {
+            foreach (var bank in _component.Banks)
+            {
+                AsComponentBackup.RefreshBank(bank);
             }
         }
     }

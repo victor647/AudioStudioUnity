@@ -15,6 +15,15 @@ namespace AudioStudio.Editor
         private void OnEnable()
         {
             _component = target as AudioState;
+            CheckXmlExistence();
+        }
+
+        private void CheckXmlExistence()
+        {
+            var path = AssetDatabase.GetAssetPath(_component);
+            var state = "OnLayer";
+            var layer = AsAudioStateBackup.GetLayerStateName(_component, ref state);
+            BackedUp = AsAudioStateBackup.Instance.FindComponentNode(path, layer, state) != null;
         }
 
         public override void OnInspectorGUI()
@@ -54,8 +63,17 @@ namespace AudioStudio.Editor
             }
         }
 
+        protected override void Refresh()
+        {
+            foreach (var evt in _component.EnterEvents)
+            {
+                AsComponentBackup.RefreshEvent(evt);
+            }
+        }
+
         protected override void UpdateXml(Object component, XmlAction action)
         {
+            var edited = false;
             var a = (AudioState) component;
             var path = AssetDatabase.GetAssetPath(component);
             var state = "OnLayer";
@@ -64,17 +82,18 @@ namespace AudioStudio.Editor
             {
                 case XmlAction.Remove:
                     AsAudioStateBackup.Instance.RemoveComponentNode(path, layer, state);
-                    DestroyImmediate(component, true);
+                    DestroyImmediate(a, true);
                     break;
                 case XmlAction.Save:
-                    AsAudioStateBackup.Instance.UpdateComponentNode(path, layer, state, a);
+                    edited = AsAudioStateBackup.Instance.UpdateComponentNode(path, layer, state, a);
                     break;
                 case XmlAction.Revert:
-                    AsAudioStateBackup.Instance.RevertComponentToXml(path, layer, state, a);
+                    edited = AsAudioStateBackup.Instance.RevertComponentToXml(path, layer, state, a);
                     break;
             }
-
-            AssetDatabase.SaveAssets();
+            BackedUp = true;
+            if (edited) 
+                AssetDatabase.SaveAssets();
         }
     }
 }
