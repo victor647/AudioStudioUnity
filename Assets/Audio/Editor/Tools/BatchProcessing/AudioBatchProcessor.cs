@@ -10,7 +10,8 @@ namespace AudioStudio.Tools
 {        
     public class AudioBatchProcessor : EditorWindow
     {		
-        private Platform _platform;        
+        private Platform _platform;
+        private Languages _language;
         
         #region GUI
         private void OnGUI()
@@ -50,9 +51,10 @@ namespace AudioStudio.Tools
                 if (GUILayout.Button("Music Instruments")) GenerateMusicInstruments(true);
                 GUILayout.EndHorizontal();                
                 GUILayout.BeginHorizontal();
-                if (GUILayout.Button("Voice Events")) GenerateVoiceEvents(true); 
-                if (GUILayout.Button("Clean Up Events & Banks")) CleanUpEmptyFields(true); 
+                _language = (Languages) EditorGUILayout.EnumPopup(_language);
+                if (GUILayout.Button("Voice Events")) GenerateVoiceEvents(true);
                 GUILayout.EndHorizontal();                
+                if (GUILayout.Button("Clean Up Events & Banks")) CleanUpEmptyFields(true);
                 if (GUILayout.Button("Set Default Spatial Setting to 3D Sounds")) SetSpatialSettings();
             }            
         }       
@@ -344,19 +346,20 @@ namespace AudioStudio.Tools
             string extension;
             if (_platform == Platform.Web)
             {
-                sourceFolder = Path.Combine(AudioPathSettings.StreamingClipsPath, "Voice");
+                sourceFolder = Path.Combine(AudioPathSettings.StreamingClipsPath, "Voice", _language.ToString());
                 extension = ".ogg";
             }
             else
             {
-                sourceFolder = Path.Combine(AudioPathSettings.OriginalsPath, "Voice");
+                sourceFolder = Path.Combine(AudioPathSettings.OriginalsPath, "Voice", _language.ToString());
                 extension = ".wav";
             }
-            				
+            var destinationFolder = Path.Combine(AudioPathSettings.VoiceEventsPath, _language.ToString());
+            
             string[] audioFilePaths = Directory.GetFiles(Path.Combine(Application.dataPath, sourceFolder), "*" + extension, SearchOption.AllDirectories);			
             for (var i = 0; i < audioFilePaths.Length; i++)
             {
-                var savePathLong = audioFilePaths[i].Replace(sourceFolder, AudioPathSettings.VoiceEventsPath).Replace(extension, ".asset").Replace("Vo_", "");				
+                var savePathLong = audioFilePaths[i].Replace(sourceFolder, destinationFolder).Replace(extension, ".asset").Replace("Vo_", "");				
                 var loadPathShort = AudioUtility.ShortPath(audioFilePaths[i]);
                 var savePathShort = AudioUtility.ShortPath(savePathLong);
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Voice Events", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;

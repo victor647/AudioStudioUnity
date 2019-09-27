@@ -3,11 +3,12 @@ using UnityEngine;
 
 namespace AudioStudio
 {
-    public class AudioPathSettings
+    public static class AudioPathSettings
     {
         public const string AudioStudioLibraryPath = "Audio"; 
         public static string AudioStudioLibraryPathFull => Path.Combine(Application.dataPath, AudioStudioLibraryPath);
-    
+        public static string EditorConfigPath => Path.Combine(AudioStudioLibraryPathFull, "Editor/Configs");
+
         public const string OriginalsPath = "Resources/Audio/Originals";
         public const string ControllersPath = "Resources/Audio/Controllers";
         public const string SoundEventsPath = "Resources/Audio/SoundEvents";

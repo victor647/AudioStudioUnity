@@ -24,7 +24,6 @@ namespace AudioStudio.Tools
             RegisterComponent<EmitterSound>(EmitterSoundImporter, EmitterSoundExporter);
             RegisterComponent<LoadBank>(LoadBankImporter, LoadBankExporter);
             RegisterComponent<MenuSound>(MenuSoundImporter, MenuSoundExporter);
-            RegisterComponent<PeriodSound>(PeriodSoundImporter, PeriodSoundExporter);
             RegisterComponent<ScrollSound>(ScrollSoundImporter, ScrollSoundExporter);            
             RegisterComponent<SliderSound>(SliderSoundImporter, SliderSoundExporter);
             RegisterComponent<ToggleSound>(ToggleSoundImporter, ToggleSoundExporter);
@@ -373,17 +372,6 @@ namespace AudioStudio.Tools
             node.Add(xEvents);                                                          
         }
 
-        private static void PeriodSoundExporter(Component component, XElement node)
-        {
-            var s = (PeriodSound) component;                     
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("InitialDelay", s.InitialDelay);
-            xSettings.SetAttributeValue("MinInterval", s.MinInterval);
-            xSettings.SetAttributeValue("MaxInterval", s.MaxInterval);                                                    
-            node.Add(xSettings);            
-            ExportEvent(s.AudioEvent, node);
-        } 
-        
         private static void SetSwitchExporter(Component component, XElement node)
         {
             var s = (SetSwitch) component;                    
@@ -516,17 +504,6 @@ namespace AudioStudio.Tools
                    ImportEvents(ref s.CloseEvents, node, "Close");            
         }
 
-        private static bool PeriodSoundImporter(Component component, XElement node)
-        {
-            var s = (PeriodSound) component;           
-            var xSettings = node.Element("Settings");            
-            var modified = ImportEvent(ref s.AudioEvent, node.Element("AudioEvent"));
-            modified |= ImportFloat(ref s.InitialDelay, AudioUtility.GetXmlAttribute(xSettings, "InitialDelay"));
-            modified |= ImportFloat(ref s.MinInterval, AudioUtility.GetXmlAttribute(xSettings, "MinInterval"));
-            modified |= ImportFloat(ref s.MaxInterval, AudioUtility.GetXmlAttribute(xSettings, "MaxInterval"));
-            return modified;
-        }
-        
         private static bool SetSwitchImporter(Component component, XElement node)
         {
             var s = (SetSwitch) component;                    

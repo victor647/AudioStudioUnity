@@ -21,18 +21,12 @@ namespace AudioStudio.Tools
 		protected internal bool IncludeB = true;
 		protected static string SearchPath = "Assets";
 
-		protected string XmlDocPath
-		{
-			get { return AudioUtility.CombinePath(AudioPathSettings.AudioStudioLibraryPathFull, "Editor", "Configs"); }
-		}
+		protected string XmlDocPath => AudioPathSettings.EditorConfigPath;
 		protected int EditedCount;
 		protected int TotalCount;
 		protected XElement XRoot = new XElement("Root");
 
-		protected virtual string DefaultXmlPath
-		{
-			get { return ""; }
-		}
+		protected virtual string DefaultXmlPath => "";
 
 		internal void OpenXmlFile()
 		{
@@ -52,8 +46,13 @@ namespace AudioStudio.Tools
 
 		protected void LoadOrCreateXmlDoc()
 		{
-			XRoot = XDocument.Load(DefaultXmlPath).Root;
-			if (XRoot == null)
+			try
+			{
+				XRoot = XDocument.Load(DefaultXmlPath).Root;
+			}
+#pragma warning disable 168
+			catch (FileNotFoundException e)
+#pragma warning restore 168
 			{
 				XRoot = new XElement("Root");				
 				AudioUtility.WriteXml(DefaultXmlPath, XRoot);
@@ -69,10 +68,13 @@ namespace AudioStudio.Tools
 				for (var i = 0; i < allFiles.Length; i++)
 				{
 					var shortPath = AudioUtility.ShortPath(allFiles[i]);
-					if (EditorUtility.DisplayCancelableProgressBar(progressBarTitle, shortPath, (i + 1) * 1.0f / allFiles.Length)) return false;
+					if (EditorUtility.DisplayCancelableProgressBar(progressBarTitle, shortPath, (i + 1) * 1.0f / allFiles.Length))
+					{
+						EditorUtility.ClearProgressBar();
+						return false;
+					}
 					parser(shortPath);					
 				}
-
 				EditorUtility.ClearProgressBar();
 			}
 			catch (Exception e)
@@ -83,11 +85,11 @@ namespace AudioStudio.Tools
 			return true;
 		}
 
-		protected static string GetGameObjectPath(Transform transform)
+		protected static string GetGameObjectPath(Transform transform, Transform until = null)
 		{
-			if (transform.parent == null)
+			if (transform.parent == null || transform == until)
 				return transform.name;
-			return GetGameObjectPath(transform.parent) + "/" + transform.name;
+			return GetGameObjectPath(transform.parent, until) + "/" + transform.name;
 		}
 
 		protected static GameObject GetGameObject(GameObject go, string fullName)
