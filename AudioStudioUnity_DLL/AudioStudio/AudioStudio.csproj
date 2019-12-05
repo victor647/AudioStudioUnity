@@ -1,0 +1,227 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{EA951051-5D9A-467B-B8A2-0F59B0AA4B05}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>AudioStudio</RootNamespace>
+        <AssemblyName>AudioStudio</AssemblyName>
+        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>UNITY_2017_3_OR_NEWER</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>UNITY_2017_3_OR_NEWER</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="CSharp-Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Core.dll</HintPath>
+        </Reference>
+        <Reference Include="CSharp-Unity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Unity.dll</HintPath>
+        </Reference>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Xml" />
+        <Reference Include="UnityEngine">
+            <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\Managed\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.Timeline, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\UnityExtensions\Unity\Timeline\Runtime\UnityEngine.Timeline.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Animation\AnimationSound.cs">
+          <Link>Components\Animation\AnimationSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Animation\AudioState.cs">
+          <Link>Components\Animation\AudioState.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AsComponent.cs">
+          <Link>Components\Common\AsComponent.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioEmitterObject.cs">
+          <Link>Components\Common\AudioEmitterObject.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioInit.cs">
+          <Link>Components\Common\AudioInit.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\GlobalAudioEmitter.cs">
+          <Link>Components\Common\GlobalAudioEmitter.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\LoadBank.cs">
+          <Link>Components\LoadBank.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\SetSwitch.cs">
+          <Link>Components\SetSwitch.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\AudioListener3D.cs">
+          <Link>Components\Spatial\AudioListener3D.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\AudioTag.cs">
+          <Link>Components\Spatial\AudioTag.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\ColliderSound.cs">
+          <Link>Components\Spatial\ColliderSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\EffectSound.cs">
+          <Link>Components\Spatial\EffectSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\EmitterSound.cs">
+          <Link>Components\Spatial\EmitterSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Timeline\AudioTimelineClip.cs">
+          <Link>Components\Timeline\AudioTimelineClip.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Timeline\AudioTimelineComponent.cs">
+          <Link>Components\Timeline\AudioTimelineComponent.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Timeline\AudioTimelineTrack.cs">
+          <Link>Components\Timeline\AudioTimelineTrack.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Timeline\TimelineSound.cs">
+          <Link>Components\Timeline\TimelineSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\ButtonSound.cs">
+          <Link>Components\UI\ButtonSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\DropdownSound.cs">
+          <Link>Components\UI\DropdownSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\MenuSound.cs">
+          <Link>Components\UI\MenuSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\ScrollSound.cs">
+          <Link>Components\UI\ScrollSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\SliderSound.cs">
+          <Link>Components\UI\SliderSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\ToggleSound.cs">
+          <Link>Components\UI\ToggleSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\AudioEventHandler.cs">
+          <Link>Core\AudioEventHandler.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\AudioInitSettings.cs">
+          <Link>Core\AudioInitSettings.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\AudioManager.cs">
+          <Link>Core\AudioManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\AudioSourceExtension.cs">
+          <Link>Core\AudioSourceExtension.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\BankManager.cs">
+          <Link>Core\BankManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\BarAndBeat.cs">
+          <Link>Core\BarAndBeat.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\ListenerManager.cs">
+          <Link>Core\ListenerManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\MidiManager.cs">
+          <Link>Core\MidiManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\MusicTransport.cs">
+          <Link>Core\MusicTransport.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\WebMusicPlayer.cs">
+          <Link>Core\WebMusicPlayer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Extensions\AsEnumItems.cs">
+          <Link>Extensions\AsEnumItems.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Extensions\MicrophoneInput.cs">
+          <Link>Extensions\MicrophoneInput.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\AudioController.cs">
+          <Link>Objects\AudioController.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\AudioEvent.cs">
+          <Link>Objects\AudioEvent.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\AudioObjectReference.cs">
+          <Link>Objects\AudioObjectReference.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\AudioParameter.cs">
+          <Link>Objects\AudioParameter.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\AudioSwitch.cs">
+          <Link>Objects\AudioSwitch.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicContainer.cs">
+          <Link>Objects\MusicContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicInstrument.cs">
+          <Link>Objects\MusicInstrument.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicStinger.cs">
+          <Link>Objects\MusicStinger.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicTrack.cs">
+          <Link>Objects\MusicTrack.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicTransitionSegment.cs">
+          <Link>Objects\MusicTransitionSegment.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundBank.cs">
+          <Link>Objects\SoundBank.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundClip.cs">
+          <Link>Objects\SoundClip.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundContainer.cs">
+          <Link>Objects\SoundContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\VoiceEvent.cs">
+          <Link>Objects\VoiceEvent.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\VoiceLimiter.cs">
+          <Link>Objects\VoiceLimiter.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Plugins\WebGLStreaming\WebGLStreamingAudioSourceInterop.cs">
+          <Link>Plugins\WebGLStreaming\WebGLStreamingAudioSourceInterop.cs</Link>
+        </Compile>
+        <Compile Include="AsAssetLoader.cs" />
+        <Compile Include="AsPathSettings.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AudioStudio_Deployment\AudioStudio_Deployment.csproj">
+        <Project>{7451dbb3-62a4-4401-82ec-f6a84cfb0832}</Project>
+        <Name>AudioStudio_Deployment</Name>
+      </ProjectReference>
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+
+</Project>

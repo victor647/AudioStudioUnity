@@ -1,0 +1,348 @@
+fileFormatVersion: 2
+guid: 7e26460123722a54e9f43952a0902bdb
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: B_cloak_00
+    100002: B_cloak_01
+    100004: B_cloak_02
+    100006: B_hair_01
+    100008: B_hair_02
+    100010: B_hair_03
+    100012: B_hair_04
+    100014: B_hair_05
+    100016: B_skirt_00
+    100018: B_skirt_01
+    100020: B_skirt_02
+    100022: B_skirt_03
+    100024: B_skirt_04
+    100026: B_skirt_05
+    100028: B_skirt_06
+    100030: B_skirt_07
+    100032: B_skirt_08
+    100034: B_skirt_09
+    100036: B_skirt_10
+    100038: B_skirt_11
+    100040: B_skirt_12
+    100042: B_skirt_13
+    100044: B_skirt_14
+    100046: B_skirt_15
+    100048: Bip01
+    100050: Bip01 Head
+    100052: Bip01 HeadNub
+    100054: Bip01 L Calf
+    100056: Bip01 L Clavicle
+    100058: Bip01 L Finger0
+    100060: Bip01 L Finger01
+    100062: Bip01 L Finger0Nub
+    100064: Bip01 L Finger1
+    100066: Bip01 L Finger11
+    100068: Bip01 L Finger1Nub
+    100070: Bip01 L Finger2
+    100072: Bip01 L Finger21
+    100074: Bip01 L Finger2Nub
+    100076: Bip01 L Foot
+    100078: Bip01 L Forearm
+    100080: Bip01 L Hand
+    100082: Bip01 L Thigh
+    100084: Bip01 L Toe0
+    100086: Bip01 L Toe0Nub
+    100088: Bip01 L UpperArm
+    100090: Bip01 Neck
+    100092: Bip01 Pelvis
+    100094: Bip01 R Calf
+    100096: Bip01 R Clavicle
+    100098: Bip01 R Finger0
+    100100: Bip01 R Finger01
+    100102: Bip01 R Finger0Nub
+    100104: Bip01 R Finger1
+    100106: Bip01 R Finger11
+    100108: Bip01 R Finger1Nub
+    100110: Bip01 R Finger2
+    100112: Bip01 R Finger21
+    100114: Bip01 R Finger2Nub
+    100116: Bip01 R Foot
+    100118: Bip01 R Forearm
+    100120: Bip01 R Hand
+    100122: Bip01 R Thigh
+    100124: Bip01 R Toe0
+    100126: Bip01 R Toe0Nub
+    100128: Bip01 R UpperArm
+    100130: Bip01 Spine
+    100132: Bip01 Spine1
+    100134: P_hair
+    100136: P_Hand_R
+    100138: P_Shoulder_L
+    100140: P_Shoulder_R
+    100142: pls_armorB11
+    100144: pls_bodyB11
+    100146: pls_cloakA
+    100148: pls_footB11
+    100150: pls_gloveB11
+    100152: pls_hairA
+    100154: pls_hairB
+    100156: pls_handB11
+    100158: pls_legB11
+    100160: pls_shoeB11
+    100162: pls_shoulderLB11
+    100164: pls_shoulderRB11
+    100166: pls_trousersB11
+    100168: pls_weaponA001
+    100170: pls_weaponA002
+    100172: pls_weaponA003
+    100174: //RootNode
+    400000: B_cloak_00
+    400002: B_cloak_01
+    400004: B_cloak_02
+    400006: B_hair_01
+    400008: B_hair_02
+    400010: B_hair_03
+    400012: B_hair_04
+    400014: B_hair_05
+    400016: B_skirt_00
+    400018: B_skirt_01
+    400020: B_skirt_02
+    400022: B_skirt_03
+    400024: B_skirt_04
+    400026: B_skirt_05
+    400028: B_skirt_06
+    400030: B_skirt_07
+    400032: B_skirt_08
+    400034: B_skirt_09
+    400036: B_skirt_10
+    400038: B_skirt_11
+    400040: B_skirt_12
+    400042: B_skirt_13
+    400044: B_skirt_14
+    400046: B_skirt_15
+    400048: Bip01
+    400050: Bip01 Head
+    400052: Bip01 HeadNub
+    400054: Bip01 L Calf
+    400056: Bip01 L Clavicle
+    400058: Bip01 L Finger0
+    400060: Bip01 L Finger01
+    400062: Bip01 L Finger0Nub
+    400064: Bip01 L Finger1
+    400066: Bip01 L Finger11
+    400068: Bip01 L Finger1Nub
+    400070: Bip01 L Finger2
+    400072: Bip01 L Finger21
+    400074: Bip01 L Finger2Nub
+    400076: Bip01 L Foot
+    400078: Bip01 L Forearm
+    400080: Bip01 L Hand
+    400082: Bip01 L Thigh
+    400084: Bip01 L Toe0
+    400086: Bip01 L Toe0Nub
+    400088: Bip01 L UpperArm
+    400090: Bip01 Neck
+    400092: Bip01 Pelvis
+    400094: Bip01 R Calf
+    400096: Bip01 R Clavicle
+    400098: Bip01 R Finger0
+    400100: Bip01 R Finger01
+    400102: Bip01 R Finger0Nub
+    400104: Bip01 R Finger1
+    400106: Bip01 R Finger11
+    400108: Bip01 R Finger1Nub
+    400110: Bip01 R Finger2
+    400112: Bip01 R Finger21
+    400114: Bip01 R Finger2Nub
+    400116: Bip01 R Foot
+    400118: Bip01 R Forearm
+    400120: Bip01 R Hand
+    400122: Bip01 R Thigh
+    400124: Bip01 R Toe0
+    400126: Bip01 R Toe0Nub
+    400128: Bip01 R UpperArm
+    400130: Bip01 Spine
+    400132: Bip01 Spine1
+    400134: P_hair
+    400136: P_Hand_R
+    400138: P_Shoulder_L
+    400140: P_Shoulder_R
+    400142: pls_armorB11
+    400144: pls_bodyB11
+    400146: pls_cloakA
+    400148: pls_footB11
+    400150: pls_gloveB11
+    400152: pls_hairA
+    400154: pls_hairB
+    400156: pls_handB11
+    400158: pls_legB11
+    400160: pls_shoeB11
+    400162: pls_shoulderLB11
+    400164: pls_shoulderRB11
+    400166: pls_trousersB11
+    400168: pls_weaponA001
+    400170: pls_weaponA002
+    400172: pls_weaponA003
+    400174: //RootNode
+    2100000: 'Material #35'
+    2100002: 'Material #33'
+    2100004: 'Material #48'
+    2100006: 'Material #37'
+    2100008: 'Material #38'
+    2100010: 'Material #36'
+    2100012: 'Material #39'
+    2100014: 'Material #43'
+    2100016: 'Material #44'
+    2100018: 'Material #45'
+    2100020: 'Material #46'
+    2100022: 'Material #47'
+    2300000: pls_shoulderLB11
+    2300002: pls_shoulderRB11
+    2300004: pls_weaponA001
+    2300006: pls_weaponA002
+    2300008: pls_weaponA003
+    3300000: pls_shoulderLB11
+    3300002: pls_shoulderRB11
+    3300004: pls_weaponA001
+    3300006: pls_weaponA002
+    3300008: pls_weaponA003
+    4300000: pls_hairA
+    4300002: pls_hairB
+    4300004: pls_shoulderLB11
+    4300006: pls_weaponA002
+    4300008: pls_weaponA003
+    4300010: pls_weaponA001
+    4300012: pls_shoulderRB11
+    4300014: pls_cloakA
+    4300016: pls_armorB11
+    4300018: pls_trousersB11
+    4300020: pls_shoeB11
+    4300022: pls_gloveB11
+    4300024: pls_handB11
+    4300026: pls_bodyB11
+    4300028: pls_legB11
+    4300030: pls_footB11
+    7400000: Take 001
+    9500000: //RootNode
+    13700000: pls_armorB11
+    13700002: pls_bodyB11
+    13700004: pls_cloakA
+    13700006: pls_footB11
+    13700008: pls_gloveB11
+    13700010: pls_hairA
+    13700012: pls_hairB
+    13700014: pls_handB11
+    13700016: pls_legB11
+    13700018: pls_shoeB11
+    13700020: pls_trousersB11
+    2186277476908879412: ImportLogs
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 1
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Take 001
+      takeName: Take 001
+      firstFrame: 0
+      lastFrame: 48
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events:
+      - time: 0.56
+        functionName: PlaySound
+        data: "a\u54E5dhdh\u662Fa"
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

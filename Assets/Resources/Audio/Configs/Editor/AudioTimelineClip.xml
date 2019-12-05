@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Root>
+  <Timeline AssetPath="Assets/Timelines/Timeline.playable">
+    <Component TrackName="Audio Timeline Track" ClipName="Character_Attack">
+      <Settings StartTime="1.87" Duration="3.48" EmitterIndex="0" StopOnEnd="true" GlobalSwitch="false" />
+      <AudioEvents>
+        <AudioEvent Trigger="Start" EventType="Sound" EventName="Character_Attack" />
+        <AudioEvent Trigger="End" EventType="Sound" EventName="Button_Click_Default" />
+      </AudioEvents>
+      <Switches>
+        <Switch Trigger="Start" SwitchName="Music / 123" />
+      </Switches>
+    </Component>
+  </Timeline>
+</Root>

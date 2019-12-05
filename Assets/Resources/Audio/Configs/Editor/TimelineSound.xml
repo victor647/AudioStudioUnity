@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Root>
+  <Scene AssetPath="Assets/Scenes/3D test.unity">
+    <Component Type="TimelineSound" GameObject="Timeline">
+      <SpatialSettings IsUpdatePosition="true" StopOnDestroy="true" />
+      <Emitters>
+        <GameObject Path="Wall" />
+      </Emitters>
+    </Component>
+  </Scene>
+</Root>

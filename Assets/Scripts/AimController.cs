@@ -1,5 +1,6 @@
 ﻿using AudioStudio;
 using AudioStudio.Components;
+using AudioStudio.Midi;
 using UnityEngine;
 
 public class AimController : MonoBehaviour
@@ -23,7 +24,7 @@ public class AimController : MonoBehaviour
     {
         if (MicrophoneInput.Instance)
             MicrophoneInput.Instance.StartRecording();
-        AudioAssetLoader.LoadInstrument("Glass");
+        AsAssetLoader.LoadInstrument("Glass");
     }
 
     private float _sizeBuffer;
