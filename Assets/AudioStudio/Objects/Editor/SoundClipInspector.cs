@@ -32,10 +32,10 @@ namespace AudioStudio.Editor
 			EditorGUILayout.LabelField("Audio Data", EditorStyles.boldLabel);    
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
 			{				
-				DrawProperty("Loop", "", 80);
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Loop"), "", 80);
 				if (_soundClip.Loop) 
-					DrawProperty("SeekRandomPosition", "Seek Random Position", 150);
-				DrawProperty("Clip", "Audio Clip", 80);
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SeekRandomPosition"), "", 150);
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip", 80);
 				if (_soundClip.Clip)
 				{ 
 					EditorGUILayout.LabelField("Sample Rate:  " + _soundClip.Clip.frequency);

@@ -4,14 +4,16 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a82c6e5ea08b0043880c80978d5d3c9, type: 3}
   m_Name: Footstep_S_Rush_Dirt_03
   m_EditorClassIdentifier: 
-  IndependentEvent: 0
+  Platform: 0
+  IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
   Volume: 1
@@ -29,27 +31,37 @@ MonoBehaviour:
   DefaultFadeOutTime: 0
   AvoidRepeat: 1
   RandomOnLoop: 0
-  AudioSwitchName: 
-  SwitchAssignments: []
+  AudioSwitchReference:
+    Name: 
+  SwitchEventMappings: []
   SwitchImmediately: 0
-  CrossFadeTime: 0
+  CrossFadeTime: 0.5
   Mappings: []
   PlayLogic: 0
   ChildEvents: []
-  ParentContainer: {fileID: 11400000, guid: f8da07ffcb3cd53479e9cf41e5f96f17, type: 2}
-  SpatialSetting: {fileID: 0}
-  IsUpdatePosition: 0
-  StopOnDestroy: 1
+  ParentContainer: {fileID: 0}
+  Is3D: 0
+  MinDistance: 1
+  MaxDistance: 50
+  SpatialBlend: 1
+  SpreadWidth: 0
+  RollOffMode: 0
+  AttenuationCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   RandomizeVolume: 0
   VolumeRandomRange: 0.1
   RandomizePitch: 0
   PitchRandomRange: 0.1
   EnableVoiceLimit: 0
   OverrideVoicing: 0
-  VoiceLimiter: {fileID: 11400000, guid: c8af10ca72d9233418633b0933e1546f, type: 2}
+  VoiceLimiter: {fileID: 0}
   VoiceLimitGlobal: 8
   VoiceLimitGameObject: 2
-  Priority: 100
+  Priority: 127
   Clip: {fileID: 8300000, guid: 6988e8527667ec1469d86da4a1290996, type: 3}
   Loop: 0
   SeekRandomPosition: 0

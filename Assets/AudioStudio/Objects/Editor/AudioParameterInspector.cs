@@ -81,10 +81,9 @@ namespace AudioStudio.Editor
             EditorGUILayout.LabelField("map to", GUILayout.Width(50));
             EditorGUILayout.PropertyField(property.FindPropertyRelative("MaxParameterValue"), GUIContent.none, GUILayout.MinWidth(40));
             GUILayout.EndHorizontal();
-
+            EditorGUILayout.PropertyField(property.FindPropertyRelative("CurveExponent"));
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Curve Exponent", GUILayout.Width(100));
-            EditorGUILayout.PropertyField(property.FindPropertyRelative("CurveExponent"), GUIContent.none);
+            EditorGUILayout.LabelField(" ");
         }
     }
 }

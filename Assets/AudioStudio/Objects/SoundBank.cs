@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AudioStudio.Configs
 {
-	[CreateAssetMenu(fileName = "New Bank", menuName = "Audio/SoundBank")]
+	[CreateAssetMenu(fileName = "New Bank", menuName = "AudioStudio/SoundBank")]
 	public class SoundBank : AudioConfig
 	{
 		#region Initialize

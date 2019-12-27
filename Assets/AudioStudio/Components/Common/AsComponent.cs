@@ -17,11 +17,11 @@ namespace AudioStudio.Components
 			return true;
 		}			
 		
-		protected static void PostEvents(IEnumerable<AudioEventReference> events, AudioTriggerSource trigger, GameObject emitter = null)
+		protected static void PostEvents(IEnumerable<PostEventReference> events, AudioTriggerSource trigger, GameObject emitter = null)
 		{
 			foreach (var evt in events)
 			{				
-				evt.Post(emitter, -1f, trigger);
+				evt.Post(emitter, trigger);
 			}  
 		}
 	}

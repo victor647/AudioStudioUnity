@@ -8,10 +8,9 @@ namespace AudioStudio.Components
 {    
     public class AudioState : StateMachineBehaviour
     {
-        public AudioEventReference[] EnterEvents = new AudioEventReference[0];
-        public AudioEventReference[] ExitEvents = new AudioEventReference[0];
+        public PostEventReference[] EnterEvents = new PostEventReference[0];
+        public PostEventReference[] ExitEvents = new PostEventReference[0];
         public SetSwitchReference[] EnterSwitches = new SetSwitchReference[0];
-        public bool StopEventsOnExit;
         public bool ResetStateOnExit = true;
         public AnimationAudioState AnimationAudioState = AnimationAudioState.None;
         
@@ -29,23 +28,16 @@ namespace AudioStudio.Components
             }
             foreach (var evt in EnterEvents)
             {
-                evt.Post(animator.gameObject, -1f, AudioTriggerSource.AudioState);
+                evt.Post(animator.gameObject, AudioTriggerSource.AudioState);
             }
             _animationSound.SetAnimationState(AnimationAudioState);
         }
 
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo,int layerIndex)
         {
-            if (StopEventsOnExit)
-            {
-                foreach (var evt in EnterEvents)
-                {
-                    evt.Stop(animator.gameObject, -1f, AudioTriggerSource.AudioState);  
-                }
-            }
             foreach (var evt in ExitEvents)
             {
-                evt.Post(animator.gameObject, -1f, AudioTriggerSource.AudioState);               
+                evt.Post(animator.gameObject, AudioTriggerSource.AudioState);               
             }
             if (ResetStateOnExit && _animationSound)
                 _animationSound.SetAnimationState(AnimationAudioState.None);

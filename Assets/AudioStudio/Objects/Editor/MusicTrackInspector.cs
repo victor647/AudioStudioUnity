@@ -17,7 +17,7 @@ namespace AudioStudio.Editor
 		public override void OnInspectorGUI()
 		{		
 			serializedObject.Update();		
-			DrawHierarchy();
+			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Platform"));			
 			DrawAudioClipData();
 			DrawRhythm();	
 			DrawTransition(_musicTrack);
@@ -37,8 +37,8 @@ namespace AudioStudio.Editor
 
 				if (!_musicTrack.UseDefaultLoopStyle)
 				{
-					DrawProperty("PickupBeats", "Pickup Beats", 100, 50);
-					DrawProperty("ExitPosition", "Exit Position", 100, 150);
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("PickupBeats"));
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("ExitPosition"));
 				}
 			}
 			EditorGUILayout.Separator();
@@ -51,14 +51,14 @@ namespace AudioStudio.Editor
 			{
 				if (_musicTrack.Platform != Platform.Web)
 				{
-					DrawProperty("Clip", "Audio Clip", 80);
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip", 80);
 					if (_musicTrack.Clip)
 						EditorGUILayout.LabelField("Sample Rate:  " + _musicTrack.Clip.frequency);
 				}
 				GUILayout.BeginHorizontal();
 				EditorGUILayout.LabelField("Loop Count", GUILayout.Width(80));
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("LoopCount"), GUIContent.none, GUILayout.Width(40));
-				EditorGUILayout.LabelField("Without Audio Tail", GUILayout.Width(110));
+				EditorGUILayout.LabelField("No Audio Tail", GUILayout.Width(100));
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("UseDefaultLoopStyle"), GUIContent.none, GUILayout.Width(20));
 				GUILayout.EndHorizontal();	
 				if (_musicTrack.Clip)
@@ -92,6 +92,10 @@ namespace AudioStudio.Editor
 			EditorGUILayout.PropertyField(property.FindPropertyRelative("BeatsPerBar"), GUIContent.none, GUILayout.MinWidth(25));
 			EditorGUILayout.LabelField("/", GUILayout.Width(10));
 			EditorGUILayout.PropertyField(property.FindPropertyRelative("BeatDuration"), GUIContent.none, GUILayout.MinWidth(30));
+			EditorGUILayout.EndHorizontal();
+			
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(" ");
 		}
 	}
 }

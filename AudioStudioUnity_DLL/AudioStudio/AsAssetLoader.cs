@@ -14,7 +14,6 @@ namespace AudioStudio
 		private static Dictionary<string, VoiceEvent> _voiceEvents;
 		private static Dictionary<string, MusicContainer> _musicEvents;
 		private static Dictionary<string, MusicInstrument> _musicInstruments;
-		private static List<MusicTransitionSegment> _musicTransitionSegments;
 		private static Dictionary<string, SoundBank> _soundBanks;
 		private static Dictionary<string, AudioParameter> _audioParameters;
 		private static Dictionary<string, AudioSwitch> _audioSwitches;
@@ -26,8 +25,6 @@ namespace AudioStudio
 			_voiceEvents = new Dictionary<string, VoiceEvent>();
 			_musicEvents = new Dictionary<string, MusicContainer>();
 			_musicInstruments = new Dictionary<string, MusicInstrument>();
-			_musicTransitionSegments = new List<MusicTransitionSegment>();
-			//LoadAllTransitionSegments();
 			_audioSwitches = new Dictionary<string, AudioSwitch>();
 			_audioParameters = new Dictionary<string, AudioParameter>();
 		}
@@ -40,60 +37,55 @@ namespace AudioStudio
 		}   
 
 		#region SoundBank
-		internal static void LoadBank(string bankName)
+		internal static bool LoadBank(string bankName, PostEventReference finishedPostEvent = null)
 		{
-			if (_soundBanks.ContainsKey(bankName))
+			if (string.IsNullOrEmpty(bankName) || _soundBanks.ContainsKey(bankName))
+				return false;
+			var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + $"/{AudioManager.Platform}/{bankName}";
+			ResourceManager.Instance.Load<SoundBank>(loadPath, bank =>
 			{
-				AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.Code, bankName, null, "Bank already loads");
-				return;
-			}
-			var loadPath = ShortPath(AsPathSettings.SoundBanksPath) + $"/{AudioManager.Platform}/{bankName}";
-			ResourceManager.Instance.Load<SoundBank>(loadPath, LoadBank);
+				if (!bank)
+				{
+					AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.Code, "N/A", null, "Bank not found");
+					return;
+				}
+				_soundBanks[bank.name] = bank;
+				bank.Init();
+				foreach (var ac in bank.AudioControllers)
+				{
+					if (!ac)
+					{
+						Debug.LogError("AudioController of SoundBank " + bank.name + " is missing!");
+						continue;
+					}
+					ac.Init();
+					var parameter = ac as AudioParameter;
+					if (parameter != null) _audioParameters[parameter.name] = parameter;
+					var audioSwitch = ac as AudioSwitch;
+					if (audioSwitch != null) _audioSwitches[audioSwitch.name] = audioSwitch;
+				}
+				foreach (var evt in bank.AudioEvents)
+				{			
+					if (!evt)
+					{
+						Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
+						continue;
+					}
+					evt.Init();
+					_soundEvents[evt.name] = evt;
+				}            
+				finishedPostEvent?.Post();
+				AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.Code, bank.name, null, "Bank loads into memory");
+			});
+			return true;
 		}
-		
-		private static void LoadBank(SoundBank bank)
-		{
-			if (!bank)
-			{
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.Code, "N/A", null, "Bank not found");
-				return;
-			}
-			_soundBanks[bank.name] = bank;
-			bank.Init();
-			foreach (var ac in bank.AudioControllers)
-			{
-				if (!ac)
-				{
-					Debug.LogError("AudioController of SoundBank " + bank.name + " is missing!");
-					continue;
-				}
-				ac.Init();
-				var parameter = ac as AudioParameter;
-				if (parameter != null) _audioParameters[parameter.name] = parameter;
-				var audioSwitch = ac as AudioSwitch;
-				if (audioSwitch != null) _audioSwitches[audioSwitch.name] = audioSwitch;
-			}
-			foreach (var evt in bank.AudioEvents)
-			{			
-				if (!evt)
-				{
-					Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
-					continue;
-				}
-				evt.Init();
-				_soundEvents[evt.name] = evt;
-			}            
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.Code, bank.name, null, "Bank loads into memory");                                        
-		}	
-		
-		internal static void UnloadBank(string bankName)
+
+		internal static bool UnloadBank(string bankName)
 		{
 			if (!_soundBanks.ContainsKey(bankName))
-			{
-				AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.Code, bankName, null, "Bank already unloads or not found");
-				return;
-			}				
+				return false;
 			UnloadBank(_soundBanks[bankName]);
+			return true;
 		}
 
 		internal static void UnloadBanks(string nameFilter)
@@ -155,9 +147,11 @@ namespace AudioStudio
 		#region Music
 		internal static MusicContainer LoadMusic(string eventName)
 		{
+			if (string.IsNullOrEmpty(eventName))
+				return null;
 			if (_musicEvents.ContainsKey(eventName)) 
 				return _musicEvents[eventName];
-			var loadPath = ShortPath(AsPathSettings.MusicEventsPath) + "/" + eventName;
+			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
 			ResourceManager.Instance.Load<MusicContainer>(loadPath, LoadMusicAndPlay);
 			return null;
 		}
@@ -172,15 +166,17 @@ namespace AudioStudio
 			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, music.name);
 			_musicEvents[music.name] = music;
 			music.Init();
-			music.PostEvent(null, -1f);
+			music.Play(null, -1f);
 			AudioManager.UpdateLastMusic(music.name);
 		}
 		
 		internal static MusicStinger LoadStinger(string stingerName)
 		{
+			if (string.IsNullOrEmpty(stingerName))
+				return null;
 			if (_musicEvents.ContainsKey(stingerName)) 
 				return _musicEvents[stingerName] as MusicStinger;
-			var loadPath = ShortPath(AsPathSettings.MusicEventsPath) + "/" + stingerName;
+			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + stingerName;
 			var stinger = Resources.Load<MusicStinger>(loadPath);
 			if (!stinger)
 			{                                                            
@@ -194,38 +190,13 @@ namespace AudioStudio
 			return stinger;
 		}
 
-		private static void LoadAllTransitionSegments()
-		{
-			var segments = Resources.LoadAll<MusicTransitionSegment>("Audio/Events/Music/");
-			if (segments.Length > 0)
-			{
-				foreach (var segment in segments)
-				{
-					AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, segment.name, null, "Transition segment loads");
-					_musicTransitionSegments.Add(segment);
-				}				
-			}
-		}
-
-		internal static MusicTransitionSegment GetTransitionSegment(MusicContainer origin, MusicContainer destination)
-		{
-			foreach (var segment in _musicTransitionSegments)
-			{
-				if ((segment.Destination == destination && segment.Origin == origin)
-				    || (!segment.Destination && segment.Origin == origin)
-				    || (segment.Destination == destination && !segment.Origin))
-				{
-					return segment;
-				}
-			}
-			return null;
-		}
-
 		internal static MusicInstrument LoadInstrument(string instrumentName, byte channel = 1)
 		{
+			if (string.IsNullOrEmpty(instrumentName))
+				return null;
 			if (_musicInstruments.ContainsKey(instrumentName)) 
 				return _musicInstruments[instrumentName] as MusicInstrument;
-			var loadPath = ShortPath(AsPathSettings.MusicInstrumentsPath) + "/" + instrumentName;
+			var loadPath = ShortPath(AudioPathSettings.Instance.MusicInstrumentsPath) + "/" + instrumentName;
 			var instrument = Resources.Load<MusicInstrument>(loadPath);
 			if (!instrument)
 			{                                                            
@@ -240,7 +211,6 @@ namespace AudioStudio
 		
 		internal static void UnloadInstrument(string instrumentName)
 		{
-			
 			if (!_musicInstruments.ContainsKey(instrumentName))
 			{
 				AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Instrument, AudioAction.Unload, AudioTriggerSource.Code, instrumentName, null, "Instrument already unloads or not found");
@@ -255,9 +225,11 @@ namespace AudioStudio
 		#region Voice
 		internal static VoiceEvent LoadVoice(string eventName)
 		{
+			if (string.IsNullOrEmpty(eventName))
+				return null;
 			if (_musicEvents.ContainsKey(eventName)) 
 				return _voiceEvents[eventName];
-			var loadPath = ShortPath(AsPathSettings.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
+			var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
 			ResourceManager.Instance.Load<VoiceEvent>(loadPath, LoadVoiceAndPlay);
 			return null;
 		}
@@ -272,55 +244,9 @@ namespace AudioStudio
 			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, voice.name);
 			_voiceEvents[voice.name] = voice;
 			voice.Init();
-			voice.PostEvent(GlobalAudioEmitter.GameObject, -1f);
+			voice.Play(GlobalAudioEmitter.GameObject, -1f);
 			AudioManager.SetCurrentPlayingVoice(voice.name);
 		}
-		#endregion
-		
-		#region Web
-#if !UNITY_EDITOR && UNITY_WEBGL
-		private static Dictionary<string, WebMusicInstance> _webMusicList = new Dictionary<string, WebMusicInstance>();
-		
-		internal static WebMusicInstance LoadMusicWeb(string eventName)
-		{
-			if (_webMusicList.ContainsKey(eventName)) 
-				return _webMusicList[eventName];
-			var loadPath = ShortPath(AsPathSettings.WebEventsPath) + "/Music/" + eventName;
-			var music = Resources.Load<MusicTrack>(loadPath);
-			if (!music)
-			{
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "Event not found");					
-				return null;
-			}
-			var musicInstance = new WebMusicInstance(music, music.DefaultFadeInTime, music.DefaultFadeOutTime);
-			_webMusicList.Add(eventName, musicInstance);	
-			WebMusicPlayer.Instance.PlayMusic(musicInstance);			
-			return null;
-		}
-		
-		internal static VoiceEvent LoadVoiceWeb(string eventName)
-		{
-			if (_musicEvents.ContainsKey(eventName)) 
-				return _voiceEvents[eventName];
-			var loadPath = ShortPath(AsPathSettings.WebEventsPath) + $"/Voice/{AudioManager.VoiceLanguage}/{eventName}";
-			var voice = Resources.Load<VoiceEvent>(loadPath);
-			if (!voice)
-			{                                                            
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "Event not found");                                    
-				return null;
-			}                        
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, eventName);
-			_voiceEvents[eventName] = voice;
-			voice.Init();	
-			return voice;
-		}
-		
-		internal static string DataServerUrl;   
-		internal static string GetClipUrl(string eventName, AudioObjectType type)
-		{
-			return DataServerUrl + ShortPath(AsPathSettings.StreamingClipsPath) + $"/{type}/{eventName}.ogg";
-		}
-#endif
 		#endregion
 	}
 }

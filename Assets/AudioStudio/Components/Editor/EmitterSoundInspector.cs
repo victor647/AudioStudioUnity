@@ -54,7 +54,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.AudioEvents, new AudioEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.AudioEvents, new PostEventReference(evt.name));
             }
         }
 

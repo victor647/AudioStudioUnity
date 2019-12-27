@@ -18,7 +18,7 @@ namespace AudioStudio.Editor
 		{		
 			serializedObject.Update();
 			DrawAudioClipData();
-			DrawProperty("TransitionInterval", "Play at", 80);
+			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("TriggerSync"));
 			EditorGUILayout.Separator();
 			DrawAudioControls(_musicStinger);
 			serializedObject.ApplyModifiedProperties();

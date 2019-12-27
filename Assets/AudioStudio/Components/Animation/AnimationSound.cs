@@ -18,12 +18,12 @@ namespace AudioStudio.Components
 
         public void PlaySound(string eventName)
         {
-            AudioManager.PlaySound(eventName, GetSoundSource(), -1f, null, AudioTriggerSource.AnimationSound);
+            AudioManager.PlaySound(eventName, GetSoundSource(), 0f, null, AudioTriggerSource.AnimationSound);
         }
         
         public void PlayVoice(string eventName)
         {
-            AudioManager.PlayVoice(eventName, gameObject, -1f, null, AudioTriggerSource.AnimationSound);
+            AudioManager.PlayVoice(eventName, gameObject, 0f, null, AudioTriggerSource.AnimationSound);
         }
 
         public void StopSound(string eventName)
@@ -63,7 +63,7 @@ namespace AudioStudio.Components
 
         public override bool IsValid()
         {
-            return GetComponent<Animator>() != null;
+            return GetComponent<Animator>() != null || GetComponent<Animation>() != null;
         }
     }
 }

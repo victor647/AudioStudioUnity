@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AudioStudio.Configs
 {
-	[CreateAssetMenu(fileName = "New Parameter", menuName = "Audio/Parameter")]
+	[CreateAssetMenu(fileName = "New Parameter", menuName = "AudioStudio/Controller/Parameter")]
 	public class AudioParameter : AudioController
 	{								
 		public float MinValue;		
@@ -267,7 +267,7 @@ namespace AudioStudio.Configs
             }
             
             var targetValue = Mathf.Lerp(MinTargetValue, MaxTargetValue, Mathf.Pow(parameterPercentage, CurveExponent));            
-            _modifyTarget(targetValue, go);                     
+            _modifyTarget?.Invoke(targetValue, go);                     
         }
     }
 }

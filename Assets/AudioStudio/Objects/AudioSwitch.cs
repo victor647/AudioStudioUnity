@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AudioStudio.Configs
 {		
-	[CreateAssetMenu(fileName = "New Switch", menuName = "Audio/Switch")]
+	[CreateAssetMenu(fileName = "New Switch", menuName = "AudioStudio/Controller/Switch")]
 	public class AudioSwitch : AudioController
 	{	
 		public List<string> SwitchNames = new List<string>();

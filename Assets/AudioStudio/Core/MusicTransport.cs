@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine;
@@ -110,13 +111,17 @@ namespace AudioStudio
         private int ExitPositionSamples => Mathf.FloorToInt(ActiveMusicData.MusicTrack.LoopDurationRealTime() * SampleRate) + PickUpLengthSamples;
         private int TrackLengthSamples => ActiveMusicData.MusicTrack.Clip.samples;
         public MusicKey CurrentKey => CurrentMarker.KeyCenter;
-        private TransitionInterval TransitionInterval => ActiveMusicData.MusicTrack.TransitionInterval;
-        private BarAndBeat GridLength => ActiveMusicData.MusicTrack.GridLength;
+        private float FadeInTime => _currentTransitionEntryData.FadeInTime;
+        private float EntryOffset => _currentTransitionEntryData.EntryOffset;
+        private float FadeOutTime => _currentTransitionExitData.FadeOutTime;
+        private float ExitOffset => _currentTransitionExitData.ExitOffset;
+        private TransitionInterval TransitionInterval => _currentTransitionExitData.Interval;
+        private BarAndBeat GridLength => _currentTransitionExitData.GridLength;
         private int GridLengthSamples
         {
             get
             {
-                switch (ActiveMusicData.MusicTrack.TransitionInterval)
+                switch (_currentTransitionExitData.Interval)
                 {
                     case TransitionInterval.NextBeat:                    
                         return BeatDurationSamples;
@@ -144,36 +149,33 @@ namespace AudioStudio
         public List<MusicTrackInstance> PlayingTrackInstances = new List<MusicTrackInstance>();
         private List<MusicTrackInstance> _exitingTrackInstances = new List<MusicTrackInstance>();
         
-        private float _fadeInTime;
-        private float _fadeOutTime;
+        private TransitionEntryData _currentTransitionEntryData;
+        private TransitionExitData _currentTransitionExitData;
         
-        public void SetMusicQueue(MusicContainer evt, float fadeInTime, float fadeOutTime, float exitOffset = -1f, float entryOffset = -1f, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {            
-            if (fadeInTime < 0f) fadeInTime = evt.DefaultFadeInTime;              
-            if (entryOffset < 0f) entryOffset = evt.DefaultEntryOffset;             
-            
+        public void SetMusicQueue(MusicContainer newMusic, float fadeInTime = 0f)
+        {
+            _currentTransitionExitData = GetTransitionExitCondition(newMusic);
+            _currentTransitionEntryData = GetTransitionEntryCondition(newMusic);
+
             if (!CurrentPlayingEvent) //no music is currently playing
             {
-                CurrentPlayingEvent = evt;
+                CurrentPlayingEvent = newMusic;
                 ActiveTracks.Clear();
-                GetTracks(evt, ActiveTracks);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Play, trigger, evt.name);
+                GetTracks(newMusic, ActiveTracks);
                 if (ActiveTracks.Count == 0) return;
                 ActiveMusicData = new TransportData(ActiveTracks[0]);
                 Play(fadeInTime);                                
             }
-            else if (CurrentPlayingEvent != evt)
+            else if (CurrentPlayingEvent != newMusic)
             {
-                if (fadeOutTime < 0f) fadeOutTime = CurrentPlayingEvent.DefaultFadeOutTime;
-                if (exitOffset < 0f) exitOffset = CurrentPlayingEvent.DefaultExitOffset;
-                if (TransitioningStatus != TransitioningStatus.None) CancelTransition();                
-                NextPlayingEvent = evt;
+                if (TransitioningStatus != TransitioningStatus.None) 
+                    CancelTransition();                
+                NextPlayingEvent = newMusic;
                 QueuedTracks.Clear();
-                GetTracks(evt, QueuedTracks);
-                
+                GetTracks(newMusic, QueuedTracks);
+                if (QueuedTracks.Count == 0) return;
                 QueuedMusicData = new TransportData(QueuedTracks[0]);
-                PrepareTransition(fadeInTime, fadeOutTime, exitOffset, entryOffset);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, trigger, evt.name, gameObject, TransitionInterval != TransitionInterval.Immediate? "MusicEvent will play on " + TransitionInterval : "");
+                PrepareTransition();
             }
         }
 
@@ -201,7 +203,7 @@ namespace AudioStudio
         }
 
         //generate the audio sources
-        private void CreateMusicTrackInstances(float fadeInTime, int timeSamples = 0)
+        private void CreateMusicTrackInstances(float fadeInTime = 0f, int timeSamples = 0)
         {            
             PlayingTrackInstances = new List<MusicTrackInstance>();
             foreach (var track in ActiveTracks)
@@ -222,7 +224,7 @@ namespace AudioStudio
         public void QueueStinger(MusicStinger stinger)
         {            
             _queuedStinger = stinger;
-            switch (stinger.TransitionInterval)
+            switch (stinger.TriggerSync)
             {
                 case TransitionInterval.Immediate:
                     PlayStinger();
@@ -377,7 +379,6 @@ namespace AudioStudio
             {
                 if (instance) instance.Stop(fadeOutTime);                
             }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.StopEvent, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _fadeOutTime + "s fade out");
             Invoke(nameof(ResetAll), fadeOutTime);  
         }
 
@@ -403,36 +404,56 @@ namespace AudioStudio
         private int _transitionGridSampleStamp;
         private bool _exitFirst = true;
         
-        private void PrepareTransition(float fadeInTime, float fadeOutTime, float exitOffset, float entryOffset)
+        private TransitionExitData GetTransitionExitCondition(MusicContainer newMusic)
         {
-            _fadeInTime = fadeInTime;
-            _fadeOutTime = fadeOutTime;         
-            
+            if (!CurrentPlayingEvent)
+                return new TransitionExitData();
+            return CurrentPlayingEvent.TransitionExitConditions.FirstOrDefault(c => c.Target.Name == newMusic.name) ?? 
+                   CurrentPlayingEvent.TransitionExitConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Target.Name)) ??
+                   new TransitionExitData();
+        }
+        
+        private TransitionEntryData GetTransitionEntryCondition(MusicContainer newMusic)
+        {
+            if (!CurrentPlayingEvent)
+                return newMusic.TransitionEntryConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Source.Name)) ?? new TransitionEntryData();
+            return newMusic.TransitionEntryConditions.FirstOrDefault(c => c.Source.Name == CurrentPlayingEvent.name) ?? 
+                   newMusic.TransitionEntryConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Source.Name)) ??
+                   new TransitionEntryData();
+        }
+        
+        private void PrepareTransition()
+        {
             //See if there are any segments connecting
-            var segment = AsAssetLoader.GetTransitionSegment(CurrentPlayingEvent, NextPlayingEvent);
-            if (segment)
+            if (!string.IsNullOrEmpty(_currentTransitionEntryData.TransitionSegment.Name))
             {
-                SetMusicQueue(segment, segment.OriginFadeOutTime, segment.SegmentFadeInTime);                    
-                return;                
+                var nextEvent = NextPlayingEvent;
+                var segment = AsAssetLoader.LoadMusic(_currentTransitionEntryData.TransitionSegment.Name);
+                if (segment)
+                {
+                    SetMusicQueue(segment);
+                    SetSequence(nextEvent);
+                    return;
+                }
             }
 
             //Calculate the sample to exit and enter
             switch (TransitionInterval)
             {
                 case TransitionInterval.Immediate:
-                    TransitionEnterSampleStamp = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(entryOffset * SampleRate));
-                    TransitionExitSampleStamp = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(exitOffset * SampleRate));
+                    TransitionEnterSampleStamp = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(EntryOffset * SampleRate));
+                    TransitionExitSampleStamp = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(ExitOffset * SampleRate));
                     break;
                 case TransitionInterval.ExitCue:
                     TransitionEnterSampleStamp = ExitPositionSamples - 
-                                                  QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(entryOffset * SampleRate);
-                    TransitionExitSampleStamp = ExitPositionSamples + Mathf.FloorToInt(exitOffset * SampleRate);
+                                                  QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
+                    TransitionExitSampleStamp = ExitPositionSamples + Mathf.FloorToInt(ExitOffset * SampleRate);
                     break;
                 default:
                     TransitionEnterSampleStamp = _transitionGridSampleStamp + GridLengthSamples - 
-                                                  QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(entryOffset * SampleRate);
+                                                  QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
                     TransitionExitSampleStamp = _transitionGridSampleStamp + GridLengthSamples 
-                                                                            + Mathf.FloorToInt(exitOffset * SampleRate);                
+                                                                            + Mathf.FloorToInt(ExitOffset * SampleRate);                
                     while (TransitionEnterSampleStamp < PlayHeadAudioSource.timeSamples)
                     {
                         TransitionEnterSampleStamp += GridLengthSamples;
@@ -462,8 +483,8 @@ namespace AudioStudio
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
             
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionEnter, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _fadeInTime + "s fade in");
-            CreateMusicTrackInstances(_fadeInTime);            
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionEnter, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _currentTransitionEntryData + "s fade in");
+            CreateMusicTrackInstances(FadeInTime);            
             PreEntry();
 
             if (!_exitFirst)
@@ -477,10 +498,10 @@ namespace AudioStudio
 
         private void TransitionExit() //old music finishes playing
         {                        
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionExit, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _fadeOutTime + "s fade out");
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionExit, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _currentTransitionExitData + "s fade out");
             foreach (var mti in _exitingTrackInstances)
             {
-                mti.Stop(_fadeOutTime);                
+                mti.Stop(FadeOutTime);                
             }
             _exitingTrackInstances.Clear();    
             if (_exitFirst)
@@ -555,7 +576,7 @@ namespace AudioStudio
             GetTracks(nextMusic, QueuedTracks);
             
             QueuedMusicData = new TransportData(QueuedTracks[0]);                    
-            TransitionEnterSampleStamp = ExitPositionSamples - QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(nextMusic.DefaultEntryOffset * SampleRate);
+            TransitionEnterSampleStamp = ExitPositionSamples - QueuedMusicData.PickUpLengthSamples;
             TransitionExitSampleStamp = TrackLengthSamples;
             _exitingTrackInstances = PlayingTrackInstances;
         }
@@ -568,7 +589,7 @@ namespace AudioStudio
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
             
-            CreateMusicTrackInstances(_fadeInTime);            
+            CreateMusicTrackInstances();            
             PreEntry();
             Invoke(nameof(SequenceExit), SamplesToTime(TransitionExitSampleStamp - TransitionEnterSampleStamp));
             TransitioningStatus = TransitioningStatus.Transitioning;
@@ -578,7 +599,7 @@ namespace AudioStudio
         {
             foreach (var mti in _exitingTrackInstances)
             {
-                mti.Stop(_fadeOutTime);                
+                mti.Stop(0f);                
             }
             _exitingTrackInstances.Clear();  
             if (TransitioningStatus == TransitioningStatus.Transitioning) 
@@ -710,7 +731,6 @@ namespace AudioStudio
             {			
                 mti.Pause(fadeOutTime);
             }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Pause, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject);
         }
         
         public void Resume(float fadeInTime)
@@ -719,7 +739,6 @@ namespace AudioStudio
             {			
                 mti.Resume(fadeInTime);
             }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Resume, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject);
         }
         
         public void Mute(float fadeOutTime)
@@ -728,7 +747,6 @@ namespace AudioStudio
             {			
                 mti.Mute(fadeOutTime);
             }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Mute, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject);
         }
         
         public void UnMute(float fadeInTime)
@@ -737,7 +755,6 @@ namespace AudioStudio
             {			                
                 mti.UnMute(fadeInTime);                
             }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Unmute, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject);
         }
         
         public void SetOutputBus(AudioMixerGroup bus)

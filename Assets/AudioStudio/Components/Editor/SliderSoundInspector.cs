@@ -24,7 +24,7 @@ namespace AudioStudio.Editor
             EditorGUILayout.LabelField("Connected Parameter:");
             EditorGUILayout.PropertyField(serializedObject.FindProperty("ConnectedParameter"));
             EditorGUILayout.LabelField("On Drag:");
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("DragEvent"));
+            AsGuiDrawer.DrawAudioObject(serializedObject, "DragEvent");
 
             serializedObject.ApplyModifiedProperties();
             AsGuiDrawer.CheckLinkedComponent<Slider>(_component);

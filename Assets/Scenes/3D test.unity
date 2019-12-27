@@ -124,7 +124,6 @@ GameObject:
   - component: {fileID: 195943124}
   - component: {fileID: 195943123}
   - component: {fileID: 195943122}
-  - component: {fileID: 195943120}
   m_Layer: 0
   m_Name: Delay
   m_TagString: Untagged
@@ -132,18 +131,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &195943120
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 195943119}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea3d384d55b701f4991056be04be3f00, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!23 &195943122
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2126,6 +2113,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1496834122}
   - component: {fileID: 1496834121}
+  - component: {fileID: 1496834123}
   m_Layer: 0
   m_Name: AudioInit
   m_TagString: Untagged
@@ -2161,6 +2149,30 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1496834123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496834120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c166918a6d6fd404191ecd9e8f67ad5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SetOn: 0
+  PostFrom: 0
+  MatchTags: 0
+  IsUpdatePosition: 1
+  StopOnDestroy: 1
+  EnableEvents:
+  - Name: 
+    Type: 0
+    Action: 0
+    FadeTime: 0
+  DisableEvents: []
+  DelayTime: 0
 --- !u!1 &1504059536
 GameObject:
   m_ObjectHideFlags: 0
@@ -2752,8 +2764,9 @@ MonoBehaviour:
   StopOnDestroy: 1
   AudioEvents:
   - Name: Menu_Main_Open
-    EventType: 0
-  FadeOutTime: 0.5
+    Type: 0
+    Action: 0
+    FadeTime: 0
   InitialDelay: 0
   MinInterval: 1
   MaxInterval: 2

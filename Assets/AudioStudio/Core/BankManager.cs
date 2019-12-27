@@ -12,9 +12,13 @@ namespace AudioStudio
         {
             if (!_loadedBankList.ContainsKey(bankName) || _loadedBankList[bankName] == 0)
             {
-                AsAssetLoader.LoadBank(bankName);
-                _loadedBankList[bankName] = 1;
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName);
+                if (AsAssetLoader.LoadBank(bankName))
+                {
+                    _loadedBankList[bankName] = 1;
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName);
+                }
+                else
+                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, null, "Bank not found");
             }
             else
             {
@@ -31,9 +35,13 @@ namespace AudioStudio
                 AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, null, "Sound Bank is already unloaded");
             else if (_loadedBankList[bankName] == 1)
             {
-                AsAssetLoader.UnloadBank(bankName);
-                _loadedBankList[bankName] = 0;
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName);
+                if (AsAssetLoader.UnloadBank(bankName))
+                {
+                    _loadedBankList[bankName] = 0;
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName);
+                }
+                else
+                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, null, "Bank not found");
             }
             else
             {

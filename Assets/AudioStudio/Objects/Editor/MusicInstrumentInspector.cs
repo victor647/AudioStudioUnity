@@ -18,14 +18,14 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            DrawProperty("SampleType", "Sample Type");
+            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SampleType"));
             if (_instrument.SampleType != InstrumentSampleType.OneShotTrigger)
             {
-                DrawProperty("MaxPolyphonicVoices", "Max Polyphonic Voices");
-                DrawProperty("Attack");
-                DrawProperty("Release");
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("MaxPolyphonicVoices"));
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Attack"));
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Release"));
             }
-            DrawProperty("VelocityCurve", "Velocity Curve");
+            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("VelocityCurve"));
             AsGuiDrawer.DrawList(serializedObject.FindProperty("KeyboardMappings"), "Keyboard Mappings");
             AsGuiDrawer.DrawSaveButton(_instrument);
             serializedObject.ApplyModifiedProperties();

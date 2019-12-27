@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using AudioStudio.Configs;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AudioStudio.Components
 {
@@ -11,19 +9,17 @@ namespace AudioStudio.Components
 
         private GameObject _emitter;
 
-        public GameObject GetSoundSource(GameObject emitter = null)
+        public GameObject GetSoundSource()
         {
             if (IsUpdatePosition)
             {
-                if (!emitter)
-                    emitter = gameObject;
-                if (StopOnDestroy)
-                    _emitter = gameObject;
-                else if (!_emitter)
+                if (!StopOnDestroy)
                 {
-                    _emitter = new GameObject(emitter.name + " (AudioSource)");
-                    _emitter.transform.position = emitter.transform.position;
+                    _emitter = new GameObject(gameObject.name + " (AudioSource)");
+                    _emitter.transform.position = transform.position;
                 }
+                else
+                    _emitter = gameObject;
             }
             else
                 _emitter = GlobalAudioEmitter.GameObject;

@@ -12,9 +12,9 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class DropdownSound : AsComponent
     {
-        public AudioEventReference[] ValueChangeEvents = new AudioEventReference[0];
-        public AudioEventReference[] PopupEvents = new AudioEventReference[0];
-        public AudioEventReference[] CloseEvents = new AudioEventReference[0];
+        public PostEventReference[] ValueChangeEvents = new PostEventReference[0];
+        public PostEventReference[] PopupEvents = new PostEventReference[0];
+        public PostEventReference[] CloseEvents = new PostEventReference[0];
         
         private bool _isPoppedUp;
         private Dropdown _dropDown;

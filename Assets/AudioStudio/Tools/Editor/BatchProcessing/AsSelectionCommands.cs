@@ -1,14 +1,57 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using AudioStudio.Configs;
 using UnityEngine;
 using UnityEditor;
+using Object = UnityEngine.Object;
 
 namespace AudioStudio.Tools
 {
-	public static class AsSelectionCommands
+	public class AsSelectionCommands : EditorWindow
 	{
+		[MenuItem("Assets/AudioStudio/Generate Bank Per Folder")]
+		public static void GenerateBankPerFolder()
+		{
+			try
+			{
+				for (var i = 0; i < Selection.objects.Length; i++)
+				{
+					var folderPath = AssetDatabase.GetAssetPath(Selection.objects[i]).Substring(7);
+					if (EditorUtility.DisplayCancelableProgressBar("Generating Banks", folderPath, (i + 1f) / Selection.objects.Length)) break;
+					var bankName = Selection.objects[i].name;
+					var bankPath = AsScriptingHelper.CombinePath(AudioPathSettings.Instance.SoundBanksPath, "PC", bankName + ".asset");
+					if (File.Exists(AsScriptingHelper.CombinePath(Application.dataPath, bankPath))) continue;
+					var newBank = CreateInstance<SoundBank>();
+					var contents = Directory.GetFiles(AsScriptingHelper.CombinePath(Application.dataPath, folderPath), "*.asset", SearchOption.AllDirectories);
+					foreach (var content in contents)
+					{
+						var sc = AssetDatabase.LoadAssetAtPath<SoundContainer>(AsScriptingHelper.ShortPath(content));
+						if (!sc) continue;
+						if (sc.IndependentEvent)
+							newBank.AudioEvents.Add(sc);
+					}
+					AssetDatabase.CreateAsset(newBank, "Assets/" + bankPath);
+				}
+			}
+#pragma warning disable 168
+			catch (Exception e)
+#pragma warning restore 168
+			{
+				EditorUtility.ClearProgressBar();
+			}
+			EditorUtility.ClearProgressBar();
+		}
+		
+		[MenuItem("Assets/AudioStudio/Batch Rename")]
+		private static void BatchRename()
+		{
+			var window = GetWindow<AsAssetBatchRenamer>();			
+			window.position = new Rect(800, 400, 200, 150);						
+			window.titleContent = new GUIContent("Batch Rename");
+		}	
+		
 		[MenuItem("Assets/AudioStudio/Filter Selection/Sound Containers")]
 		private static void SelectSoundContainers()
 		{
@@ -65,7 +108,7 @@ namespace AudioStudio.Tools
 				var path = AssetDatabase.GetAssetPath(audioClip);
 				if (path.Contains("Music"))
 				{
-					var savePath = path.Replace(AsPathSettings.OriginalsPath + "/Music", AsPathSettings.MusicEventsPath)
+					var savePath = path.Replace(AudioPathSettings.Instance.SoundFilesPath + "/Music", AudioPathSettings.Instance.MusicEventsPath)
 						.Replace(".wav", ".asset").Replace("Music_", "");
 
 					var savePathLong = Application.dataPath + savePath.Substring(6);
@@ -85,7 +128,7 @@ namespace AudioStudio.Tools
 				}
 				else if (path.Contains("Voice"))
 				{
-					var savePath = path.Replace(AsPathSettings.OriginalsPath + "/Voice", AsPathSettings.VoiceEventsPath)
+					var savePath = path.Replace(AudioPathSettings.Instance.SoundFilesPath + "/Voice", AudioPathSettings.Instance.VoiceEventsPath)
 						.Replace(".wav", ".asset").Replace("Vo_", "");
 
 					var savePathLong = Application.dataPath + savePath.Substring(6);
@@ -105,7 +148,7 @@ namespace AudioStudio.Tools
 				}
 				else
 				{
-					var savePath = path.Replace(AsPathSettings.OriginalsPath + "/Sound", AsPathSettings.SoundEventsPath)
+					var savePath = path.Replace(AudioPathSettings.Instance.SoundFilesPath + "/Sound", AudioPathSettings.Instance.SoundEventsPath)
 						.Replace(".wav", ".asset");
 					var savePathLong = Application.dataPath + savePath.Substring(6);
 					if (!File.Exists(savePathLong))
@@ -130,14 +173,14 @@ namespace AudioStudio.Tools
 	{		
 		public static void ShowWindow(SoundContainer[] soundList)
 		{
-			var window = (AddSoundBankWindow) GetWindow(typeof(AddSoundBankWindow));			
+			var window = GetWindow<AddSoundBankWindow>();			
 			window.position = new Rect(800, 400, 200, 10);						
 			window.titleContent = new GUIContent("Add To SoundBank");
-			_soundContainers = soundList;
+			window._soundContainers = soundList;
 		}
 
 		private SoundBank _soundBank;		
-		private static SoundContainer[] _soundContainers;
+		private SoundContainer[] _soundContainers;
 		
 		private void OnGUI()
 		{

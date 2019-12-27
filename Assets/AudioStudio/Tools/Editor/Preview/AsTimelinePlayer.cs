@@ -16,7 +16,7 @@ namespace AudioStudio.Tools
         {
             var timelinePrefab = selectedObject as GameObject;
             if (!timelinePrefab) return;
-            var configPath = Path.Combine(AsPathSettings.EditorConfigPathFull, "TimelineSceneTable.txt");
+            var configPath = Path.Combine(AudioPathSettings.EditorConfigPathFull, "TimelineSceneTable.txt");
             try
             {
                 var data = File.ReadAllLines(configPath);

@@ -25,7 +25,7 @@ namespace AudioStudio.Tools
 
 		protected string XmlDocDirectory
 		{
-			get { return AsPathSettings.EditorConfigPathFull; }
+			get { return AudioPathSettings.EditorConfigPathFull; }
 		}
 		protected int EditedCount;
 		protected int TotalCount;
@@ -116,7 +116,11 @@ namespace AudioStudio.Tools
 		{
 			if (transform.parent == null || transform == until)
 				return transform.name;
-			return GetGameObjectPath(transform.parent, until) + "/" + transform.name;
+			var fullPath = GetGameObjectPath(transform.parent, until) + "/" + transform.name;
+			//in Unity 2018.4 and later, opening UI prefabs would create a temp canvas
+			if (fullPath.StartsWith("Canvas (Environment)"))
+				fullPath = fullPath.Substring(21);
+			return fullPath;
 		}
 
 		protected static GameObject GetGameObject(GameObject go, string fullName)

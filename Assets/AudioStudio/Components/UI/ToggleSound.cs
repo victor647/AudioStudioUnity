@@ -11,8 +11,8 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class ToggleSound : AsComponent
     {
-        public AudioEventReference[] ToggleOnEvents = new AudioEventReference[0];
-        public AudioEventReference[] ToggleOffEvents = new AudioEventReference[0];
+        public PostEventReference[] ToggleOnEvents = new PostEventReference[0];
+        public PostEventReference[] ToggleOffEvents = new PostEventReference[0];
 
         private void Start()
         {

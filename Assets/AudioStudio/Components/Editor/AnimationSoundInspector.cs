@@ -20,8 +20,19 @@ namespace AudioStudio.Editor
             serializedObject.Update();
             ShowSpatialSettings();
             serializedObject.ApplyModifiedProperties();
-            AsGuiDrawer.CheckLinkedComponent<Animator>(_component);
+            CheckLinkedComponent();
             ShowButtons(_component);
+        }
+
+        private void CheckLinkedComponent()
+        {
+            var animator = _component.GetComponent<Animator>();
+            if (animator.ToString() == "null")
+            {
+                var animation = _component.GetComponent<Animation>();
+                if (animation == null)
+                    EditorGUILayout.HelpBox("Can't Find Animator or Animation Component!", MessageType.Error);
+            }
         }
     }
 }

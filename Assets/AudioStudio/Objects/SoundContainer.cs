@@ -16,7 +16,7 @@ namespace AudioStudio.Configs
         SequenceStep
     }
 
-    [CreateAssetMenu(fileName = "New Sound Container", menuName = "Audio/Sound/Container")]
+    [CreateAssetMenu(fileName = "New Sound Container", menuName = "AudioStudio/Sound/Container")]
     public class SoundContainer : AudioEvent
     {
         #region Fields    
@@ -113,8 +113,6 @@ namespace AudioStudio.Configs
                 child.Pitch = Pitch;
                 child.RandomizePitch = RandomizePitch;
                 child.PitchRandomRange = PitchRandomRange;
-                child.DefaultFadeInTime = DefaultFadeInTime;
-                child.DefaultFadeOutTime = DefaultFadeOutTime;
                 child.CrossFadeTime = CrossFadeTime;
 
                 child.SubMixer = SubMixer;
@@ -168,29 +166,20 @@ namespace AudioStudio.Configs
         #endregion       
 
         #region Playback        
-        public override void PostEvent(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {                        
-            if (fadeInTime < 0) fadeInTime = DefaultFadeInTime;
-            Play(soundSource, fadeInTime, endCallback);  
-        }
-        
-        public override void Play(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
+        public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
             if (EnableVoiceLimit)
             {
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
-            }            
-            
+            }
             var chosenClip = GetChild(soundSource, fadeInTime, endCallback);                                    
             if (chosenClip)                            
                 chosenClip.Play(soundSource, fadeInTime, endCallback);                                            
         }
 
-        public override void Stop(GameObject soundSource, float fadeOutTime)
+        public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
         {
-            if (fadeOutTime < 0f) fadeOutTime = DefaultFadeOutTime;                        
-
             foreach (var evt in ChildEvents)
             {                
                 evt.Stop(soundSource, fadeOutTime);
@@ -199,14 +188,44 @@ namespace AudioStudio.Configs
 
         public virtual void StopAll(float fadeOutTime)
         {
-            if (fadeOutTime < 0f) fadeOutTime = DefaultFadeOutTime;   
-            
             foreach (var evt in ChildEvents)
             {
                 evt.StopAll(fadeOutTime);
             }
             if (IndependentEvent) 
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.StopEvent, AudioTriggerSource.Code, name);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Stop, AudioTriggerSource.Code, name);
+        }
+
+        public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
+        {
+            foreach (var evt in ChildEvents)
+            {                
+                evt.Mute(soundSource, fadeOutTime);
+            }
+        }
+
+        public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+        {
+            foreach (var evt in ChildEvents)
+            {                
+                evt.UnMute(soundSource, fadeInTime);
+            }
+        }
+
+        public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+        {
+            foreach (var evt in ChildEvents)
+            {                
+                evt.Pause(soundSource, fadeOutTime);
+            }
+        }
+
+        public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+        {
+            foreach (var evt in ChildEvents)
+            {                
+                evt.Resume(soundSource, fadeInTime);
+            }
         }
 
         private void OnSwitchChanged(GameObject soundSource)

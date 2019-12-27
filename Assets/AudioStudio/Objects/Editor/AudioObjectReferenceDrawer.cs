@@ -1,4 +1,8 @@
-﻿using AudioStudio.Configs;
+﻿using AudioStudio;
+using AudioStudio.Components;
+using AudioStudio.Configs;
+using AudioStudio.Editor;
+using AudioStudio.Tools;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +11,7 @@ public abstract class AudioObjectReferenceDrawer : PropertyDrawer
     private int _pickerWindowId;
     private Rect _position;
 
-    protected bool ShowButton(Rect position, SerializedProperty property, string objectType)
+    protected virtual bool ShowButton(Rect position, SerializedProperty property, string objectType)
     {
         var name = property.FindPropertyRelative("Name");
         GetSelectedObject(position, name);
@@ -30,8 +34,8 @@ public abstract class AudioObjectReferenceDrawer : PropertyDrawer
         _pickerWindowId = GUIUtility.GetControlID(FocusType.Passive) + 100;        
         EditorGUIUtility.ShowObjectPicker<T>(null, false, "", _pickerWindowId);		
     }
-    
-    private void GetSelectedObject(Rect position, SerializedProperty property)
+
+    protected void GetSelectedObject(Rect position, SerializedProperty property)
     {        
         if (Event.current.commandName == "ObjectSelectorClosed" && EditorGUIUtility.GetObjectPickerControlID() == _pickerWindowId && position == _position)
         {
@@ -42,8 +46,45 @@ public abstract class AudioObjectReferenceDrawer : PropertyDrawer
     }
 }
 
-[CustomPropertyDrawer(typeof(AudioEventReference))]
-public class AudioEventReferenceDrawer : AudioObjectReferenceDrawer
+[CustomPropertyDrawer(typeof(MusicTransitionReference))]
+public class MusicTransitionReferenceDrawer : AudioObjectReferenceDrawer
+{							
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        EditorGUI.BeginProperty(position, label, property);				
+        if (ShowButton(position, property, "Any"))
+            ShowPicker<MusicContainer>(position);
+        EditorGUI.EndProperty();
+    }
+
+    protected override bool ShowButton(Rect position, SerializedProperty property, string emptyLabel)
+    {
+        var name = property.FindPropertyRelative("Name");
+        GetSelectedObject(position, name);
+    
+        var buttonStyle = new GUIStyle(EditorStyles.objectField) {alignment = TextAnchor.MiddleLeft, fontStyle = FontStyle.Normal};        
+        var buttonText = name.stringValue;
+        buttonStyle.normal.textColor = Color.white;
+        if (string.IsNullOrEmpty(buttonText))
+            buttonText = emptyLabel;
+        return GUI.Button(position, buttonText, buttonStyle);
+    }
+}
+
+[CustomPropertyDrawer(typeof(MusicSegmentReference))]
+public class MusicSegmentReferenceDrawer : MusicTransitionReferenceDrawer
+{							
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        EditorGUI.BeginProperty(position, label, property);				
+        if (ShowButton(position, property, "N/A"))
+            ShowPicker<MusicTrack>(position);
+        EditorGUI.EndProperty();
+    }
+}
+
+[CustomPropertyDrawer(typeof(PostEventReference))]
+public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
 {						
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {		
@@ -51,15 +92,15 @@ public class AudioEventReferenceDrawer : AudioObjectReferenceDrawer
         var totalWidth = position.width;
 		
         position.width = 55;		
-        var eventType = property.FindPropertyRelative("EventType");								
+        var eventType = property.FindPropertyRelative("Type");								
         EditorGUI.PropertyField(position, eventType, GUIContent.none);
 		
         position.x += 57;
-        position.width = totalWidth - 55;			
+        position.width = totalWidth - 55;
+        var type = eventType.enumValueIndex;
         if (ShowButton(position, property, "Event"))
         {
-            var type = eventType.enumValueIndex;
-            switch (type)
+            switch (eventType.enumValueIndex)
             {
                 case 0:
                     ShowPicker<SoundContainer>(position);	
@@ -72,7 +113,57 @@ public class AudioEventReferenceDrawer : AudioObjectReferenceDrawer
                     break;
             }
         }		
-        EditorGUI.EndProperty();
+        GUILayout.EndHorizontal();
+        
+        GUILayout.BeginHorizontal();
+        AsGuiDrawer.DrawProperty(property.FindPropertyRelative("Action"), "", 40);
+        AsGuiDrawer.DrawProperty(property.FindPropertyRelative("FadeTime"), "", 70, 40);
+        GUILayout.EndHorizontal();
+        
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField(" ");
+        if (Application.isPlaying)
+        {
+            GUI.contentColor = Color.green;
+            if (GUILayout.Button("▶", EditorStyles.miniButtonLeft, GUILayout.Width(20f)))
+            {
+                var eventName = property.FindPropertyRelative("Name").stringValue;
+                var component = property.serializedObject.targetObject as MonoBehaviour;
+                var gameObject = component ? component.gameObject : GlobalAudioEmitter.GameObject;
+                switch (type)
+                {
+                    case 0:
+                        AudioManager.PlaySound(eventName, gameObject, 0, null, AudioTriggerSource.InspectorAudition);
+                        break;
+                    case 1:
+                        AudioManager.PlayMusic(eventName, 0, gameObject, AudioTriggerSource.InspectorAudition);
+                        break;
+                    case 2:
+                        AudioManager.PlayVoice(eventName, gameObject, 0, null, AudioTriggerSource.InspectorAudition);
+                        break;
+                }
+            }
+            GUI.contentColor = Color.red;
+            if (GUILayout.Button("■", EditorStyles.miniButtonRight, GUILayout.Width(20f)))
+            {
+                var eventName = property.FindPropertyRelative("Name").stringValue;
+                var component = property.serializedObject.targetObject as MonoBehaviour;
+                var gameObject = component ? component.gameObject : GlobalAudioEmitter.GameObject;
+                switch (type)
+                {
+                    case 0:
+                        AudioManager.StopSound(eventName, gameObject, 0, AudioTriggerSource.InspectorAudition);
+                        break;
+                    case 1:
+                        AudioManager.StopMusic(0, gameObject, AudioTriggerSource.InspectorAudition);
+                        break;
+                    case 2:
+                        AudioManager.StopVoice(eventName, gameObject, 0, AudioTriggerSource.InspectorAudition);
+                        break;
+                }
+            }
+            GUI.contentColor = Color.white;
+        }
     }
 }
 
@@ -85,6 +176,18 @@ public class SoundBankReferenceDrawer : AudioObjectReferenceDrawer
         if (ShowButton(position, property, "Bank"))
             ShowPicker<SoundBank>(position);				
         EditorGUI.EndProperty();
+        
+        if (Application.isPlaying)
+        {
+            var bankName = property.FindPropertyRelative("Name").stringValue;
+            GUI.contentColor = Color.green;
+            if (GUILayout.Button("▶", EditorStyles.miniButtonLeft, GUILayout.Width(20f)))
+                AudioManager.LoadBank(bankName, AudioTriggerSource.InspectorAudition);
+            GUI.contentColor = Color.red;
+            if (GUILayout.Button("■", EditorStyles.miniButtonRight, GUILayout.Width(20f)))
+                AudioManager.UnloadBank(bankName, AudioTriggerSource.InspectorAudition);
+            GUI.contentColor = Color.white;
+        }
     }	
 }
 
@@ -114,8 +217,22 @@ public class SetAudioParameterReferenceDrawer : AudioObjectReferenceDrawer
         
         position.x += 152;
         position.width = totalWidth - 152;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("Value"), GUIContent.none);
+        var value = property.FindPropertyRelative("Value");
+        EditorGUI.PropertyField(position, value, GUIContent.none);
         EditorGUI.EndProperty();
+        
+        if (Application.isPlaying)
+        {
+            GUI.contentColor = Color.green;
+            if (GUILayout.Button("▶", EditorStyles.miniButton, GUILayout.Width(20f)))
+            {
+                var parameterName = property.FindPropertyRelative("Name").stringValue;
+                var component = property.serializedObject.targetObject as MonoBehaviour;
+                var gameObject = component ? component.gameObject : GlobalAudioEmitter.GameObject;
+                AudioManager.SetParameterValue(parameterName, value.floatValue, gameObject, AudioTriggerSource.InspectorAudition);
+            }
+            GUI.contentColor = Color.white;
+        }
     }	
 }
 
@@ -145,7 +262,21 @@ public class SetSwitchReferenceDrawer : AudioObjectReferenceDrawer
         
         position.x += 132;
         position.width = totalWidth - 132;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("Selection"), GUIContent.none);
+        var selection = property.FindPropertyRelative("Selection");
+        EditorGUI.PropertyField(position, selection, GUIContent.none);
         EditorGUI.EndProperty();
+        
+        if (Application.isPlaying)
+        {
+            GUI.contentColor = Color.green;
+            if (GUILayout.Button("▶", EditorStyles.miniButton, GUILayout.Width(20f)))
+            {
+                var parameterName = property.FindPropertyRelative("Name").stringValue;
+                var component = property.serializedObject.targetObject as MonoBehaviour;
+                var gameObject = component ? component.gameObject : GlobalAudioEmitter.GameObject;
+                AudioManager.SetSwitch(parameterName, selection.stringValue, gameObject, AudioTriggerSource.InspectorAudition);
+            }
+            GUI.contentColor = Color.white;
+        }
     }	
 }

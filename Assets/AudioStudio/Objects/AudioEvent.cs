@@ -1,5 +1,4 @@
 ﻿using System;
-using AudioStudio.Tools;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -39,10 +38,6 @@ namespace AudioStudio.Configs
 		public bool SubMixer;
 		public string AudioMixer;
 
-		//For Playback				
-		public float DefaultFadeInTime;
-		public float DefaultFadeOutTime;				
-		
 		//For Random		
 		protected byte LastSelectedIndex = 255;
 		public bool AvoidRepeat = true;
@@ -64,9 +59,12 @@ namespace AudioStudio.Configs
 		public abstract void Dispose();
 		
 		#region Playback		
-		public abstract void PostEvent(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code);		
-		public abstract void Play(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null);
-		public abstract void Stop(GameObject soundSource, float fadeOutTime);
+		public abstract void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null);
+		public abstract void Stop(GameObject soundSource, float fadeOutTime = 0f);
+		public abstract void Mute(GameObject soundSource, float fadeOutTime = 0f);
+		public abstract void UnMute(GameObject soundSource, float fadeInTime = 0f);
+		public abstract void Pause(GameObject soundSource, float fadeOutTime = 0f);
+		public abstract void Resume(GameObject soundSource, float fadeInTime = 0f);
 		#endregion
 	}
 
@@ -114,6 +112,16 @@ namespace AudioStudio.Configs
 		{
 			StartCoroutine(AudioSource.UnMute(fadeInTime));
 		}
+		
+		public void Pause(float fadeOutTime)
+		{
+			StartCoroutine(AudioSource.Pause(fadeOutTime));
+		}
+
+		public void Resume(float fadeInTime)
+		{
+			StartCoroutine(AudioSource.Resume(fadeInTime));
+		}
 
 		public virtual void SetVolume(float volume)
 		{
@@ -132,12 +140,14 @@ namespace AudioStudio.Configs
 
 		public void SetLowPassCutoff(float cutoff)
 		{
-			if (LowPassFilter) LowPassFilter.cutoffFrequency = cutoff;
+			if (LowPassFilter) 
+				LowPassFilter.cutoffFrequency = cutoff;
 		}
 
 		public void SetHighPassCutoff(float cutoff)
 		{
-			if (HighPassFilter) HighPassFilter.cutoffFrequency = cutoff;
+			if (HighPassFilter) 
+				HighPassFilter.cutoffFrequency = cutoff;
 		}
 		#endregion
 	}

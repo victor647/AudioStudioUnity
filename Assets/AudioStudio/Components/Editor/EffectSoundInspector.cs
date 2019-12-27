@@ -23,6 +23,7 @@ namespace AudioStudio.Editor
             serializedObject.Update();
             ShowSpatialSettings();
             AsGuiDrawer.DrawList(serializedObject.FindProperty("EnableEvents"), "On Enable:", AddEnableEvent);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("DisableEvents"), "On Disable:", AddEnableEvent);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("DelayTime"));
             serializedObject.ApplyModifiedProperties();
             ShowButtons(_component);
@@ -33,7 +34,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.EnableEvents, new AudioEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.EnableEvents, new PostEventReference(evt.name));
             }
         }
         

@@ -29,12 +29,14 @@ namespace AudioStudio.Tools
 
         public static string GetXmlAttribute(XElement node, string attribute)
         {
+            if (node == null) return "";
             var a = node.Attribute(attribute);
             return a != null ? a.Value : "";
         }
 
         public static string GetXmlElement(XElement node, string nodeName)
         {
+            if (node == null) return "";
             var a = node.Element(nodeName);
             return a != null ? a.Value : "";
         }
@@ -92,9 +94,17 @@ namespace AudioStudio.Tools
         public static Type StringToType(string typeName)
         {
             if (typeName == "") return null;
-            var assembly = Assembly.Load("Assembly-CSharp");
-            return (assembly.GetType(typeName) ?? assembly.GetType("AudioStudio.Components." + typeName)) ??
-                   Type.GetType("UnityEngine." + typeName + ", UnityEngine");
+            var type = Type.GetType("UnityEngine." + typeName + ", UnityEngine");
+            if (type != null) return type;
+            type = TryFindType(typeName, "Assembly-CSharp");
+            if (type != null) return type;
+            type = TryFindType(typeName, "AudioStudio");
+            return type;
+        }
+
+        private static Type TryFindType(string typeName, string assemblyName)
+        {
+            return Type.GetType(typeName + ", " + assemblyName) ?? Type.GetType("AudioStudio.Components." + typeName + ", " + assemblyName);
         }
 
         public static void AddToArray<T>(ref T[] array, T element)
@@ -147,11 +157,13 @@ namespace AudioStudio.Tools
                 Directory.CreateDirectory(directory);
         }
 
-        public static string ShortPath(string longPath)
+        public static string ShortPath(string longPath, bool includeAssetsPrefix = true)
         {
             longPath = longPath.Replace("\\", "/");
             var index = longPath.IndexOf("Assets", StringComparison.Ordinal);
-            return index >= 0 ? longPath.Substring(index) : longPath;
+            if (index >= 0)
+                return includeAssetsPrefix ? longPath.Substring(index) : longPath.Substring(index + 7);
+            return longPath;
         }
 
         public static string CombinePath(string path1, string path2, string path3 = "", string path4 = "")

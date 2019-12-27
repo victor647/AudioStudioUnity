@@ -8,6 +8,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using AudioStudio.Components;
 using AudioStudio.Editor;
+using UnityEngine.EventSystems;
 using UnityEngine.Playables;
 
 namespace AudioStudio.Tools
@@ -77,12 +78,14 @@ namespace AudioStudio.Tools
 		private void OnEnable()
 		{						
 			_componentLinks.Add(new ComponentLink(typeof(Animator), typeof(AnimationSound)));
+			_componentLinks.Add(new ComponentLink(typeof(Animation), typeof(AnimationSound)));
 			_componentLinks.Add(new ComponentLink(typeof(PlayableDirector), typeof(TimelineSound)));
 			_componentLinks.Add(new ComponentLink(typeof(Button), typeof(ButtonSound)));
 			_componentLinks.Add(new ComponentLink(typeof(Dropdown), typeof(DropdownSound)));
 			_componentLinks.Add(new ComponentLink(typeof(Slider), typeof(SliderSound)));
 			_componentLinks.Add(new ComponentLink(typeof(ScrollRect), typeof(ScrollSound)));
-			_componentLinks.Add(new ComponentLink(typeof(Toggle), typeof(ToggleSound)));						
+			_componentLinks.Add(new ComponentLink(typeof(Toggle), typeof(ToggleSound)));
+			_componentLinks.Add(new ComponentLink(typeof(EventTrigger), typeof(EventSound)));		
 			_componentLinks.Add(new ComponentLink(typeof(Camera), typeof(AudioListener3D)));
 		}
 
@@ -346,7 +349,8 @@ namespace AudioStudio.Tools
 		}
 
 		private bool ProcessComponents(Component[] components, ComponentLink componentLink, XElement xElement, bool isSearchingPrefab)
-		{														
+		{
+			var modified = false;
 			foreach (var component in components)
 			{
 				if (_explicitType && component.GetType() != componentLink.SearchComponent) continue;
@@ -366,7 +370,7 @@ namespace AudioStudio.Tools
 							component.gameObject.AddComponent(componentLink.LinkedComponent);
 							EditedCount++;
 							WriteXNode(xElement, component, componentLink.SearchComponent, componentLink.LinkedComponent);
-							return true;
+							modified = true;
 						}										
 						break;
 					case ActionType.RemoveSearchedComponents:
@@ -377,7 +381,8 @@ namespace AudioStudio.Tools
 						}						 
 						WriteXNode(xElement, component, componentLink.SearchComponent, componentLink.LinkedComponent);
 						DestroyImmediate(component, true);	
-						return true;						
+						modified = true;	
+						break;
 					case ActionType.RemoveLinkedComponents:
 						linkedComponent = component.gameObject.GetComponent(componentLink.LinkedComponent);
 						if (linkedComponent)
@@ -385,7 +390,7 @@ namespace AudioStudio.Tools
 							EditedCount++;
 							WriteXNode(xElement, component, componentLink.SearchComponent, componentLink.LinkedComponent);
 							DestroyImmediate(linkedComponent, true);
-							return true;
+							modified = true;
 						}															
 						break;	
 					case ActionType.RemoveUnlinkedComponents:
@@ -395,19 +400,18 @@ namespace AudioStudio.Tools
 							EditedCount++;
 							WriteXNode(xElement, component, componentLink.SearchComponent, componentLink.LinkedComponent);
 							DestroyImmediate(component, true);
-							return true;
+							modified = true;
 						}												
 						break;
 					case ActionType.SearchComponents:
 						WriteXNode(xElement, component, componentLink.SearchComponent);
-						return true;
+						break;
 					case ActionType.SearchUnlinkedComponents:
 						linkedComponent = component.gameObject.GetComponent(componentLink.LinkedComponent);						
 						if (!linkedComponent)
 						{
 							EditedCount++;
 							WriteXNode(xElement, component, componentLink.SearchComponent, componentLink.LinkedComponent);
-							return true;
 						}
 						break;
 					case ActionType.SearchLinkedComponents:
@@ -416,12 +420,11 @@ namespace AudioStudio.Tools
 						{
 							EditedCount++;
 							WriteXNode(xElement, component, componentLink.SearchComponent, componentLink.LinkedComponent);
-							return true;
 						}
 						break;
 				}																																			
 			}
-			return false;
+			return modified;
 		}		
 		#endregion
 		

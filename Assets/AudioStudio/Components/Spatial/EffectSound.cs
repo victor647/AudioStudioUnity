@@ -11,7 +11,8 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class EffectSound : AudioEmitterObject
     {
-        public AudioEventReference[] EnableEvents = new AudioEventReference[0];
+        public PostEventReference[] EnableEvents = new PostEventReference[0];
+        public PostEventReference[] DisableEvents = new PostEventReference[0];
         [Range(0f, 2f)]
         public float DelayTime;
 
@@ -26,11 +27,7 @@ namespace AudioStudio.Components
         
         protected override void HandleDisableEvent()
         {
-            if (IsUpdatePosition || !StopOnDestroy) return;
-            foreach (var evt in EnableEvents)
-            {
-                evt.Stop(null, 0.2f, AudioTriggerSource.EffectSound);
-            }
+            PostEvents(DisableEvents, AudioTriggerSource.EffectSound, GetSoundSource());           
         }
 
         private IEnumerator PlaySoundDelayed()

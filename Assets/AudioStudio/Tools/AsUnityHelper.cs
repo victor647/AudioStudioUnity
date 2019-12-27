@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-
 #if UNITY_EDITOR
 using System;
-using System.Reflection;
+using System.IO;
 using UnityEditor;
 #endif
 
@@ -43,6 +42,7 @@ namespace AudioStudio.Tools
         DropdownSound,
         EffectSound,
         EmitterSound,
+        EventSound,
         LoadBank,
         MenuSound,
         ScrollSound,
@@ -55,14 +55,13 @@ namespace AudioStudio.Tools
 
     public enum AudioAction
     {
-        PostEvent,
         Play,
         End,
-        StopEvent,        
+        Stop,        
         Pause,
         Resume,
         Mute,
-        Unmute,
+        UnMute,
         Load,
         Unload,
         SetValue,
@@ -122,6 +121,9 @@ namespace AudioStudio.Tools
         public static T GetOrCreateAsset<T>(string path) where T : ScriptableObject
         {
 #if UNITY_EDITOR
+            var directory = Path.GetDirectoryName(path);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
             var asset = AssetDatabase.LoadAssetAtPath<T>(path);
             if (!asset)
             {
@@ -134,26 +136,6 @@ namespace AudioStudio.Tools
 #endif
             return asset;
         }
-
-        #region OfflinePlayback
-#if UNITY_EDITOR
-        public static void PlayAudioClipOffline(AudioClip clip)
-        {
-            var unityEditorAssembly = typeof(AudioImporter).Assembly;
-            var audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
-            var method = audioUtilClass.GetMethod("PlayClip", BindingFlags.Static | BindingFlags.Public, null, new[] {typeof(AudioClip)}, null);
-            method?.Invoke(null, new object[] {clip});
-        }
-
-        public static void StopAudioClipOffline(AudioClip clip)
-        {
-            var unityEditorAssembly = typeof(AudioImporter).Assembly;
-            var audioUtilClass = unityEditorAssembly.GetType("UnityEditor.AudioUtil");
-            var method = audioUtilClass.GetMethod("StopClip", BindingFlags.Static | BindingFlags.Public, null, new[] {typeof(AudioClip)}, null);
-            method?.Invoke(null, new object[] {clip});
-        }
-#endif
-        #endregion
 
 
         public static T GetOrAddComponent<T>(GameObject gameObject) where T : Component

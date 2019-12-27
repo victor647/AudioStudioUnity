@@ -24,9 +24,9 @@ namespace AudioStudio.Editor
             serializedObject.Update();
             AsGuiDrawer.DrawList(serializedObject.FindProperty("ClickEvents"), "On Click:", AddClickEvent);
             EditorGUILayout.LabelField("Mouse Enter:", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("PointerEnterEvent"));
+            AsGuiDrawer.DrawAudioObject(serializedObject, "PointerEnterEvent");
             EditorGUILayout.LabelField("Mouse Exit:", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("PointerExitEvent"));
+            AsGuiDrawer.DrawAudioObject(serializedObject, "PointerExitEvent");
 
             serializedObject.ApplyModifiedProperties();
             AsGuiDrawer.CheckLinkedComponent<Button>(_component);
@@ -38,7 +38,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.ClickEvents, new AudioEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.ClickEvents, new PostEventReference(evt.name));
             }
         }
 

@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using AudioStudio.Components;
-using AudioStudio.Tools;
 using Random = UnityEngine.Random;
 
 namespace AudioStudio.Configs
@@ -16,8 +15,27 @@ namespace AudioStudio.Configs
         SequenceContinuous,
         SequenceStep
     }
+
+    [Serializable]
+    public class TransitionExitData
+    {
+        public MusicTransitionReference Target;
+        public float FadeOutTime;
+        public float ExitOffset;
+        public TransitionInterval Interval = TransitionInterval.Immediate;
+        public BarAndBeat GridLength;
+    }
     
-    [CreateAssetMenu(fileName = "New Music Container", menuName = "Audio/Music/Container")]
+    [Serializable]
+    public class TransitionEntryData
+    {
+        public MusicTransitionReference Source;
+        public float FadeInTime;
+        public float EntryOffset;
+        public MusicSegmentReference TransitionSegment;
+    }
+    
+    [CreateAssetMenu(fileName = "New Music Container", menuName = "AudioStudio/Music/Container")]
     public class MusicContainer : AudioEvent
     {
         #region Fields
@@ -27,11 +45,8 @@ namespace AudioStudio.Configs
         public List<MusicContainer> ChildEvents = new List<MusicContainer>();
         
         public bool OverrideTransition;
-        public TransitionInterval TransitionInterval = TransitionInterval.NextBar;
-        public BarAndBeat GridLength;
-        
-        public float DefaultEntryOffset;        
-        public float DefaultExitOffset = -1f;
+        public TransitionEntryData[] TransitionEntryConditions = new TransitionEntryData[1];
+        public TransitionExitData[] TransitionExitConditions = new TransitionExitData[1];
         public bool SwitchToSamePosition;
 
         #endregion
@@ -62,12 +77,8 @@ namespace AudioStudio.Configs
             child.IndependentEvent = false;
             if (!child.OverrideTransition)
             {
-                child.TransitionInterval = TransitionInterval;
-                child.GridLength = GridLength;
-                child.DefaultFadeInTime = DefaultFadeInTime;
-                child.DefaultEntryOffset = DefaultEntryOffset;
-                child.DefaultFadeOutTime = DefaultFadeOutTime;
-                child.DefaultExitOffset = DefaultExitOffset;
+                child.TransitionEntryConditions = TransitionEntryConditions;
+                child.TransitionExitConditions = TransitionExitConditions;
             }
 
             if (!child.OverrideControls)
@@ -92,10 +103,7 @@ namespace AudioStudio.Configs
         }
 
         public override void CleanUp()
-        {                                  
-            if (Platform == Platform.Web)
-                TransitionInterval = TransitionInterval.Immediate;
-            
+        {
             if (this is MusicTrack) return;
             
             if (PlayLogic != MusicPlayLogic.Switch)
@@ -134,22 +142,35 @@ namespace AudioStudio.Configs
         }
         #endregion                
                
-        #region Playback                
-        public override void PostEvent(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (fadeInTime < 0f) fadeInTime = DefaultFadeInTime;
-            Play(soundSource, fadeInTime, endCallback);
-        }
-
-        public override void Play(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
+        #region Playback         
+        public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {               
-            MusicTransport.Instance.SetMusicQueue(this, fadeInTime, DefaultFadeOutTime, DefaultExitOffset, DefaultEntryOffset);
+            MusicTransport.Instance.SetMusicQueue(this);
         }
         
-        public override void Stop(GameObject soundSource, float fadeOutTime)
-        {     
-            if (fadeOutTime < 0f) fadeOutTime = DefaultFadeOutTime;
+        public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
+        {
             MusicTransport.Instance.Stop(fadeOutTime);
+        }
+
+        public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
+        {
+            MusicTransport.Instance.Mute(fadeOutTime);
+        }
+
+        public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+        {
+            MusicTransport.Instance.UnMute(fadeInTime);
+        }
+
+        public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+        {
+            MusicTransport.Instance.Pause(fadeOutTime);
+        }
+
+        public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+        {
+            MusicTransport.Instance.Resume(fadeInTime);
         }
 
         public MusicContainer GetEvent()
@@ -158,12 +179,10 @@ namespace AudioStudio.Configs
             {
                 case MusicPlayLogic.Random:
                     if (ChildEvents.Count < 2)
-                    {
-                        AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Music, AudioAction.PostEvent, AudioTriggerSource.Code, name, MusicTransport.GameObject, "Random MusicEvent only has 1 element");
                         return ChildEvents[0];
-                    }
                     var selectedIndex = Random.Range(0, ChildEvents.Count);
-                    if (!AvoidRepeat) return ChildEvents[selectedIndex];
+                    if (!AvoidRepeat) 
+                        return ChildEvents[selectedIndex];
                     while (selectedIndex == LastSelectedIndex)
                     {
                         selectedIndex = Random.Range(0, ChildEvents.Count);

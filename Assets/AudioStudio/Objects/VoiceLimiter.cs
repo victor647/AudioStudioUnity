@@ -20,7 +20,7 @@ namespace AudioStudio.Configs
 		DiscardNew			
 	}
 	
-	[CreateAssetMenu(fileName = "New Voice Limiter", menuName = "Audio/Sound/Voice Limiter")]
+	[CreateAssetMenu(fileName = "New Voice Limiter", menuName = "AudioStudio/Sound/Voice Limiter")]
 	public class VoiceLimiter : ScriptableObject
 	{
 		public VoiceRemovalRule VoiceRemovalRule = VoiceRemovalRule.Oldest;

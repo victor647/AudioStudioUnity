@@ -126,7 +126,7 @@ namespace AudioStudio.Tools
                 {
                     if (!pair.Value) continue;
                     var xPrefab = new XElement("Prefab");
-                    var components = prefab.GetComponentsInChildren(pair.Key);
+                    var components = prefab.GetComponentsInChildren(pair.Key, true);
                     foreach (var component in components)
                     {
                         xPrefab.Add(ParseComponent((AsComponent)component));
@@ -168,7 +168,7 @@ namespace AudioStudio.Tools
                     if (!pair.Value) continue;
                     foreach (var rootGameObject in scene.GetRootGameObjects())
                     {
-                        var components = rootGameObject.GetComponentsInChildren(pair.Key);
+                        var components = rootGameObject.GetComponentsInChildren(pair.Key, true);
                         foreach (var component in components)
                         {
                             if (ComponentBelongsToScene(component))
@@ -631,7 +631,7 @@ namespace AudioStudio.Tools
             if (!scene.IsValid()) return;
             foreach (var rootGameObject in scene.GetRootGameObjects())
             {
-                var components = rootGameObject.GetComponentsInChildren<AsComponent>();
+                var components = rootGameObject.GetComponentsInChildren<AsComponent>(true);
                 foreach (var component in components)
                 {
                     RemoveComponentXml(assetPath, component);
@@ -644,7 +644,7 @@ namespace AudioStudio.Tools
         {                        
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
             if (!prefab) return;
-            var components = prefab.GetComponentsInChildren<AsComponent>();
+            var components = prefab.GetComponentsInChildren<AsComponent>(true);
             var xAsset = XRoot.Elements("Prefab").FirstOrDefault(x => assetPath == AsScriptingHelper.GetXmlAttribute(x, "AssetPath"));
             if (xAsset != null)
                 xAsset.Remove();

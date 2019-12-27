@@ -9,8 +9,8 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class ColliderSound : AudioEmitterObject
     {        
-        public AudioEventReference[] EnterEvents = new AudioEventReference[0];
-        public AudioEventReference[] ExitEvents = new AudioEventReference[0];                
+        public PostEventReference[] EnterEvents = new PostEventReference[0];
+        public PostEventReference[] ExitEvents = new PostEventReference[0];                
         public AudioParameterReference CollisionForceParameter = new AudioParameterReference();     
         public float ValueScale = 1f;
 

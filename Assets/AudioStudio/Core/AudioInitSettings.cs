@@ -6,7 +6,7 @@ using UnityEngine.Audio;
 
 namespace AudioStudio
 {       
-    [CreateAssetMenu(fileName = "AudioInitSettings", menuName = "Audio/Audio Init Settings")]  
+    [CreateAssetMenu(fileName = "AudioInitSettings", menuName = "AudioStudio/Audio Init Settings")]  
     public class AudioInitSettings : ScriptableObject
     {
         private static AudioInitSettings _instance;
@@ -15,10 +15,10 @@ namespace AudioStudio
             get
             {
                 if (!_instance)
-                    _instance = AsUnityHelper.GetOrCreateAsset<AudioInitSettings>("Assets/" + AsPathSettings.AudioStudioLibraryPath + "/Configs/AudioInitSettings.asset");
+                    _instance = AsUnityHelper.GetOrCreateAsset<AudioInitSettings>("Assets/" + AudioPathSettings.AudioStudioLibraryPath + "/Configs/AudioInitSettings.asset");
                 return _instance;
             }
-            set { _instance = value; }
+            set => _instance = value;
         }
 
 
@@ -26,17 +26,19 @@ namespace AudioStudio
         public bool UseMicrophone;
         public bool UseMidi;
         public SoundBankReference[] StartBanks = new SoundBankReference[0];
-        public AudioEventReference[] StartEvents = new AudioEventReference[0];                
+        public PostEventReference[] StartEvents = new PostEventReference[0];                
         public bool PostEvents;
         public bool LoadBanks;        
         public AudioMixer AudioMixer;
+        public AudioPathSettings PathSettings;
 
         public void Initialize()
         {
             if (Initialized) return;     
             Initialized = true;
+            AudioPathSettings.Instance = PathSettings;
             InitAudioManager();
-            InitGlobalAudioEmitter();
+            CreateGlobalAudioEmitter();
             ListenerManager.Init();
             AsAssetLoader.Init();                                                           
             if (LoadBanks) LoadInitBanks();
@@ -49,7 +51,7 @@ namespace AudioStudio
             if (Initialized) return;   
             Initialized = true;
             InitAudioManager();
-            InitGlobalAudioEmitter();
+            CreateGlobalAudioEmitter();
             ListenerManager.Init();
             AsAssetLoader.Init();                                                                       
             AudioManager.LoadPreferenceSettings();                        
@@ -65,9 +67,10 @@ namespace AudioStudio
             AudioManager.AudioMixer = AudioMixer;
         }
 
-        private void InitGlobalAudioEmitter()
+        private void CreateGlobalAudioEmitter()
         {
-            GlobalAudioEmitter.Init();
+            var gae = new GameObject("Global Audio Emitter");
+            gae.AddComponent<GlobalAudioEmitter>();
             if (UseMicrophone)
                 GlobalAudioEmitter.AddMicrophone();
             if (UseMidi)
@@ -86,7 +89,7 @@ namespace AudioStudio
         {
             foreach (var evt in StartEvents)
             {
-                evt.Post(null, -1f, AudioTriggerSource.Initialization);
+                evt.Post(null, AudioTriggerSource.Initialization);
             }                                    
         }
     }   

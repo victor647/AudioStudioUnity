@@ -12,9 +12,8 @@ namespace AudioStudio.Timeline
     [Serializable]
     public class AudioTimelineClip : PlayableAsset
     {
-        public AudioEventReference[] StartEvents = new AudioEventReference[0];
-        public AudioEventReference[] EndEvents = new AudioEventReference[0];
-        public bool StopOnEnd = true;
+        public PostEventReference[] StartEvents = new PostEventReference[0];
+        public PostEventReference[] EndEvents = new PostEventReference[0];
         public SetSwitchReference[] StartSwitches = new SetSwitchReference[0];
         public SetSwitchReference[] EndSwitches = new SetSwitchReference[0];
         public bool GlobalSwitch;

@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using System.Collections.Generic;
+using AudioStudio.Configs;
 using UnityEngine;
 
 namespace AudioStudio.Tools
@@ -53,6 +54,7 @@ namespace AudioStudio.Tools
             _componentInclusions[AudioTriggerSource.DropdownSound] = true;
             _componentInclusions[AudioTriggerSource.EffectSound] = true;
             _componentInclusions[AudioTriggerSource.EmitterSound] = true;
+            _componentInclusions[AudioTriggerSource.EventSound] = true;
             _componentInclusions[AudioTriggerSource.LoadBank] = true;
             _componentInclusions[AudioTriggerSource.MenuSound] = true;
             _componentInclusions[AudioTriggerSource.ScrollSound] = true;
@@ -89,25 +91,27 @@ namespace AudioStudio.Tools
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Severity:", GUILayout.Width(120));
+            EditorGUILayout.LabelField("Severity:", GUILayout.Width(80));
             _includeNotification = GUILayout.Toggle(_includeNotification, "Notification", GUILayout.Width(100));
             _includeWarning = GUILayout.Toggle(_includeWarning, "Warning", GUILayout.Width(100));
             _includeError = GUILayout.Toggle(_includeError, "Error", GUILayout.Width(100));
+            GUILayout.EndHorizontal();
 
-            EditorGUILayout.LabelField("Trigger:", GUILayout.Width(100));
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Trigger:", GUILayout.Width(80));
             _includeCode = GUILayout.Toggle(_includeCode, "Code", GUILayout.Width(100));
             _includeComponents = GUILayout.Toggle(_includeComponents, GUIContent.none, GUILayout.Width(10));
             if (GUILayout.Button("Components", GUI.skin.label, GUILayout.Width(86)))
                 ProfilerComponentToggle.Init();
-            _includeAudition = GUILayout.Toggle(_includeAudition, "Audition", GUILayout.Width(100));
+            _includeAudition = GUILayout.Toggle(_includeAudition, "Inspector Audition");
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Type:", GUILayout.Width(120));
-            _includeSound = GUILayout.Toggle(_includeSound, "SFX", GUILayout.Width(100));
-            _includeMusic = GUILayout.Toggle(_includeMusic, "Music", GUILayout.Width(100));
-            _includeVoice = GUILayout.Toggle(_includeVoice, "Voice", GUILayout.Width(100));
-            _includeBank = GUILayout.Toggle(_includeBank, "SoundBank", GUILayout.Width(100));
+            EditorGUILayout.LabelField("Type:", GUILayout.Width(80));
+            _includeSound = GUILayout.Toggle(_includeSound, "SFX (" + SoundClip.GlobalSoundCount + ")", GUILayout.Width(100));
+            _includeMusic = GUILayout.Toggle(_includeMusic, "Music (" + MusicTrack.GlobalMusicCount + ")", GUILayout.Width(100));
+            _includeVoice = GUILayout.Toggle(_includeVoice, "Voice (" + VoiceEvent.GlobalVoiceCount + ")", GUILayout.Width(100));
+            _includeBank = GUILayout.Toggle(_includeBank, "Bank (" + SoundBank.GlobalBankCount + ")", GUILayout.Width(100));
             _includeSwitch = GUILayout.Toggle(_includeSwitch, "Switch", GUILayout.Width(100));
             _includeParameter = GUILayout.Toggle(_includeParameter, "Parameter", GUILayout.Width(100));
             _includePlayback = GUILayout.Toggle(_includePlayback, "Playback", GUILayout.Width(100));
@@ -127,7 +131,7 @@ namespace AudioStudio.Tools
                 EditorGUILayout.LabelField("Time", EditorStyles.boldLabel, GUILayout.Width(80));
                 EditorGUILayout.LabelField("Type", EditorStyles.boldLabel, GUILayout.Width(100));
                 EditorGUILayout.LabelField("Action", EditorStyles.boldLabel, GUILayout.Width(100));
-                EditorGUILayout.LabelField("Name", EditorStyles.boldLabel, GUILayout.MinWidth(180), GUILayout.MaxWidth(300));
+                EditorGUILayout.LabelField("Name", EditorStyles.boldLabel, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
                 EditorGUILayout.LabelField("Trigger", EditorStyles.boldLabel, GUILayout.Width(100));
                 EditorGUILayout.LabelField("GameObject", EditorStyles.boldLabel, GUILayout.MinWidth(120), GUILayout.MaxWidth(200));
                 EditorGUILayout.LabelField("Message", EditorStyles.boldLabel);
@@ -154,7 +158,7 @@ namespace AudioStudio.Tools
                     EditorGUILayout.LabelField(ProfilerMessage.Time, GUILayout.Width(80));
                     DrawObject(ProfilerMessage.ObjectType);
                     DrawAction(ProfilerMessage.Action);
-                    EditorGUILayout.LabelField(ProfilerMessage.ObjectName, GUILayout.MinWidth(180), GUILayout.MaxWidth(300));
+                    EditorGUILayout.LabelField(ProfilerMessage.ObjectName, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
                     DrawTrigger(ProfilerMessage.TriggerFrom);
                     if (GUILayout.Button(ProfilerMessage.GameObjectName, GUI.skin.label, GUILayout.MinWidth(120), GUILayout.MaxWidth(200)))
                         Selection.activeGameObject = ProfilerMessage.GameObject;
@@ -205,7 +209,6 @@ namespace AudioStudio.Tools
 
             switch (ProfilerMessage.Action)
             {
-                case AudioAction.Play:
                 case AudioAction.End:
                 case AudioAction.Loop:
                 case AudioAction.Pause:
@@ -282,13 +285,12 @@ namespace AudioStudio.Tools
         {
             switch (action)
             {
-                case AudioAction.PostEvent:
+                case AudioAction.Play:
                     GUI.color = Skin;
                     break;
-                case AudioAction.StopEvent:
+                case AudioAction.Stop:
                     GUI.color = Orange;
                     break;
-                case AudioAction.Play:
                 case AudioAction.TransitionEnter:
                 case AudioAction.SequenceEnter:
                 case AudioAction.SetQueue:
@@ -344,8 +346,8 @@ namespace AudioStudio.Tools
 
         private void SelectAll(bool enabled)
         {
-            _includeSound = _includeMusic = _includeVoice = _includeBank = _includeSwitch = _includeParameter =
-                _includeError = _includeNotification = _includeWarning = _includeComponents = _includeCode = enabled;
+            _includeSound = _includeMusic = _includeVoice = _includeBank = _includeSwitch = _includeParameter = _includeError = 
+                _includeNotification = _includeWarning = _includeComponents = _includeCode = _includeAudition = _includePlayback = enabled;
         }
 
         #endregion

@@ -34,7 +34,7 @@ namespace AudioStudio.Configs
 		SustainLooping
 	}
 	
-	[CreateAssetMenu(fileName = "New Music Instrument", menuName = "Audio/Music/Instrument")]
+	[CreateAssetMenu(fileName = "New Music Instrument", menuName = "AudioStudio/Music/Instrument")]
 	public class MusicInstrument : ScriptableObject
 	{
 		public InstrumentSampleType SampleType;

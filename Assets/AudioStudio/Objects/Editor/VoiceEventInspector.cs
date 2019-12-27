@@ -18,7 +18,7 @@ namespace AudioStudio.Editor
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("Platform"));			
+			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Platform"));						
 			EditorGUILayout.Separator();			
 			DrawAudioClips();		
 			DrawAudioControls();
@@ -32,18 +32,18 @@ namespace AudioStudio.Editor
 			EditorGUILayout.LabelField("Audio Data", EditorStyles.boldLabel, GUILayout.Width(150)); 
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {				            
-	            DrawProperty("PlayLogic", "Play Logic", 80);
+	            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("PlayLogic"));
 	            if (_voiceEvent.Platform != Platform.Web)
 	            {
 		            switch (_voiceEvent.PlayLogic)
 		            {
 			            case VoicePlayLogic.Single:
-				            DrawProperty("Clip", "Audio Clip", 80);
+				            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip");
 				            if (_voiceEvent.Clip)
 					            EditorGUILayout.LabelField("Sample Rate:  " + _voiceEvent.Clip.frequency);
 				            break;
 			            case VoicePlayLogic.Random:
-				            EditorGUILayout.PropertyField(serializedObject.FindProperty("AvoidRepeat"));
+				            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);  
 				            EditorGUILayout.LabelField("Audio Clips");
 				            AsGuiDrawer.DrawList(serializedObject.FindProperty("Clips"), "", AddChildClip);
 				            break;
@@ -52,7 +52,7 @@ namespace AudioStudio.Editor
 				            AsGuiDrawer.DrawList(serializedObject.FindProperty("Clips"), "", AddChildClip);
 				            break;
 			            case VoicePlayLogic.Switch:
-				            DrawProperty("AudioSwitchName", "Switch", 100);
+				            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchName"), "Audio Switch");
 				            EditorGUILayout.LabelField("Switch Assignment");
 				            AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchClipMappings"));
 				            break;
@@ -96,11 +96,11 @@ namespace AudioStudio.Editor
 			EditorGUILayout.LabelField("Audio Controls", EditorStyles.boldLabel, GUILayout.Width(150)); 
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
 			{
-				DrawProperty("Volume");
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Volume"));
 				if (_voiceEvent.Platform != Platform.Web)
 				{
-					DrawProperty("Pitch");
-					DrawProperty("Pan");
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pitch"));
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));
 					DrawFilters(_voiceEvent);
 					DrawSubMixer(_voiceEvent);
 					DrawParameterMappings();

@@ -21,7 +21,7 @@ namespace AudioStudio.Editor
             serializedObject.Update();
 
             EditorGUILayout.LabelField("On Scroll:");
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ScrollEvent"));
+            AsGuiDrawer.DrawAudioObject(serializedObject, "ScrollEvent");
 
             serializedObject.ApplyModifiedProperties();
             AsGuiDrawer.CheckLinkedComponent<ScrollRect>(_component);

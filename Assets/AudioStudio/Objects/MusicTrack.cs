@@ -49,7 +49,7 @@ namespace AudioStudio.Configs
 		}
 	}
 	
-	[CreateAssetMenu(fileName = "New Music Track", menuName = "Audio/Music/Track")]
+	[CreateAssetMenu(fileName = "New Music Track", menuName = "AudioStudio/Music/Track")]
 	public class MusicTrack : MusicContainer
 	{				
 		#region Editor
@@ -71,6 +71,7 @@ namespace AudioStudio.Configs
 		#endregion
 		
 		#region Settings
+		public static int GlobalMusicCount;
 		public MusicMarker[] Markers = new MusicMarker[1];
 		public float PickupBeats;
 		public BarAndBeat ExitPosition;
@@ -102,8 +103,6 @@ namespace AudioStudio.Configs
 	public class MusicTrackInstance : AudioEventInstance
 	{        
 		#region Initialize
-		public static int GlobalMusicCount;
-		
 		public MusicTrack MusicTrack;
 		private float _volume;
 
@@ -111,7 +110,7 @@ namespace AudioStudio.Configs
 		{
 			AudioSource = _source1 = gameObject.AddComponent<AudioSource>();
 			Emitter = GlobalAudioEmitter.GameObject;
-			GlobalMusicCount++;
+			MusicTrack.GlobalMusicCount++;
 		}
 
 		public void Init(MusicTrack track)
@@ -163,7 +162,7 @@ namespace AudioStudio.Configs
 				Destroy(_source2);
 	        OnAudioEnd?.Invoke(Emitter);
 	        MusicTrack.Dispose();
-	        GlobalMusicCount--;
+	        MusicTrack.GlobalMusicCount--;
         }
 		#endregion
 		
@@ -195,16 +194,6 @@ namespace AudioStudio.Configs
 		#endregion
 
 		#region Controls
-		public void Pause(float fadeOutTime)
-		{
-			StartCoroutine(AudioSource.Pause(fadeOutTime));
-		}
-		
-		public void Resume(float fadeInTime)
-		{
-			StartCoroutine(AudioSource.Resume(fadeInTime));
-		}
-
 		public override void SetOutputBus(AudioMixerGroup amg)
 		{
 			_source1.outputAudioMixerGroup = amg;

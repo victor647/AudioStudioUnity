@@ -6,26 +6,19 @@ namespace AudioStudio.Components
 {
     public class GlobalAudioEmitter : MonoBehaviour
     {
-        private static GlobalAudioEmitter _instance;
         private static Action _audioUpdate;
 
-        public static GameObject GameObject
-        {
-            get
-            {
-                if (!_instance)
-                    Init();
-                return _instance.gameObject;
-            }			
-        }
-        
+        public static GameObject GameObject;
+
         public static GameObject InstrumentRack;
 
-        public static void Init()
+        private void Awake()
         {
-            var go = new GameObject("Global Audio Emitter");
-            _instance = go.AddComponent<GlobalAudioEmitter>();
-            DontDestroyOnLoad(go);
+            if (GameObject)
+                DestroyImmediate(GameObject);
+
+            GameObject = gameObject;
+            DontDestroyOnLoad(gameObject);
         }
 
         public static void AddMicrophone()
@@ -40,11 +33,6 @@ namespace AudioStudio.Components
             InstrumentRack = new GameObject("Midi Input");
             InstrumentRack.transform.parent = GameObject.transform;
             _audioUpdate += MidiManager.Instance.Update;
-        }
-
-        public static void Remove(GameObject go)
-        {
-            if (_instance) Destroy(_instance.gameObject, 0.1f);
         }
 
         private void LateUpdate()

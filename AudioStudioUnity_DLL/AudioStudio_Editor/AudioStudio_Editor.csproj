@@ -101,6 +101,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioImportProcessor.cs">
           <Link>Editor\AudioImportProcessor.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioPathSettingsInspector.cs">
+          <Link>Editor\AudioPathSettingsInspector.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\BarAndBeatDrawer.cs">
           <Link>Editor\BarAndBeatDrawer.cs</Link>
         </Compile>
@@ -137,9 +140,6 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicTrackInspector.cs">
           <Link>Editor\MusicTrackInspector.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicTransitionSegmentInspector.cs">
-          <Link>Editor\MusicTransitionSegmentInspector.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\SoundBankInspector.cs">
           <Link>Editor\SoundBankInspector.cs</Link>
         </Compile>
@@ -157,6 +157,9 @@
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\VoiceLimiterInspector.cs">
           <Link>Editor\VoiceLimiterInspector.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsAssetBatchRenamer.cs">
+          <Link>Editor\BatchProcessing\AsAssetBatchRenamer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsBatchProcessor.cs">
           <Link>Editor\BatchProcessing\AsBatchProcessor.cs</Link>

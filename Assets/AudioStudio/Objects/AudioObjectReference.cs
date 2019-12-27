@@ -1,14 +1,25 @@
 ﻿using System;
 using AudioStudio.Tools;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace AudioStudio.Configs
 {
 	public enum AudioEventType
 	{
-		Sound,
+		SFX,
 		Music,
 		Voice,
+	}
+	
+	public enum AudioEventAction
+	{
+		Play,
+		Stop,
+		Mute,
+		Unmute,
+		Pause,
+		Resume
 	}
 	
 	public abstract class AudioObjectReference
@@ -37,60 +48,192 @@ namespace AudioStudio.Configs
 		{
 			return !string.IsNullOrEmpty(Name);
 		}
-	}  
+	}
+
+	[Serializable]
+	public class MusicTransitionReference : AudioObjectReference
+	{
+	}
 	
 	[Serializable]
-	public class AudioEventReference : AudioObjectReference
+	public class MusicSegmentReference : AudioObjectReference
+	{
+	}
+
+	[Serializable]
+	public class PostEventReference : AudioObjectReference
 	{        
-		public AudioEventType EventType = AudioEventType.Sound;	
-		public AudioEventReference(string name)
+		[FormerlySerializedAs("EventType")]
+		public AudioEventType Type = AudioEventType.SFX;
+		public AudioEventAction Action = AudioEventAction.Play;	
+		public float FadeTime;
+		public PostEventReference(string name)
 		{			
 			Name = name;
 		}
 		
-		public AudioEventReference()
+		public PostEventReference()
 		{			
 		}
 		
-		public void Post(GameObject go = null, float fadeInTime = -1f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		public void Post(GameObject go = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
-			switch (EventType)
+			switch (Action)
 			{
-				case AudioEventType.Music:
-					AudioManager.PlayMusic(Name, fadeInTime, -1f, -1f, -1f, trigger);
+				case AudioEventAction.Play:
+					Play(go, trigger);
 					break;
-				case AudioEventType.Sound:
-					AudioManager.PlaySound(Name, go, fadeInTime, null, trigger);
+				case AudioEventAction.Stop:
+					Stop(go, trigger);
 					break;
-				case AudioEventType.Voice:
-					AudioManager.PlayVoice(Name, go, fadeInTime, null, trigger);
+				case AudioEventAction.Mute:
+					Mute(go, trigger);
+					break;
+				case AudioEventAction.Unmute:
+					UnMute(go, trigger);
+					break;
+				case AudioEventAction.Pause:
+					Pause(go, trigger);
+					break;
+				case AudioEventAction.Resume:
+					Resume(go, trigger);
 					break;
 			}
-		}       
-        
-		public void Stop(GameObject go = null, float fadeOutTime = -1f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		}
+		
+		public void Cancel(GameObject go = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
-			switch (EventType)
+			switch (Action)
+			{
+				case AudioEventAction.Play:
+					Stop(go, trigger);
+					break;
+				case AudioEventAction.Stop:
+					Play(go, trigger);
+					break;
+				case AudioEventAction.Mute:
+					UnMute(go, trigger);
+					break;
+				case AudioEventAction.Unmute:
+					Mute(go, trigger);
+					break;
+				case AudioEventAction.Pause:
+					Resume(go, trigger);
+					break;
+				case AudioEventAction.Resume:
+					Pause(go, trigger);
+					break;
+			}
+		}
+
+		public void Play(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		{
+			switch (Type)
 			{
 				case AudioEventType.Music:
-					AudioManager.StopMusic(fadeOutTime);
+					AudioManager.PlayMusic(Name, FadeTime, soundSource, trigger);
 					break;
-				case AudioEventType.Sound:
-					AudioManager.StopSound(Name, go, fadeOutTime, trigger);
+				case AudioEventType.SFX:
+					AudioManager.PlaySound(Name, soundSource, FadeTime, null, trigger);
 					break;
 				case AudioEventType.Voice:
-					AudioManager.StopVoice(Name, go, fadeOutTime, trigger);
+					AudioManager.PlayVoice(Name, soundSource, FadeTime, null, trigger);
+					break;
+			}
+		}
+        
+		public void Stop(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		{
+			if (!IsValid()) return;
+			switch (Type)
+			{
+				case AudioEventType.Music:
+					AudioManager.StopMusic(FadeTime, soundSource, trigger);
+					break;
+				case AudioEventType.SFX:
+					AudioManager.StopSound(Name, soundSource, FadeTime, trigger);
+					break;
+				case AudioEventType.Voice:
+					AudioManager.StopVoice(Name, soundSource, FadeTime, trigger);
+					break;
+			}
+		}
+		
+		public void Mute(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		{
+			if (!IsValid()) return;
+			switch (Type)
+			{
+				case AudioEventType.Music:
+					AudioManager.MuteMusic(FadeTime, soundSource, trigger);
+					break;
+				case AudioEventType.SFX:
+					AudioManager.MuteSound(Name, soundSource, FadeTime, trigger);
+					break;
+				case AudioEventType.Voice:
+					AudioManager.MuteVoice(Name, soundSource, FadeTime, trigger);
+					break;
+			}
+		}
+		
+		public void UnMute(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		{
+			if (!IsValid()) return;
+			switch (Type)
+			{
+				case AudioEventType.Music:
+					AudioManager.UnMuteMusic(FadeTime, soundSource, trigger);
+					break;
+				case AudioEventType.SFX:
+					AudioManager.UnMuteSound(Name, soundSource, FadeTime, trigger);
+					break;
+				case AudioEventType.Voice:
+					AudioManager.UnMuteVoice(Name, soundSource, FadeTime, trigger);
+					break;
+			}
+		}
+		
+		public void Pause(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		{
+			if (!IsValid()) return;
+			switch (Type)
+			{
+				case AudioEventType.Music:
+					AudioManager.PauseMusic(FadeTime, soundSource, trigger);
+					break;
+				case AudioEventType.SFX:
+					AudioManager.PauseSound(Name, soundSource, FadeTime, trigger);
+					break;
+				case AudioEventType.Voice:
+					AudioManager.PauseVoice(Name, soundSource, FadeTime, trigger);
+					break;
+			}
+		}
+		
+		public void Resume(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		{
+			if (!IsValid()) return;
+			switch (Type)
+			{
+				case AudioEventType.Music:
+					AudioManager.ResumeMusic(FadeTime, soundSource, trigger);
+					break;
+				case AudioEventType.SFX:
+					AudioManager.ResumeSound(Name, soundSource, FadeTime, trigger);
+					break;
+				case AudioEventType.Voice:
+					AudioManager.ResumeVoice(Name, soundSource, FadeTime, trigger);
 					break;
 			}
 		}
         
 		public override bool Equals(object obj)
 		{
-			var other = obj as AudioEventReference;
+			var other = obj as PostEventReference;
 			if (other != null) 
-				return base.Equals(obj) && EventType == other.EventType;
+				return base.Equals(obj) && Type == other.Type;
 			return false;
 		}
 		

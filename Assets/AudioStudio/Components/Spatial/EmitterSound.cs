@@ -17,8 +17,7 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class EmitterSound : AudioEmitterObject
     {        
-        public AudioEventReference[] AudioEvents = new AudioEventReference[0];
-        public float FadeOutTime = 0.5f;
+        public PostEventReference[] AudioEvents = new PostEventReference[0];
         public float InitialDelay;
         public float MinInterval = 5;
         public float MaxInterval = 10;
@@ -49,10 +48,10 @@ namespace AudioStudio.Components
 
         protected override void HandleDisableEvent()
         {
-            if (IsUpdatePosition || !StopOnDestroy) return;
+            if (!StopOnDestroy) return;
             foreach (var evt in AudioEvents)
             {
-                evt.Stop(null, 0.5f, AudioTriggerSource.EmitterSound);
+                evt.Stop(gameObject, AudioTriggerSource.EmitterSound);
             }
         }
         

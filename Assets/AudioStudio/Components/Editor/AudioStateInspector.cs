@@ -50,7 +50,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.EnterEvents, new AudioEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.EnterEvents, new PostEventReference(evt.name));
             }
         }
 
@@ -59,7 +59,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.ExitEvents, new AudioEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.ExitEvents, new PostEventReference(evt.name));
             }
         }
 

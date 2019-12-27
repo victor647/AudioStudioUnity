@@ -21,3 +21,4 @@ MonoBehaviour:
   PostEvents: 0
   LoadBanks: 1
   AudioMixer: {fileID: 24100000, guid: d041375348a9cf846b6aaceaec9009ff, type: 2}
+  PathSettings: {fileID: 11400000, guid: d7ffae4b326e0c64d9f3e082d2569436, type: 2}

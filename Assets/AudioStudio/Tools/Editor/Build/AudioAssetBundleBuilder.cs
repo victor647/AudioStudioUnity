@@ -11,9 +11,9 @@ namespace AudioStudio
     {
         public static void BuildAssetBundles()
         {														
-            SetLabels<SoundBank>(AsPathSettings.SoundBanksPath, "bank");
-            SetLabels<MusicContainer>(AsPathSettings.MusicEventsPath, "music");
-            SetLabels<VoiceEvent>(AsPathSettings.VoiceEventsPath, "voice");
+            SetLabels<SoundBank>(AudioPathSettings.Instance.SoundBanksPath, "bank");
+            SetLabels<MusicContainer>(AudioPathSettings.Instance.MusicEventsPath, "music");
+            SetLabels<VoiceEvent>(AudioPathSettings.Instance.VoiceEventsPath, "voice");
             AssetDatabase.RemoveUnusedAssetBundleNames();	
             AssetDatabase.SaveAssets();
 			

@@ -11,9 +11,9 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]    
     public class ButtonSound : AsComponent, IPointerEnterHandler, IPointerExitHandler
     {
-        public AudioEventReference[] ClickEvents = new AudioEventReference[0];
-        public AudioEventReference PointerEnterEvent = new AudioEventReference();
-        public AudioEventReference PointerExitEvent = new AudioEventReference();
+        public PostEventReference[] ClickEvents = new PostEventReference[0];
+        public PostEventReference PointerEnterEvent = new PostEventReference();
+        public PostEventReference PointerExitEvent = new PostEventReference();
 
         private void Start()
         {
@@ -29,12 +29,12 @@ namespace AudioStudio.Components
 
         public void OnPointerEnter(PointerEventData data)
         {
-            PointerEnterEvent.Post(gameObject, -1f, AudioTriggerSource.ButtonSound);
+            PointerEnterEvent.Post(gameObject, AudioTriggerSource.ButtonSound);
         }
         
         public void OnPointerExit(PointerEventData data)
         {
-            PointerExitEvent.Post(gameObject, -1f, AudioTriggerSource.ButtonSound);
+            PointerExitEvent.Post(gameObject, AudioTriggerSource.ButtonSound);
         }
 
         public override bool IsValid()

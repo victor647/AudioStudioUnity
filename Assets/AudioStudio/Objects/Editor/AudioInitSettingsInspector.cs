@@ -19,6 +19,7 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("PathSettings"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("AudioMixer"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("UseMicrophone"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("UseMidi"));
@@ -37,7 +38,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.StartEvents, new AudioEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.StartEvents, new PostEventReference(evt.name));
             }
         }
 

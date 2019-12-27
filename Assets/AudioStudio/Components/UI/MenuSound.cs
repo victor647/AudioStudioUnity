@@ -10,8 +10,8 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class MenuSound : AudioOnOffHandler
     {
-        public AudioEventReference[] OpenEvents = new AudioEventReference[0];
-        public AudioEventReference[] CloseEvents = new AudioEventReference[0];
+        public PostEventReference[] OpenEvents = new PostEventReference[0];
+        public PostEventReference[] CloseEvents = new PostEventReference[0];
         
         protected override void HandleEnableEvent()
         {            

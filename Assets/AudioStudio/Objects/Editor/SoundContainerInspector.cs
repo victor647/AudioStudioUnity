@@ -37,9 +37,10 @@ namespace AudioStudio.Editor
                 switch (_soundContainer.PlayLogic)
                 {                                                                    
                     case SoundPlayLogic.Random:
-	                    EditorGUILayout.PropertyField(serializedObject.FindProperty("AvoidRepeat"));
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("RandomOnLoop"));
-                        if (_soundContainer.RandomOnLoop) DrawProperty("CrossFadeTime", "Cross Fade Time", 116, 50);
+                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);     
+                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RandomOnLoop"), "  Random On Loop", 120);
+                        if (_soundContainer.RandomOnLoop) 
+                            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "  Cross Fade Time", 120);
                         EditorGUILayout.LabelField("Sound Containers/Clips");
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);		                    
                         break;
@@ -49,9 +50,10 @@ namespace AudioStudio.Editor
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);					
                         break;
                     case SoundPlayLogic.Switch:	                    	                    	                                            
-                        DrawProperty("SwitchImmediately", "Switch Immediately");	                    
-	                    if (_soundContainer.SwitchImmediately) DrawProperty("CrossFadeTime", "Cross Fade Time", 116, 50);		                    	                    
-                        DrawProperty("AudioSwitchReference", "Switch", 100);			
+                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchImmediately"), "  Switch Immediately", 120);	                    
+	                    if (_soundContainer.SwitchImmediately) 
+                            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "   Fade Time", 120);		                    	                    
+                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchReference"), "Audio Switch");			
                         EditorGUILayout.LabelField("Switch Assignment");
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"), "", AddChildEvent);
                         break;
@@ -81,12 +83,7 @@ namespace AudioStudio.Editor
             }
             GUILayout.EndHorizontal();
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-            {                                 
-                GUILayout.BeginHorizontal();    
-                DrawProperty("DefaultFadeInTime", "Fade In", 116, 50);
-                DrawProperty("DefaultFadeOutTime", "Out", 30, 40);
-                GUILayout.EndHorizontal();
-                
+            {
                 GUILayout.BeginHorizontal();                                             
                 if (sc.RandomizeVolume)
                 {
@@ -99,10 +96,10 @@ namespace AudioStudio.Editor
                 }
                 else
                 {
-                    EditorGUILayout.LabelField("Volume", GUILayout.Width(116));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("Volume"), GUIContent.none,GUILayout.Width(50));                
+                    EditorGUILayout.LabelField("Volume", GUILayout.Width(100));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("Volume"), GUIContent.none,GUILayout.MinWidth(50));                
                     EditorGUILayout.LabelField("Random", GUILayout.Width(50));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("RandomizeVolume"), GUIContent.none, GUILayout.Width(15));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("RandomizeVolume"), GUIContent.none);
                 }
                 GUILayout.EndHorizontal();
 		
@@ -118,13 +115,13 @@ namespace AudioStudio.Editor
                 }
                 else
                 {
-                    EditorGUILayout.LabelField("Pitch", GUILayout.Width(116));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("Pitch"), GUIContent.none,GUILayout.Width(50));                
+                    EditorGUILayout.LabelField("Pitch", GUILayout.Width(100));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("Pitch"), GUIContent.none,GUILayout.MinWidth(50));                
                     EditorGUILayout.LabelField("Random", GUILayout.Width(50));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("RandomizePitch"), GUIContent.none, GUILayout.Width(15));
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("RandomizePitch"), GUIContent.none);
                 }
                 GUILayout.EndHorizontal();                                                
-                DrawProperty("Pan");                                                
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));                                                
                 DrawFilters(sc);   
                 DrawSubMixer(sc);
                 DrawParameterMappings();
@@ -135,7 +132,7 @@ namespace AudioStudio.Editor
 
         protected void DrawVoiceManagement(SoundContainer sc)
         {   
-            if (sc.IndependentEvent) DrawProperty("EnableVoiceLimit", "Limit Voices");
+            if (sc.IndependentEvent) AsGuiDrawer.DrawProperty(serializedObject.FindProperty("EnableVoiceLimit"), "Limit Voices");
             if (!sc.EnableVoiceLimit) return;
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Voice Management", EditorStyles.boldLabel, GUILayout.Width(150));            
@@ -149,9 +146,9 @@ namespace AudioStudio.Editor
             
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {                                
-                DrawProperty("VoiceLimiter", "Voice Limiter");
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("VoiceLimiter"));
                 if (sc.VoiceLimiter) 
-                    DrawProperty("Priority", "Priority", 100, 50);
+                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Priority"));
                 EditorGUILayout.LabelField("Max Voices Allowed ");
                 GUILayout.BeginHorizontal();                
                 EditorGUILayout.LabelField("Global: ", GUILayout.Width(80));
@@ -193,11 +190,11 @@ namespace AudioStudio.Editor
             GUILayout.EndHorizontal();
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Is3D"));
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Is3D"), "3D Positioning");
                 if (sc.Is3D)
                 {
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("SpatialBlend"));
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("SpreadWidth"));
+                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SpatialBlend"));
+                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SpreadWidth"));
                     DrawAttenuation(sc);
                 }
                 GUI.enabled = true;
@@ -208,17 +205,17 @@ namespace AudioStudio.Editor
         private void DrawAttenuation(SoundContainer sc)
         {
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Attenuation Distance", GUILayout.MaxWidth(122));
-            EditorGUILayout.LabelField("Min", GUILayout.Width(25));
+            EditorGUILayout.LabelField("Attenuation", GUILayout.Width(100));
+            EditorGUILayout.LabelField("Min", GUILayout.Width(30));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("MinDistance"), GUIContent.none,
-                GUILayout.MinWidth(30));
-            EditorGUILayout.LabelField("Max", GUILayout.Width(27));
+                GUILayout.MinWidth(40));
+            EditorGUILayout.LabelField("Max", GUILayout.Width(30));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("MaxDistance"), GUIContent.none,
-                GUILayout.MinWidth(30));
+                GUILayout.MinWidth(40));
             GUILayout.EndHorizontal();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("RollOffMode"));
+            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RollOffMode"), "Curve");
             if (sc.RollOffMode == AudioRolloffMode.Custom)
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("AttenuationCurve"));    
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("AttenuationCurve"), GUIContent.none);    
         }
     }
 }

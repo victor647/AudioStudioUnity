@@ -7,10 +7,11 @@ using Random = UnityEngine.Random;
 
 namespace AudioStudio.Configs
 {
-    [CreateAssetMenu(fileName = "New Sound Clip", menuName = "Audio/Sound/Clip")]
+    [CreateAssetMenu(fileName = "New Sound Clip", menuName = "AudioStudio/Sound/Clip")]
     public class SoundClip : SoundContainer
     {      
         #region Fields
+        public static int GlobalSoundCount;
         public AudioClip Clip;        
         public bool Loop;
         public bool SeekRandomPosition;
@@ -49,18 +50,8 @@ namespace AudioStudio.Configs
         #endregion
 
         #region Playback                        
-        public override void Play(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
-        {            
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                AsUnityHelper.PlayAudioClipOffline(Clip);
-                return;
-            }
-#endif
-            
-            if (fadeInTime < 0) fadeInTime = DefaultFadeInTime;
-            
+        public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+        {
             if (EnableVoiceLimit)
             {
                 AddVoicing(soundSource);
@@ -78,18 +69,8 @@ namespace AudioStudio.Configs
         
 
 
-        public override void Stop(GameObject soundSource, float fadeOutTime)
+        public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                AsUnityHelper.StopAudioClipOffline(Clip);
-                return;
-            }
-#endif   
-            
-            if (fadeOutTime < 0) fadeOutTime = DefaultFadeOutTime;            
-                        
             foreach (var sci in SoundClipInstances)
             {
                 if (sci.Emitter == soundSource)
@@ -100,28 +81,70 @@ namespace AudioStudio.Configs
         }
 
         public override void StopAll(float fadeOutTime)
-        {            
-            if (fadeOutTime < 0) fadeOutTime = DefaultFadeOutTime; 
-            
+        {
             foreach (var sci in SoundClipInstances)
             {                                
                 sci.Stop(fadeOutTime);
-            }            
+            }     
+            if (IndependentEvent) 
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Stop, AudioTriggerSource.Code, name);
+        }
+        
+        public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
+        {
+            foreach (var sci in SoundClipInstances)
+            {
+                if (sci.Emitter == soundSource)
+                {                    
+                    sci.Mute(fadeOutTime);                
+                }                                                       
+            }  
+        }
+        
+        public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+        {
+            foreach (var sci in SoundClipInstances)
+            {
+                if (sci.Emitter == soundSource)
+                {                    
+                    sci.UnMute(fadeInTime);                
+                }                                                       
+            }  
+        }
+        
+        public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+        {
+            foreach (var sci in SoundClipInstances)
+            {
+                if (sci.Emitter == soundSource)
+                {                    
+                    sci.Pause(fadeOutTime);                
+                }                                                       
+            }  
+        }
+        
+        public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+        {
+            foreach (var sci in SoundClipInstances)
+            {
+                if (sci.Emitter == soundSource)
+                {                    
+                    sci.Resume(fadeInTime);                
+                }                                                       
+            }  
         }
         #endregion
     }
 
     public class SoundClipInstance : AudioEventInstance
     {
-        public static int GlobalSoundCount;
-        
         #region Initialize
         public string Name => SoundClip ? SoundClip.Name : string.Empty;
 
         private void Awake()
         {
             AudioSource = gameObject.AddComponent<AudioSource>();
-            GlobalSoundCount++;            
+            SoundClip.GlobalSoundCount++;            
         }
 
         private void OnDestroy()
@@ -136,7 +159,7 @@ namespace AudioStudio.Configs
                 SoundClip.VoiceLimiter.RemoveVoice(AudioVoiceInstance);
             
             SoundClip.SoundClipInstances.Remove(this);
-            GlobalSoundCount--;
+            SoundClip.GlobalSoundCount--;
         }
 
         public virtual void Init(SoundClip clip, GameObject emitter)
@@ -147,6 +170,10 @@ namespace AudioStudio.Configs
             
             InitAudioSource(AudioSource);
             InitFilters();
+            foreach (var mapping in SoundClip.Mappings)
+            {
+                mapping.Init(this, Emitter);
+            }
         }
 
         protected void InitAudioSource(AudioSource source)
@@ -159,11 +186,6 @@ namespace AudioStudio.Configs
             source.outputAudioMixerGroup = AudioManager.GetAudioMixer("SFX", SoundClip.AudioMixer);
             if (SoundClip.Is3D)
                 ApplySpatialSettings(source);
-
-            foreach (var mapping in SoundClip.Mappings)
-            {
-                mapping.Init(this, Emitter);
-            }
         }
 
         protected void InitFilters()
@@ -292,7 +314,7 @@ namespace AudioStudio.Configs
             _source1 = gameObject.AddComponent<AudioSource>();
             _source2 = gameObject.AddComponent<AudioSource>();
             AudioSource = _source1;
-            GlobalSoundCount++;            
+            SoundClip.GlobalSoundCount++;            
         }
 
         private void OnDestroy()
@@ -307,7 +329,7 @@ namespace AudioStudio.Configs
                 SoundClip.VoiceLimiter.RemoveVoice(AudioVoiceInstance);
             
             _originalClip.SoundClipInstances.Remove(this);
-            GlobalSoundCount--;
+            SoundClip.GlobalSoundCount--;
         }
         
         public override void Init(SoundClip clip, GameObject emitter)

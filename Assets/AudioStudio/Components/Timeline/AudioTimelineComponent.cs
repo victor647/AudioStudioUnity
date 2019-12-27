@@ -63,20 +63,12 @@ namespace AudioStudio.Timeline
             
             foreach (var evt in _component.StartEvents)
             {
-                evt.Post(_emitter, -1f, AudioTriggerSource.AudioTimelineClip);
+                evt.Post(_emitter, AudioTriggerSource.AudioTimelineClip);
             }
         }
         
         private void ProcessEndActions()
         {
-            if (_component.StopOnEnd)
-            {
-                foreach (var evt in _component.StartEvents)
-                {
-                    evt.Stop(_emitter, -1f, AudioTriggerSource.AudioTimelineClip);
-                }
-            }
-
             foreach (var swc in _component.EndSwitches)
             {
                 swc.SetValue(_component.GlobalSwitch ? null : _emitter, AudioTriggerSource.AudioTimelineClip);
@@ -84,7 +76,7 @@ namespace AudioStudio.Timeline
             
             foreach (var evt in _component.EndEvents)
             {
-                evt.Post(_emitter, -1f, AudioTriggerSource.AudioTimelineClip);
+                evt.Post(_emitter, AudioTriggerSource.AudioTimelineClip);
             }
         }
     }

@@ -10,13 +10,13 @@ namespace AudioStudio.Components
     [DisallowMultipleComponent]
     public class ScrollSound : AsComponent
     {        
-        public AudioEventReference ScrollEvent = new AudioEventReference();
+        public PostEventReference ScrollEvent = new PostEventReference();
 
         private void Start()
         {
             var s = GetComponent<ScrollRect>();
             if (s != null)
-                s.onValueChanged.AddListener(x => ScrollEvent.Post(gameObject, -1f, AudioTriggerSource.ScrollSound));
+                s.onValueChanged.AddListener(x => ScrollEvent.Post(gameObject, AudioTriggerSource.ScrollSound));
         }
 
         public override bool IsValid()

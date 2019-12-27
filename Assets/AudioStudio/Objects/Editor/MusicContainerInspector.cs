@@ -18,18 +18,13 @@ namespace AudioStudio.Editor
 		public override void OnInspectorGUI() 
 		{
 			serializedObject.Update();		
-			DrawHierarchy();
+			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Platform"));			
 			DrawChildEvents();
 			DrawAudioControls(_musicContainer);			
 			DrawTransition(_musicContainer);
 			serializedObject.ApplyModifiedProperties();
 			DrawAuditionButtons(_musicContainer);
 			AsGuiDrawer.DrawSaveButton(_musicContainer);
-		}
-
-		protected void DrawHierarchy()
-		{
-			EditorGUILayout.PropertyField(serializedObject.FindProperty("Platform"));					
 		}
 
 		protected void DrawAudioControls(MusicContainer mc)
@@ -45,11 +40,11 @@ namespace AudioStudio.Editor
 			GUILayout.EndHorizontal();
 			using (new GUILayout.VerticalScope(GUI.skin.box))
 			{				
-				DrawProperty("Volume");
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Volume"));
 				if (mc.Platform != Platform.Web)
 				{
-					DrawProperty("Pitch");
-					DrawProperty("Pan");
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pitch"));
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));
 					DrawFilters(mc);
 					DrawSubMixer(mc);
 					DrawParameterMappings();
@@ -63,14 +58,14 @@ namespace AudioStudio.Editor
 		{			
 			EditorGUILayout.LabelField("Child Events", EditorStyles.boldLabel);    
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-            {			
-	            EditorGUILayout.PropertyField(serializedObject.FindProperty("PlayLogic"));
+            {
+	            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("PlayLogic"));
                 switch (_musicContainer.PlayLogic)
                 {                                                                    
                     case MusicPlayLogic.Random:
-	                    EditorGUILayout.PropertyField(serializedObject.FindProperty("AvoidRepeat"));
-	                    EditorGUILayout.PropertyField(serializedObject.FindProperty("RandomOnLoop"));
-                        EditorGUILayout.LabelField("Music Containers/Clips");
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);     
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RandomOnLoop"), "  Random On Loop", 120);
+	                    EditorGUILayout.LabelField("Music Containers/Clips");
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);		                    
                         break;
 	                case MusicPlayLogic.Layer:
@@ -79,11 +74,11 @@ namespace AudioStudio.Editor
                         EditorGUILayout.LabelField("Music Containers/Clips");
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);					
                         break;
-                    case MusicPlayLogic.Switch:	                    	                    
-	                    DrawProperty("AudioSwitchReference", "Switch", 100);
-	                    DrawProperty("SwitchToSamePosition", "To Same Position");
-	                    DrawProperty("SwitchImmediately", "Switch Immediately");	                    
-	                    DrawProperty("CrossFadeTime", "Cross Fade Time", 116, 50);		                    	                                        	                    	                    	                    	                    		
+                    case MusicPlayLogic.Switch:
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchToSamePosition"), "  To Same Position", 120);
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchImmediately"), "  Switch Immediately", 120);	                    
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "  Cross Fade Time", 120);
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchReference"), "Audio Switch");
                         EditorGUILayout.LabelField("Switch Assignment");
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"));
                         break;
@@ -106,32 +101,10 @@ namespace AudioStudio.Editor
 			GUILayout.EndHorizontal();
 			using (new GUILayout.VerticalScope(GUI.skin.box))
 			{
-				if (mc.Platform != Platform.Web)
-				{
-					DrawProperty("TransitionInterval", "Exit at", 80);
-					if (mc.TransitionInterval == TransitionInterval.NextGrid)
-					{
-						DrawProperty("GridLength", "Grid Length", 80);
-					}
-				}
-
-				GUILayout.BeginHorizontal();				
-				EditorGUILayout.LabelField("Fade In", GUILayout.MaxWidth(80));
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultFadeInTime"), GUIContent.none,
-					GUILayout.Width(40));
-				EditorGUILayout.LabelField("Fade Out", GUILayout.MaxWidth(80));
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultFadeOutTime"), GUIContent.none,
-					GUILayout.Width(40));
-				GUILayout.EndHorizontal();
-
-				GUILayout.BeginHorizontal();
-				EditorGUILayout.LabelField("Entry Offset", GUILayout.MaxWidth(80));
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultEntryOffset"), GUIContent.none,
-					GUILayout.Width(40));
-				EditorGUILayout.LabelField("Exit Offset", GUILayout.MaxWidth(80));
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultExitOffset"), GUIContent.none,
-					GUILayout.Width(40));
-				GUILayout.EndHorizontal();								
+				EditorGUILayout.LabelField("Transition Exit Conditions");
+				AsGuiDrawer.DrawList(serializedObject.FindProperty("TransitionExitConditions"));
+				EditorGUILayout.LabelField("Transition Entry Conditions");
+				AsGuiDrawer.DrawList(serializedObject.FindProperty("TransitionEntryConditions"));
 				GUI.enabled = true;
 			}
 			EditorGUILayout.Separator();
@@ -146,4 +119,61 @@ namespace AudioStudio.Editor
 			}								
 		}
 	}   
+	
+	[CustomPropertyDrawer(typeof(TransitionExitData))]
+    public class TransitionExitDataDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+	        var fullWidth = position.width;
+
+	        position.width = fullWidth * 0.3f;
+	        EditorGUI.LabelField(position, "Target");
+
+	        position.x += position.width;
+	        position.width = fullWidth * 0.7f;
+	        EditorGUI.PropertyField(position, property.FindPropertyRelative("Target"), GUIContent.none);
+	        GUILayout.EndHorizontal();
+
+	        GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Fade Out", GUILayout.Width(60));
+            EditorGUILayout.PropertyField(property.FindPropertyRelative("FadeOutTime"), GUIContent.none, GUILayout.MinWidth(40));
+            EditorGUILayout.LabelField("Exit Offset", GUILayout.Width(70));
+            EditorGUILayout.PropertyField(property.FindPropertyRelative("ExitOffset"), GUIContent.none, GUILayout.MinWidth(40));
+            GUILayout.EndHorizontal();
+            
+            AsGuiDrawer.DrawProperty(property.FindPropertyRelative("Interval"));
+            AsGuiDrawer.DrawProperty(property.FindPropertyRelative("GridLength"));
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(" ");
+        }
+    }
+    
+    [CustomPropertyDrawer(typeof(TransitionEntryData))]
+    public class TransitionEntryDataDrawer : PropertyDrawer
+    {
+	    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+	    {
+		    var fullWidth = position.width;
+
+		    position.width = fullWidth * 0.3f;
+		    EditorGUI.LabelField(position, "Source");
+
+		    position.x += position.width;
+		    position.width = fullWidth * 0.7f;
+		    EditorGUI.PropertyField(position, property.FindPropertyRelative("Source"), GUIContent.none);
+		    GUILayout.EndHorizontal();
+
+		    GUILayout.BeginHorizontal();
+		    EditorGUILayout.LabelField("Fade In", GUILayout.Width(60));
+		    EditorGUILayout.PropertyField(property.FindPropertyRelative("FadeInTime"), GUIContent.none, GUILayout.MinWidth(40));
+		    EditorGUILayout.LabelField("Entry Offset", GUILayout.Width(75));
+		    EditorGUILayout.PropertyField(property.FindPropertyRelative("EntryOffset"), GUIContent.none, GUILayout.MinWidth(40));
+		    GUILayout.EndHorizontal();
+            
+		    AsGuiDrawer.DrawProperty(property.FindPropertyRelative("TransitionSegment"), "Segment", 80);
+		    GUILayout.BeginHorizontal();
+		    EditorGUILayout.LabelField(" ");
+	    }
+    }
 }

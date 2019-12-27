@@ -109,6 +109,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\UI\DropdownSound.cs">
           <Link>Components\UI\DropdownSound.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\UI\EventSound.cs">
+          <Link>Components\UI\EventSound.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\UI\MenuSound.cs">
           <Link>Components\UI\MenuSound.cs</Link>
         </Compile>
@@ -129,6 +132,9 @@
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\AudioManager.cs">
           <Link>Core\AudioManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\AudioPathSettings.cs">
+          <Link>Core\AudioPathSettings.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\AudioSourceExtension.cs">
           <Link>Core\AudioSourceExtension.cs</Link>
@@ -184,9 +190,6 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicTrack.cs">
           <Link>Objects\MusicTrack.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicTransitionSegment.cs">
-          <Link>Objects\MusicTransitionSegment.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundBank.cs">
           <Link>Objects\SoundBank.cs</Link>
         </Compile>
@@ -206,7 +209,7 @@
           <Link>Plugins\WebGLStreaming\WebGLStreamingAudioSourceInterop.cs</Link>
         </Compile>
         <Compile Include="AsAssetLoader.cs" />
-        <Compile Include="AsPathSettings.cs" />
+        <Compile Include="AudioPathSettingsExt.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>

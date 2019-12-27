@@ -22,6 +22,7 @@ namespace AudioStudio.Tools
             RegisterComponent<ColliderSound>(ColliderSoundImporter, ColliderSoundExporter);
             RegisterComponent<DropdownSound>(DropdownSoundImporter, DropdownSoundExporter);
             RegisterComponent<EffectSound>(EffectSoundImporter, EffectSoundExporter);
+            RegisterComponent<EventSound>(EventSoundImporter, EventSoundExporter);
             RegisterComponent<EmitterSound>(EmitterSoundImporter, EmitterSoundExporter);
             RegisterComponent<LoadBank>(LoadBankImporter, LoadBankExporter);
             RegisterComponent<MenuSound>(MenuSoundImporter, MenuSoundExporter);
@@ -99,10 +100,13 @@ namespace AudioStudio.Tools
 		#endregion		
 		
 		#region ImportAudioObjects                               		
-		private static AudioEventReference XmlToEvent(XElement xComponent)
+		private static PostEventReference XmlToEvent(XElement xComponent)
 		{
-			var name = AsScriptingHelper.GetXmlAttribute(xComponent, "EventName");                    
-			return !string.IsNullOrEmpty(name) ? new AudioEventReference{Name = name} : null;
+			var newEvent = new PostEventReference {Name = AsScriptingHelper.GetXmlAttribute(xComponent, "Name")};
+			ImportEnum(ref newEvent.Type, AsScriptingHelper.GetXmlAttribute(xComponent, "Type"));
+			ImportEnum(ref newEvent.Action, AsScriptingHelper.GetXmlAttribute(xComponent, "Action"));
+			ImportFloat(ref newEvent.FadeTime, AsScriptingHelper.GetXmlAttribute(xComponent, "FadeTime"));
+			return newEvent;
 		}
 
 		private static IEnumerable<XElement> GetXmlAudioEvents(XElement xComponent)
@@ -111,13 +115,13 @@ namespace AudioStudio.Tools
 	        return n?.Descendants("AudioEvent");
         }
 
-        private static bool ImportEvent(ref AudioEventReference audioEvent, XElement xComponent)
+        private static bool ImportEvent(ref PostEventReference audioEvent, XElement xComponent)
         {
 	        var x = xComponent.Element("AudioEvent");
 	        if (x == null)
 	        {
 		        if (!audioEvent.IsValid()) return false;
-		        audioEvent = new AudioEventReference();
+		        audioEvent = new PostEventReference();
 		        return true;
 	        }
 	        var temp = XmlToEvent(x);                           
@@ -129,10 +133,10 @@ namespace AudioStudio.Tools
 	        return false;
         }
 
-        private static bool ImportEvent(ref AudioEventReference audioEvent, XElement xComponent, string trigger)
+        private static bool ImportEvent(ref PostEventReference audioEvent, XElement xComponent, string trigger)
         {
 	        var xEvents = GetXmlAudioEvents(xComponent);  
-	        var temp = new AudioEventReference();          
+	        var temp = new PostEventReference();          
 	        foreach (var xEvent in xEvents)
 	        {
 		        if (AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger)
@@ -149,13 +153,13 @@ namespace AudioStudio.Tools
 	        return false;
         }
 
-        private static bool ImportEvents(ref AudioEventReference[] audioEvents, XElement xComponent, string trigger = "")
+        private static bool ImportEvents(ref PostEventReference[] postEvents, XElement xComponent, string trigger = "")
         {            
             var xEvents = GetXmlAudioEvents(xComponent);
             var audioEventsTemp = (from xEvent in xEvents where AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger select XmlToEvent(xEvent)).ToList();
-            if (!audioEvents.ToList().SequenceEqual(audioEventsTemp))
+            if (!postEvents.ToList().SequenceEqual(audioEventsTemp))
             {
-                audioEvents = audioEventsTemp.ToArray();
+                postEvents = audioEventsTemp.ToArray();
                 return true;
             }                         
             return false;
@@ -344,17 +348,19 @@ namespace AudioStudio.Tools
             xComponent.Add(xBanks);
         }
 
-        private static void ExportEvent(AudioEventReference audioEvent, XElement xComponent, string trigger = "")
+        private static void ExportEvent(PostEventReference audioEvent, XElement xComponent, string trigger = "")
         {            
             if (!audioEvent.IsValid()) return;
             var xEvent = new XElement("AudioEvent");
             xEvent.SetAttributeValue("Trigger", trigger);
-            xEvent.SetAttributeValue("EventType", audioEvent.EventType);
-            xEvent.SetAttributeValue("EventName", audioEvent.Name);                 
+            xEvent.SetAttributeValue("Type", audioEvent.Type);
+            xEvent.SetAttributeValue("Name", audioEvent.Name);
+            xEvent.SetAttributeValue("Action", audioEvent.Action);
+            xEvent.SetAttributeValue("FadeTime", audioEvent.FadeTime);
             xComponent.Add(xEvent);
         }
 
-        private static void ExportAudioEvents(AudioEventReference[] events, XElement xComponent, string trigger = "")
+        private static void ExportAudioEvents(PostEventReference[] events, XElement xComponent, string trigger = "")
         {            
             if (events == null) return;
             foreach (var evt in events)
@@ -422,16 +428,27 @@ namespace AudioStudio.Tools
             xComponent.Add(xSettings);
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.EnableEvents, xEvents, "Enable");
+            ExportAudioEvents(s.DisableEvents, xEvents, "Disable");
             xComponent.Add(xEvents);
         }
 
+        private static void EventSoundExporter(Component component, XElement xComponent)
+        {
+	        var s = (EventSound) component;
+	        var xUIAudioEvents = new XElement("UIAudioEvents");
+	        foreach (var evt in s.UIAudioEvents)
+	        {
+		        var xUIAudioEvent = new XElement("UIAudioEvent");
+		        ExportEvent(evt.AudioEvent, xUIAudioEvent, evt.TriggerType.ToString());
+		        xUIAudioEvents.Add(xUIAudioEvent);
+	        }
+	        xComponent.Add(xUIAudioEvents);
+        }
+        
         private static void EmitterSoundExporter(Component component, XElement xComponent)
         {
             var s = (EmitterSound) component;  
             ExportSpatialSettings(s, xComponent);
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("FadeOutTime", s.FadeOutTime);
-            xComponent.Add(xSettings);          
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.AudioEvents, xEvents);                        
             xComponent.Add(xEvents);                                                  
@@ -520,7 +537,6 @@ namespace AudioStudio.Tools
 	        xSettings.SetAttributeValue("StartTime", clip.start.ToString("0.00"));
 	        xSettings.SetAttributeValue("Duration", clip.duration.ToString("0.00"));
 	        xSettings.SetAttributeValue("EmitterIndex", component.EmitterIndex);
-	        xSettings.SetAttributeValue("StopOnEnd", component.StopOnEnd);
 	        xSettings.SetAttributeValue("GlobalSwitch", component.GlobalSwitch);
 	        xComponent.Add(xSettings);
 	        var xEvents = new XElement("AudioEvents");
@@ -584,18 +600,38 @@ namespace AudioStudio.Tools
             var s = (EffectSound) component;
             var xSettings = xComponent.Element("Settings");
             var modified = ImportEvents(ref s.EnableEvents, xComponent, "Enable");
+            modified |= ImportEvents(ref s.DisableEvents, xComponent, "Disable");
             modified |= ImportSpatialSettings(s, xComponent);
             modified |= ImportFloat(ref s.DelayTime, AsScriptingHelper.GetXmlAttribute(xSettings, "DelayTime"));
             return modified;
+        }
+        
+        private static bool EventSoundImporter(Component component, XElement xComponent)
+        {
+	        var s = (EventSound) component;
+	        var xUIAudioEvents = xComponent.Element("UIAudioEvents");
+	        if (xUIAudioEvents == null) return false;
+	        var newUIAudioEvents = new List<UIAudioEvent>();
+	        foreach (var xUIAudioEvent in xUIAudioEvents.Elements())
+	        {
+		        var uiAudioEvent = new UIAudioEvent();
+		        ImportEnum(ref uiAudioEvent.TriggerType, AsScriptingHelper.GetXmlAttribute(xUIAudioEvent.Element("AudioEvent"), "Trigger"));
+		        ImportEvent(ref uiAudioEvent.AudioEvent, xUIAudioEvent);
+		        newUIAudioEvents.Add(uiAudioEvent);
+	        }
+	        if (!newUIAudioEvents.SequenceEqual(s.UIAudioEvents))
+	        {
+		        s.UIAudioEvents = newUIAudioEvents.ToArray();
+		        return true;
+	        }
+	        return false;
         }
 
         private static bool EmitterSoundImporter(Component component, XElement xComponent)
         {
             var s = (EmitterSound) component;
-            var xSettings = xComponent.Element("Settings");                        
             var modified = ImportEvents(ref s.AudioEvents, xComponent);
             modified |= ImportSpatialSettings(s, xComponent);
-            modified |= ImportFloat(ref s.FadeOutTime, AsScriptingHelper.GetXmlAttribute(xSettings, "FadeOutTime"));            
             return modified;
         }
                         
@@ -674,7 +710,6 @@ namespace AudioStudio.Tools
 	        var xSettings = xComponent.Element("Settings");
 	        var clipName = AsScriptingHelper.GetXmlAttribute(xComponent, "ClipName");
 	        var modified = ImportInt(ref component.EmitterIndex, AsScriptingHelper.GetXmlAttribute(xSettings, "EmitterIndex"));
-	        modified |= ImportBool(ref component.StopOnEnd, AsScriptingHelper.GetXmlAttribute(xSettings, "StopOnEnd"));
 	        modified |= ImportBool(ref component.GlobalSwitch, AsScriptingHelper.GetXmlAttribute(xSettings, "GlobalSwitch"));
 	        var start = AsScriptingHelper.StringToFloat(AsScriptingHelper.GetXmlAttribute(xSettings, "StartTime"));
 	        if (clip.displayName != clipName)
@@ -702,11 +737,11 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Refreshers
-        public static void RefreshEvent(AudioEventReference evt)
+        public static void RefreshEvent(PostEventReference evt)
         {
 	        var assets = AssetDatabase.FindAssets(evt.Name);
 	        if (!assets.Contains(evt.Name))
-		        evt = new AudioEventReference();
+		        evt = new PostEventReference();
         }
         
         public static void RefreshParameter(AudioParameterReference parameter)

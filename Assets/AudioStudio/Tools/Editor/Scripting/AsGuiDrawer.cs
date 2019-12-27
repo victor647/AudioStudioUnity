@@ -9,6 +9,25 @@ namespace AudioStudio.Editor
 {
     public static class AsGuiDrawer
     {
+        public static void DrawProperty(SerializedProperty property, string labelName = "", int labelWidth = 100, int fieldWidth = 50)
+        {
+            if (labelName == "") labelName = property.displayName;
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(labelName, GUILayout.Width(labelWidth));
+            EditorGUILayout.PropertyField(property, GUIContent.none, GUILayout.MinWidth(fieldWidth));
+            GUILayout.EndHorizontal();
+        }
+        
+        public static void DrawAudioObject(SerializedObject serializedObject, string objectName = "AudioEvent")
+        {
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(objectName), GUIContent.none);
+                EditorGUILayout.EndHorizontal();
+            }
+        } 
+        
         public static void DrawList(SerializedProperty list, string label = "", Action<Object[]> dragDropReceiver = null)
         {
             if (label != "")

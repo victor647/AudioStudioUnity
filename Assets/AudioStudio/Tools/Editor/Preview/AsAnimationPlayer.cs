@@ -15,6 +15,7 @@ namespace AudioStudio.Tools
         private Animator _animator;
         private AnimatorController _tempAnimator;
         private string _currentPlaying;
+        private float _speed = 1;
         private Dictionary<AnimatorControllerLayer, ChildAnimatorState[]> _layers;
         private GameObject _model;
         private Vector2 _scrollPosition;
@@ -23,17 +24,20 @@ namespace AudioStudio.Tools
         public AnimatorController Animator;
         public List<AnimationClip> Clips = new List<AnimationClip>();
         public GameObject ModelPrefab;
-        public List<SoundBankReference> SoundBanks;
+        public List<SoundBankReference> SoundBanks = new List<SoundBankReference>();
+        private bool _useEmptyScene = true;
+        private bool _legacyMode;
+        private Animation _legacyAnimation;
 
         private void Start()
         {
-            if (!ModelPrefab)
+            if (!_legacyMode && !ModelPrefab)
             {
                 EditorUtility.DisplayDialog("Error", "Please assign a model prefab!", "OK");
                 return;
             }
-
-            EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
+            if (_useEmptyScene)
+                EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
             EditorApplication.isPlaying = true;
             EditorUtility.DisplayProgressBar("Please Wait", "Launching Game...", 1);
         }
@@ -45,9 +49,15 @@ namespace AudioStudio.Tools
             {
                 bank.Load(); 
             }
-            _model = Instantiate(ModelPrefab);
-            Camera.main.fieldOfView = 30;
-            Reset();
+
+            if (!_legacyMode)
+            {
+                _model = Instantiate(ModelPrefab);
+                Reset();
+            }
+
+            if (_useEmptyScene)
+                Camera.main.fieldOfView = 30;
             EditorUtility.ClearProgressBar();
         }
 
@@ -64,6 +74,7 @@ namespace AudioStudio.Tools
         private void Reset()
         {
             _layers = new Dictionary<AnimatorControllerLayer, ChildAnimatorState[]>();
+            if (!_model) return;
             _animator = _model.GetComponentInChildren<Animator>();
             var controller = _animator.runtimeAnimatorController as AnimatorController;
             if (!controller)
@@ -99,10 +110,12 @@ namespace AudioStudio.Tools
                 EditorUtility.DisplayDialog("Can't Save", "Model prefab is not assigned!", "OK");
                 return;
             }
-            var filePath = EditorUtility.SaveFilePanel("Select config", AsPathSettings.EditorConfigPathFull, ModelPrefab.name + ".json", "json");
+            var filePath = EditorUtility.SaveFilePanel("Select config", AudioPathSettings.EditorConfigPathFull, ModelPrefab.name + ".json", "json");
             if (string.IsNullOrEmpty(filePath)) return;
             var obj = new
             {
+                legacy = _legacyMode,
+                newScene = _useEmptyScene,
                 gameObject = AssetDatabase.GetAssetPath(ModelPrefab),
                 animator = AssetDatabase.GetAssetPath(Animator),
                 clips = Clips.Select(AssetDatabase.GetAssetPath).ToArray(),
@@ -113,12 +126,18 @@ namespace AudioStudio.Tools
 
         private void Load()
         {
-            var filePath = EditorUtility.OpenFilePanel("Select config", AsPathSettings.EditorConfigPathFull, "json");
+            var filePath = EditorUtility.OpenFilePanel("Select config", AudioPathSettings.EditorConfigPathFull, "json");
             if (string.IsNullOrEmpty(filePath)) return;
             var jsonString = File.ReadAllText(filePath);
-            ModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AsScriptingHelper.FromJson(jsonString, "gameObject"));
-            Animator = AssetDatabase.LoadAssetAtPath<AnimatorController>(AsScriptingHelper.FromJson(jsonString, "animator"));
-            
+
+            _legacyMode = AsScriptingHelper.StringToBool(AsScriptingHelper.FromJson(jsonString, "legacy"));
+            if (!_legacyMode)
+            {
+                _useEmptyScene = AsScriptingHelper.StringToBool(AsScriptingHelper.FromJson(jsonString, "newScene"));
+                ModelPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(AsScriptingHelper.FromJson(jsonString, "gameObject"));
+                Animator = AssetDatabase.LoadAssetAtPath<AnimatorController>(AsScriptingHelper.FromJson(jsonString, "animator"));
+            }
+
             Clips.Clear();
             var clipPathArray = AsScriptingHelper.FromJson(jsonString, "clips");
             foreach (var path in AsScriptingHelper.ParseJsonArray(clipPathArray))
@@ -142,14 +161,19 @@ namespace AudioStudio.Tools
         
         private void OnGUI()
         {
+            _legacyMode = EditorGUILayout.Toggle("Legacy Mode", _legacyMode);
+            _useEmptyScene = !_legacyMode && EditorGUILayout.Toggle("Use Empty Scene", _useEmptyScene);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
                 _serializedObject.Update();
-                
-                EditorGUILayout.LabelField("Select Model Prefab:", EditorStyles.boldLabel);
-                ModelPrefab = EditorGUILayout.ObjectField(ModelPrefab, typeof(GameObject), false) as GameObject;
-                EditorGUILayout.LabelField("Select Animator Controller:", EditorStyles.boldLabel);
-                Animator = EditorGUILayout.ObjectField(Animator, typeof(AnimatorController), false) as AnimatorController;
+                if (!_legacyMode)
+                {
+                    EditorGUILayout.LabelField("Select Model Prefab:", EditorStyles.boldLabel);
+                    ModelPrefab = EditorGUILayout.ObjectField(ModelPrefab, typeof(GameObject), false) as GameObject;
+                    EditorGUILayout.LabelField("Select Animator Controller:", EditorStyles.boldLabel);
+                    Animator = EditorGUILayout.ObjectField(Animator, typeof(AnimatorController), false) as AnimatorController;
+                }
+
                 AsGuiDrawer.DrawList(Clips, "Custom Animation Clips:");
                 AsGuiDrawer.DrawList(_serializedObject.FindProperty("SoundBanks"), "SoundBanks To Load:");
                 _serializedObject.ApplyModifiedProperties();
@@ -171,7 +195,7 @@ namespace AudioStudio.Tools
                 EditorApplication.delayCall += Start;
             if (GUILayout.Button("Exit"))
                 EditorApplication.delayCall += Exit;
-            if (GUILayout.Button("Reset"))
+            if (!_legacyMode && GUILayout.Button("Reset"))
                 EditorApplication.delayCall += Reset;
             EditorGUILayout.EndHorizontal();
 
@@ -179,23 +203,26 @@ namespace AudioStudio.Tools
             if (_layers == null)
                 Init();
             DrawTransport();
-            EditorGUILayout.EndHorizontal();
+            
             EditorGUILayout.LabelField("Play Animation:", EditorStyles.boldLabel);
             
             _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(300));
-            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+            if (!_legacyMode)
             {
-                foreach (var layer in _layers)
+                using (new EditorGUILayout.VerticalScope(GUI.skin.box))
                 {
-                    EditorGUILayout.LabelField(layer.Key.name + ":");
-                    foreach (var state in layer.Value)
+                    foreach (var layer in _layers)
                     {
-                        var stateName = state.state.name;
-                        if (GUILayout.Button(stateName))
+                        EditorGUILayout.LabelField(layer.Key.name + ":");
+                        foreach (var state in layer.Value)
                         {
-                            _currentPlaying = stateName;
-                            _animator.runtimeAnimatorController = Animator;
-                            Play();
+                            var stateName = state.state.name;
+                            if (GUILayout.Button(stateName))
+                            {
+                                _currentPlaying = stateName;
+                                _animator.runtimeAnimatorController = Animator;
+                                Play();
+                            }
                         }
                     }
                 }
@@ -209,9 +236,14 @@ namespace AudioStudio.Tools
                     if (!clip) continue;
                     if (GUILayout.Button(clip.name))
                     {
-                        _currentPlaying = clip.name;
-                        _animator.runtimeAnimatorController = _tempAnimator;
-                        Play();
+                        if (_legacyMode)
+                            PlayLegacy(clip);
+                        else
+                        {
+                            _currentPlaying = clip.name;
+                            _animator.runtimeAnimatorController = _tempAnimator;
+                            Play();
+                        }
                     }
                 }
             }
@@ -221,25 +253,40 @@ namespace AudioStudio.Tools
         private void DrawTransport()
         {
             EditorGUILayout.BeginHorizontal();
-
             GUI.contentColor = Color.green;
-            if (GUILayout.Button("Play", EditorStyles.miniButtonLeft, GUILayout.Width(40)))
+            if (GUILayout.Button("Play", EditorStyles.miniButtonLeft, GUILayout.MinWidth(40)))
                 Play();
+            
             GUI.contentColor = Color.yellow;
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Pause/Resume", EditorStyles.miniButtonMid, GUILayout.Width(90)))
+            if (GUILayout.Button("Pause/Resume", EditorStyles.miniButtonMid, GUILayout.MinWidth(90)))
                 Pause();
+
             GUI.contentColor = Color.red;
-            if (GUILayout.Button("Stop", EditorStyles.miniButtonRight, GUILayout.Width(40)))
+            if (GUILayout.Button("Stop", EditorStyles.miniButtonRight, GUILayout.MinWidth(40)))
                 Stop();
 
-            GUI.contentColor = Color.cyan;
-            if (GUILayout.Button("Last Frame", EditorStyles.miniButtonLeft, GUILayout.Width(70)))
-                NudgeBack();
-            if (GUILayout.Button("Next Frame", EditorStyles.miniButtonRight, GUILayout.Width(70)))
-                NudgeForward();
+            if (!_legacyMode)
+            {
+                GUI.contentColor = Color.cyan;
+                if (GUILayout.Button("Last Frame", EditorStyles.miniButtonLeft, GUILayout.MinWidth(70)))
+                    NudgeBack();
+                if (GUILayout.Button("Next Frame", EditorStyles.miniButtonRight, GUILayout.MinWidth(70)))
+                    NudgeForward();
+            }
+
             GUI.contentColor = Color.white;
             EditorGUILayout.EndHorizontal();
+
+            if (!_legacyMode)
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Playback Speed", GUILayout.MaxWidth(100));
+                var speed = _speed;
+                _speed = EditorGUILayout.Slider(_speed, -2f, 2f);
+                if (speed != _speed && speed != 0f)
+                    UpdateAnimatorSpeed();
+                EditorGUILayout.EndHorizontal();
+            }
         }
         #endregion
         
@@ -247,37 +294,59 @@ namespace AudioStudio.Tools
 
         private void Play()
         {
-            _animator.enabled = true;
-            Resume();
-            _animator.Play(_currentPlaying);
+            if (_legacyMode)
+                _legacyAnimation.Play();
+            else
+            {
+                _animator.enabled = true;
+                UpdateAnimatorSpeed();
+                _animator.Play(_currentPlaying);
+            }
+        }
+
+        private void PlayLegacy(AnimationClip clip)
+        {
+            var selectedGameObject = Selection.activeGameObject;
+            if (!selectedGameObject) return;
+            _legacyAnimation = AsUnityHelper.GetOrAddComponent<Animation>(selectedGameObject);
+            _legacyAnimation.clip = clip;
+            _legacyAnimation.Play();
         }
 
         private void Stop()
         {
-            _animator.enabled = false;
-            _currentPlaying = string.Empty;
+            if (_legacyMode)
+                _legacyAnimation.Stop();
+            else
+            {
+                _animator.enabled = false;
+                _currentPlaying = string.Empty;
+            }
         }
 
         private void Pause()
         {
-            _animator.speed = _animator.speed == 1 ? 0 : 1;
+            if (_legacyMode)
+                _legacyAnimation.Sample();
+            else
+                _animator.speed = _animator.speed == _speed ? 0 : _speed;
         }
 
-        private void Resume()
+        private void UpdateAnimatorSpeed()
         {
-            _animator.speed = 1;
+            _animator.speed = _speed;
         }
 
         private void NudgeForward()
         {
-            Resume();
+            UpdateAnimatorSpeed();
             _animator.Update(Time.fixedDeltaTime);
             Pause();
         }
 
         private void NudgeBack()
         {
-            Resume();
+            UpdateAnimatorSpeed();
             _animator.Update(Time.fixedDeltaTime * -1f);
             Pause();
         }

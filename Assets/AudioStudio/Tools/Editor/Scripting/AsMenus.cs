@@ -1,10 +1,9 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using UnityEditor;
 using System.IO;
 using System.Linq;
-using AudioStudio.Configs;
 using AudioStudio.Midi;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace AudioStudio.Tools
@@ -21,11 +20,18 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Configs/Audio Path Settings &F2")]
         private static void AudioSettings()
         {
-            Process.Start(AsScriptingHelper.CombinePath(AsPathSettings.AudioStudioLibraryPathFull, "Extensions", "AsPathSettings.cs"));
+            Selection.activeObject = AudioPathSettings.Instance;
         }
         #endregion
 
         #region Open
+        [MenuItem("AudioStudio/Open/Start Game")]
+        public static void StartGame()
+        {
+            EditorSceneManager.OpenScene("Assets/" + AudioPathSettings.Instance.StartScenePath);
+            EditorApplication.isPlaying = true;
+        }
+        
         [MenuItem("AudioStudio/Open/Audio Profiler &F6")]
         public static void AudioProfiler()
         {
@@ -45,7 +51,7 @@ namespace AudioStudio.Tools
         {
             try
             {
-                Process.Start(Path.Combine(Application.dataPath, AsPathSettings.OriginalsPath));
+                Process.Start(Path.Combine(Application.dataPath, AudioPathSettings.Instance.SoundFilesPath));
             }
             catch
             {
@@ -59,7 +65,7 @@ namespace AudioStudio.Tools
         public static void AudioBatchProcessor()
         {
             var window = GetWindow<AsBatchProcessor>();
-            window.position = new Rect(500, 300, 400, 400);
+            window.position = new Rect(500, 300, 400, 280);
             window.titleContent = new GUIContent("Audio Batch Processor");
         }
 
@@ -67,7 +73,7 @@ namespace AudioStudio.Tools
         public static void AudioStudioBackUp()
         {
             var window = GetWindow<AsBackupWindow>();
-            window.position = new Rect(500, 300, 500, 600);
+            window.position = new Rect(500, 300, 500, 430);
             window.titleContent = new GUIContent("BackUp");
         }
 
@@ -75,7 +81,7 @@ namespace AudioStudio.Tools
         private static void AnimationPlayer()
         {
             var window = GetWindow<AsAnimationPlayer>();
-            window.position = new Rect(500, 300, 320, 350);
+            window.position = new Rect(500, 300, 320, 400);
             window.titleContent = new GUIContent("Animation Player");
         }
         
@@ -127,39 +133,6 @@ namespace AudioStudio.Tools
         
         #region RightClick
 
-        [MenuItem("Assets/AudioStudio/Generate Bank Per Folder")]
-        public static void GenerateBankPerFolder()
-        {
-            try
-            {
-                for (var i = 0; i < Selection.objects.Length; i++)
-                {
-                    var folderPath = AssetDatabase.GetAssetPath(Selection.objects[i]).Substring(7);
-                    if (EditorUtility.DisplayCancelableProgressBar("Generating Banks", folderPath, (i + 1f) / Selection.objects.Length)) break;
-                    var bankName = Selection.objects[i].name;
-                    var bankPath = AsScriptingHelper.CombinePath(AsPathSettings.SoundBanksPath, "PC", bankName + ".asset");
-                    if (File.Exists(AsScriptingHelper.CombinePath(Application.dataPath, bankPath))) continue;
-                    var newBank = CreateInstance<SoundBank>();
-                    var contents = Directory.GetFiles(AsScriptingHelper.CombinePath(Application.dataPath, folderPath), "*.asset", SearchOption.AllDirectories);
-                    foreach (var content in contents)
-                    {
-                        var sc = AssetDatabase.LoadAssetAtPath<SoundContainer>(AsScriptingHelper.ShortPath(content));
-                        if (!sc) continue;
-                        if (sc.IndependentEvent)
-                            newBank.AudioEvents.Add(sc);
-                    }
-                    AssetDatabase.CreateAsset(newBank, "Assets/" + bankPath);
-                }
-            }
-#pragma warning disable 168
-            catch (Exception e)
-#pragma warning restore 168
-            {
-                EditorUtility.ClearProgressBar();
-            }
-            EditorUtility.ClearProgressBar();
-        }
-        
         [MenuItem("Assets/AudioStudio/Implementation Backup/Save Selection")]
         public static void SaveSelectedAssets()
         {
@@ -296,13 +269,13 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/SVN/Submit AudioStudio Library")]
         public static void AddLibraryToSvn()
         {
-            AddSubmitToSvn("Assets/" + AsPathSettings.AudioStudioLibraryPath);
+            AddSubmitToSvn("Assets/" + AudioPathSettings.AudioStudioLibraryPath);
         }
         
         [MenuItem("AudioStudio/SVN/Submit AudioStudio Plugins")]
         public static void AddPluginsToSvn()
         {
-            AddSubmitToSvn("Assets/" + AsPathSettings.AudioStudioPluginPath);
+            AddSubmitToSvn("Assets/" + AudioPathSettings.AudioStudioPluginPath);
         }
 
         private static void AddSubmitToSvn(string folderPath)

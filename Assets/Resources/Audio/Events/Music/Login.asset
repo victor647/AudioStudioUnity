@@ -27,8 +27,6 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 0
-  DefaultFadeOutTime: 0
   AvoidRepeat: 1
   RandomOnLoop: 0
   AudioSwitchReference:
@@ -43,10 +41,20 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fd747904c6e4fe547be3f04046d695bb, type: 2}
   - {fileID: 11400000, guid: 27431c6528d82584f8e85608b30276d5, type: 2}
   OverrideTransition: 0
-  TransitionInterval: 2
-  GridLength:
-    Bar: 0
-    Beat: 0
-  DefaultEntryOffset: 0
-  DefaultExitOffset: -1
+  TransitionEntryConditions:
+  - Source:
+      Name: 
+    FadeInTime: 0
+    EntryOffset: 0
+    TransitionSegment:
+      Name: 
+  TransitionExitConditions:
+  - Target:
+      Name: 
+    FadeOutTime: 0
+    ExitOffset: 0
+    Interval: 0
+    GridLength:
+      Bar: 0
+      Beat: 0
   SwitchToSamePosition: 0

@@ -136,7 +136,7 @@ namespace AudioStudio.Tools
 		private void SearchScriptDifference()
 		{
 			if (!CheckOtherGameExistence()) return;
-			_sourceScripts = Directory.GetFiles(_migrateToOtherGame ? AsPathSettings.AudioStudioLibraryPathFull : _otherGameRootPath, "*.cs", SearchOption.AllDirectories);
+			_sourceScripts = Directory.GetFiles(_migrateToOtherGame ? AudioPathSettings.AudioStudioLibraryPathFull : _otherGameRootPath, "*.cs", SearchOption.AllDirectories);
 			_changeList.Clear();
 			for (var i = 0; i < _sourceScripts.Length; i++)
 			{
@@ -147,8 +147,8 @@ namespace AudioStudio.Tools
 				{
 					SourceFilePath = scriptPath,
 					TargetFilePath = _migrateToOtherGame
-						? scriptPath.Replace(AsPathSettings.AudioStudioLibraryPathFull, _otherGameRootPath)
-						: scriptPath.Replace(_otherGameRootPath, AsPathSettings.AudioStudioLibraryPathFull),
+						? scriptPath.Replace(AudioPathSettings.AudioStudioLibraryPathFull, _otherGameRootPath)
+						: scriptPath.Replace(_otherGameRootPath, AudioPathSettings.AudioStudioLibraryPathFull),
 					SourceFile = new FileInfo(scriptPath)
 				};
 
@@ -229,8 +229,8 @@ namespace AudioStudio.Tools
 			var subFolder = debugBuild ? "Debug" : "Release";
 			var dllSource = AsScriptingHelper.CombinePath(_otherGameRootPath, dllName, "bin/" + subFolder, dllName + ".dll");
 			var dllTarget = inSubFolder 
-				? AsScriptingHelper.CombinePath(AsPathSettings.AudioStudioPluginPathFull, subFolder, dllName + ".dll") 
-				: AsScriptingHelper.CombinePath(AsPathSettings.AudioStudioPluginPathFull, dllName + ".dll");
+				? AsScriptingHelper.CombinePath(AudioPathSettings.AudioStudioPluginPathFull, subFolder, dllName + ".dll") 
+				: AsScriptingHelper.CombinePath(AudioPathSettings.AudioStudioPluginPathFull, dllName + ".dll");
 			AsScriptingHelper.CheckoutLockedFile(dllTarget);
 			File.Copy(dllSource, dllTarget, true);
 			if (debugBuild)
