@@ -168,6 +168,8 @@ namespace AudioStudio.Tools
 
         public static string CombinePath(string path1, string path2, string path3 = "", string path4 = "")
         {
+            if (string.IsNullOrEmpty(path2))
+                return path1.Replace("\\", "/");
             var path = Path.Combine(path1, path2);
             if (path3 != "")
                 path = Path.Combine(path, path3);

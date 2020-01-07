@@ -10,19 +10,26 @@ namespace AudioStudio.Components
     [Serializable]
     public class UIAudioEvent
     {
-        public PostEventReference AudioEvent = new PostEventReference();
         public EventTriggerType TriggerType;
+        public PostEventReference AudioEvent = new PostEventReference();
+		
+        public override bool Equals(object obj)
+        {
+            if (obj is UIAudioEvent other)
+                return AudioEvent.Equals(other.AudioEvent) && TriggerType == other.TriggerType;
+            return false;
+        }
     }
     
     [AddComponentMenu("AudioStudio/EventSound")]
     public class EventSound : AsComponent
     {
-        public UIAudioEvent[] UIAudioEvents = new UIAudioEvent[0];
+        public UIAudioEvent[] AudioEvents = new UIAudioEvent[0];
 
         private void Start()
         {
             var et = AsUnityHelper.GetOrAddComponent<EventTrigger>(gameObject);
-            foreach (var evt in UIAudioEvents)
+            foreach (var evt in AudioEvents)
             {
                 var trigger = new EventTrigger.Entry
                 {

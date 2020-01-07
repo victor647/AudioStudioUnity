@@ -58,6 +58,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Animation\AudioState.cs">
           <Link>Components\Animation\AudioState.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Animation\LegacyAnimationSound.cs">
+          <Link>Components\Animation\LegacyAnimationSound.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\AsComponent.cs">
           <Link>Components\Common\AsComponent.cs</Link>
         </Compile>

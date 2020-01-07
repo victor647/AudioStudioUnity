@@ -137,7 +137,7 @@ namespace AudioStudio.Tools
                 EditorGUILayout.LabelField("Message", EditorStyles.boldLabel);
                 GUILayout.EndHorizontal();
 
-                _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(position.height - 110));
+                _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(position.height - 130));
                 if (_autoScroll && Application.isPlaying && !EditorApplication.isPaused) _scrollPosition.y = Mathf.Infinity;
                 foreach (var ProfilerMessage in _ProfilerMessages)
                 {

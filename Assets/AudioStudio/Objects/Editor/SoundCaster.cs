@@ -9,7 +9,7 @@ namespace AudioStudio.Editor
     [CreateAssetMenu(fileName = "New SoundCaster", menuName = "AudioStudio/Sound Caster")]
     public class SoundCaster : ScriptableObject
     {
-        public PostEventReference[] PostEvents = new PostEventReference[0];
+        public PostEventReference[] AudioEvents = new PostEventReference[0];
         public SetSwitchReference[] AudioSwitches = new SetSwitchReference[0];
         public SetAudioParameterReference[] AudioParameters = new SetAudioParameterReference[0];
         public SoundBankReference[] SoundBanks = new SoundBankReference[0];

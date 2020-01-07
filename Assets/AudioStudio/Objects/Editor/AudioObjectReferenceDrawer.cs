@@ -51,10 +51,8 @@ public class MusicTransitionReferenceDrawer : AudioObjectReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);				
         if (ShowButton(position, property, "Any"))
             ShowPicker<MusicContainer>(position);
-        EditorGUI.EndProperty();
     }
 
     protected override bool ShowButton(Rect position, SerializedProperty property, string emptyLabel)
@@ -76,10 +74,8 @@ public class MusicSegmentReferenceDrawer : MusicTransitionReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);				
         if (ShowButton(position, property, "N/A"))
             ShowPicker<MusicTrack>(position);
-        EditorGUI.EndProperty();
     }
 }
 
@@ -87,15 +83,14 @@ public class MusicSegmentReferenceDrawer : MusicTransitionReferenceDrawer
 public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
 {						
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {		
-        EditorGUI.BeginProperty(position, label, property);						
+    {
         var totalWidth = position.width;
 		
         position.width = 55;		
         var eventType = property.FindPropertyRelative("Type");								
         EditorGUI.PropertyField(position, eventType, GUIContent.none);
-		
         position.x += 57;
+        
         position.width = totalWidth - 55;
         var type = eventType.enumValueIndex;
         if (ShowButton(position, property, "Event"))
@@ -167,16 +162,63 @@ public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
     }
 }
 
+[CustomPropertyDrawer(typeof(UIAudioEvent))]
+public class UIAudioEventDrawer : PropertyDrawer
+{
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        var totalWidth = position.width;
+		
+        position.width = 70;
+        EditorGUI.LabelField(position, "Trigger on");
+        position.x += 72;
+        
+        position.width = totalWidth - 70;
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("TriggerType"), GUIContent.none);
+        GUILayout.EndHorizontal();
+        
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("AudioEvent"), GUIContent.none);
+    }
+}
+
+[CustomPropertyDrawer(typeof(AnimationAudioEvent))]
+public class AnimationAudioEventDrawer : PropertyDrawer
+{
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        var totalWidth = position.width;
+		
+        position.width = 40;
+        EditorGUI.LabelField(position, "Frame");
+        position.x += 42;
+        
+        position.width = 30;
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("Frame"), GUIContent.none);
+        position.x += 32;
+        
+        position.width = 30;
+        EditorGUI.LabelField(position, "Clip");
+        position.x += 32;
+        
+        position.width = totalWidth - 100;
+        EditorGUI.PropertyField(position, property.FindPropertyRelative("ClipName"), GUIContent.none);
+        
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("AudioEvent"), GUIContent.none);
+    }
+}
+
 [CustomPropertyDrawer(typeof(SoundBankReference))]
 public class SoundBankReferenceDrawer : AudioObjectReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);				
         if (ShowButton(position, property, "Bank"))
-            ShowPicker<SoundBank>(position);				
-        EditorGUI.EndProperty();
-        
+            ShowPicker<SoundBank>(position);
+
         if (Application.isPlaying)
         {
             var bankName = property.FindPropertyRelative("Name").stringValue;
@@ -196,10 +238,8 @@ public class AudioParameterReferenceDrawer : AudioObjectReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);				
         if (ShowButton(position, property, "Parameter"))
             ShowPicker<AudioParameter>(position);
-        EditorGUI.EndProperty();
     }	
 }
 
@@ -207,8 +247,7 @@ public class AudioParameterReferenceDrawer : AudioObjectReferenceDrawer
 public class SetAudioParameterReferenceDrawer : AudioObjectReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {        
-        EditorGUI.BeginProperty(position, label, property);        
+    {
         var totalWidth = position.width;
 		
         position.width = 150;		        
@@ -219,8 +258,7 @@ public class SetAudioParameterReferenceDrawer : AudioObjectReferenceDrawer
         position.width = totalWidth - 152;
         var value = property.FindPropertyRelative("Value");
         EditorGUI.PropertyField(position, value, GUIContent.none);
-        EditorGUI.EndProperty();
-        
+
         if (Application.isPlaying)
         {
             GUI.contentColor = Color.green;
@@ -241,10 +279,8 @@ public class AudioSwitchReferenceDrawer : AudioObjectReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
-        EditorGUI.BeginProperty(position, label, property);				
         if (ShowButton(position, property, "Switch"))
             ShowPicker<AudioSwitch>(position);
-        EditorGUI.EndProperty();
     }	
 }
 
@@ -252,8 +288,7 @@ public class AudioSwitchReferenceDrawer : AudioObjectReferenceDrawer
 public class SetSwitchReferenceDrawer : AudioObjectReferenceDrawer
 {							
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {        
-        EditorGUI.BeginProperty(position, label, property);        
+    {
         var totalWidth = position.width;
 		
         position.width = 130;		        
@@ -264,8 +299,7 @@ public class SetSwitchReferenceDrawer : AudioObjectReferenceDrawer
         position.width = totalWidth - 132;
         var selection = property.FindPropertyRelative("Selection");
         EditorGUI.PropertyField(position, selection, GUIContent.none);
-        EditorGUI.EndProperty();
-        
+
         if (Application.isPlaying)
         {
             GUI.contentColor = Color.green;

@@ -77,6 +77,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\EmitterSoundInspector.cs">
           <Link>Editor\EmitterSoundInspector.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Editor\LegacyAnimationSoundInspector.cs">
+          <Link>Editor\LegacyAnimationSoundInspector.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\LoadBankInspector.cs">
           <Link>Editor\LoadBankInspector.cs</Link>
         </Compile>

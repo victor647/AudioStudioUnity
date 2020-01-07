@@ -25,6 +25,7 @@ namespace AudioStudio.Tools
             RegisterComponent<EventSound>(EventSoundImporter, EventSoundExporter);
             RegisterComponent<EmitterSound>(EmitterSoundImporter, EmitterSoundExporter);
             RegisterComponent<LoadBank>(LoadBankImporter, LoadBankExporter);
+            RegisterComponent<LegacyAnimationSound>(LegacyAnimationSoundImporter, LegacyAnimationSoundExporter);
             RegisterComponent<MenuSound>(MenuSoundImporter, MenuSoundExporter);
             RegisterComponent<ScrollSound>(ScrollSoundImporter, ScrollSoundExporter);            
             RegisterComponent<SliderSound>(SliderSoundImporter, SliderSoundExporter);
@@ -102,7 +103,7 @@ namespace AudioStudio.Tools
 		#region ImportAudioObjects                               		
 		private static PostEventReference XmlToEvent(XElement xComponent)
 		{
-			var newEvent = new PostEventReference {Name = AsScriptingHelper.GetXmlAttribute(xComponent, "Name")};
+			var newEvent = new PostEventReference {Name = AsScriptingHelper.GetXmlAttribute(xComponent, "EventName")};
 			ImportEnum(ref newEvent.Type, AsScriptingHelper.GetXmlAttribute(xComponent, "Type"));
 			ImportEnum(ref newEvent.Action, AsScriptingHelper.GetXmlAttribute(xComponent, "Action"));
 			ImportFloat(ref newEvent.FadeTime, AsScriptingHelper.GetXmlAttribute(xComponent, "FadeTime"));
@@ -168,7 +169,7 @@ namespace AudioStudio.Tools
         private static SoundBankReference XmlToBank(XElement xComponent)
         {
 	        var name = AsScriptingHelper.GetXmlAttribute(xComponent, "BankName");                    
-	        return !string.IsNullOrEmpty(name) ? new SoundBankReference{Name = name} : null;
+	        return !string.IsNullOrEmpty(name) ? new SoundBankReference(name) : null;
         }
 
         private static bool ImportBanks(ref SoundBankReference[] banks, XElement xComponent)
@@ -191,7 +192,7 @@ namespace AudioStudio.Tools
 	        var groupName = fullName.Split('/')[0].Trim();
 	        var switchName = fullName.Split('/')[1].Trim();	 
 	        if (!string.IsNullOrEmpty(groupName) && !string.IsNullOrEmpty(switchName))
-		        return new SetSwitchReference{Name = groupName, Selection = switchName};	              
+		        return new SetSwitchReference(groupName, switchName);	              
 	        return null;
         }
 
@@ -348,24 +349,25 @@ namespace AudioStudio.Tools
             xComponent.Add(xBanks);
         }
 
-        private static void ExportEvent(PostEventReference audioEvent, XElement xComponent, string trigger = "")
+        private static void ExportEvent(PostEventReference audioEvent, XElement xEvents, string trigger = "")
         {            
             if (!audioEvent.IsValid()) return;
             var xEvent = new XElement("AudioEvent");
-            xEvent.SetAttributeValue("Trigger", trigger);
+            if (!string.IsNullOrEmpty(trigger))
+				xEvent.SetAttributeValue("Trigger", trigger);
             xEvent.SetAttributeValue("Type", audioEvent.Type);
-            xEvent.SetAttributeValue("Name", audioEvent.Name);
+            xEvent.SetAttributeValue("EventName", audioEvent.Name);
             xEvent.SetAttributeValue("Action", audioEvent.Action);
             xEvent.SetAttributeValue("FadeTime", audioEvent.FadeTime);
-            xComponent.Add(xEvent);
+            xEvents.Add(xEvent);
         }
 
-        private static void ExportAudioEvents(PostEventReference[] events, XElement xComponent, string trigger = "")
+        private static void ExportAudioEvents(PostEventReference[] events, XElement xEvents, string trigger = "")
         {            
             if (events == null) return;
             foreach (var evt in events)
             {
-                ExportEvent(evt, xComponent, trigger);
+                ExportEvent(evt, xEvents, trigger);
             }
         }
         #endregion
@@ -386,7 +388,7 @@ namespace AudioStudio.Tools
 	        xSettings.SetAttributeValue("PositionOffset", ExportVector3(s.PositionOffset));
 	        xComponent.Add(xSettings);
         }
-        
+
         private static void ButtonSoundExporter(Component component, XElement xComponent)
         {
             var s = (ButtonSound) component;
@@ -435,14 +437,12 @@ namespace AudioStudio.Tools
         private static void EventSoundExporter(Component component, XElement xComponent)
         {
 	        var s = (EventSound) component;
-	        var xUIAudioEvents = new XElement("UIAudioEvents");
-	        foreach (var evt in s.UIAudioEvents)
+	        var xEvents = new XElement("UIAudioEvents");
+	        foreach (var uiAudioEvent in s.AudioEvents)
 	        {
-		        var xUIAudioEvent = new XElement("UIAudioEvent");
-		        ExportEvent(evt.AudioEvent, xUIAudioEvent, evt.TriggerType.ToString());
-		        xUIAudioEvents.Add(xUIAudioEvent);
+		        ExportEvent(uiAudioEvent.AudioEvent, xEvents, uiAudioEvent.TriggerType.ToString());
 	        }
-	        xComponent.Add(xUIAudioEvents);
+	        xComponent.Add(xEvents);
         }
         
         private static void EmitterSoundExporter(Component component, XElement xComponent)
@@ -452,6 +452,22 @@ namespace AudioStudio.Tools
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.AudioEvents, xEvents);                        
             xComponent.Add(xEvents);                                                  
+        }
+        
+        private static void LegacyAnimationSoundExporter(Component component, XElement xComponent)
+        {
+	        var s = (LegacyAnimationSound) component;
+	        ExportSpatialSettings(s, xComponent);
+	        var xEvents = new XElement("AnimationAudioEvents");
+	        foreach (var animationAudioEvent in s.AudioEvents)
+	        {
+		        var xEvent = new XElement("AnimationAudioEvent");
+		        xEvent.SetAttributeValue("ClipName", animationAudioEvent.ClipName);
+		        xEvent.SetAttributeValue("Frame", animationAudioEvent.Frame);
+		        ExportEvent(animationAudioEvent.AudioEvent, xEvent);
+		        xEvents.Add(xEvent);
+	        }
+	        xComponent.Add(xEvents);
         }
                         
         private static void LoadBankExporter(Component component, XElement xComponent)
@@ -557,8 +573,7 @@ namespace AudioStudio.Tools
             var xSettings = xComponent.Element("Settings");
             return ImportEnum(ref s.Tags, AsScriptingHelper.GetXmlAttribute(xSettings, "Tags"));            
         }
-        
-        
+
         private static bool AudioListener3DImporter(Component component, XElement xComponent)
         {
 	        var s = (AudioListener3D) component;
@@ -609,19 +624,20 @@ namespace AudioStudio.Tools
         private static bool EventSoundImporter(Component component, XElement xComponent)
         {
 	        var s = (EventSound) component;
-	        var xUIAudioEvents = xComponent.Element("UIAudioEvents");
-	        if (xUIAudioEvents == null) return false;
-	        var newUIAudioEvents = new List<UIAudioEvent>();
-	        foreach (var xUIAudioEvent in xUIAudioEvents.Elements())
+	        var xEvents = xComponent.Element("UIAudioEvents");
+	        if (xEvents == null) return false;
+	        var newEvents = new List<UIAudioEvent>();
+	        foreach (var xEvent in xEvents.Elements())
 	        {
-		        var uiAudioEvent = new UIAudioEvent();
-		        ImportEnum(ref uiAudioEvent.TriggerType, AsScriptingHelper.GetXmlAttribute(xUIAudioEvent.Element("AudioEvent"), "Trigger"));
-		        ImportEvent(ref uiAudioEvent.AudioEvent, xUIAudioEvent);
-		        newUIAudioEvents.Add(uiAudioEvent);
+		        var audioEvent = new PostEventReference();
+		        ImportEvent(ref audioEvent, xEvent, "");
+		        var uiAudioEvent = new UIAudioEvent {AudioEvent = audioEvent};
+		        ImportEnum(ref uiAudioEvent.TriggerType, AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger"));
+		        newEvents.Add(uiAudioEvent);
 	        }
-	        if (!newUIAudioEvents.SequenceEqual(s.UIAudioEvents))
+	        if (!newEvents.SequenceEqual(s.AudioEvents))
 	        {
-		        s.UIAudioEvents = newUIAudioEvents.ToArray();
+		        s.AudioEvents = newEvents.ToArray();
 		        return true;
 	        }
 	        return false;
@@ -633,6 +649,33 @@ namespace AudioStudio.Tools
             var modified = ImportEvents(ref s.AudioEvents, xComponent);
             modified |= ImportSpatialSettings(s, xComponent);
             return modified;
+        }
+
+        private static bool LegacyAnimationSoundImporter(Component component, XElement xComponent)
+        {
+	        var s = (LegacyAnimationSound) component;
+	        var modified = ImportSpatialSettings(s, xComponent);
+	        var xEvents = xComponent.Element("AnimationAudioEvents");
+	        if (xEvents == null) return false;
+	        var newEvents = new List<AnimationAudioEvent>();
+	        foreach (var xEvent in xEvents.Elements())
+	        {
+		        var audioEvent = new PostEventReference();
+		        ImportEvent(ref audioEvent, xEvent);
+		        var animationAudioEvent = new AnimationAudioEvent
+		        {
+			        AudioEvent = audioEvent, 
+			        ClipName = AsScriptingHelper.GetXmlAttribute(xEvent, "ClipName")
+		        };
+		        ImportInt(ref animationAudioEvent.Frame, AsScriptingHelper.GetXmlAttribute(xEvent, "Frame"));
+		        newEvents.Add(animationAudioEvent);
+	        }
+	        if (!newEvents.SequenceEqual(s.AudioEvents))
+	        {
+		        s.AudioEvents = newEvents.ToArray();
+		        return true;
+	        }
+	        return modified;
         }
                         
         private static bool LoadBankImporter(Component component, XElement xComponent)

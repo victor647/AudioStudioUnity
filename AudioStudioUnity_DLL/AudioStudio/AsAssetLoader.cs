@@ -75,7 +75,6 @@ namespace AudioStudio
 					_soundEvents[evt.name] = evt;
 				}            
 				finishedPostEvent?.Post();
-				AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.Code, bank.name, null, "Bank loads into memory");
 			});
 			return true;
 		}
@@ -122,25 +121,33 @@ namespace AudioStudio
 				if (ac is AudioSwitch) _audioSwitches.Remove(ac.name);    
 				ac.Dispose();
 			}
-			_soundBanks.Remove(bank.name);			
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.Code, bank.name, null, "Bank unloads from memory");
+			_soundBanks.Remove(bank.name);
 			bank.Dispose();
 			//Resources.UnloadAsset(bank);            			                     
 		}		
 
 		internal static SoundContainer GetSoundEvent(string eventName)
 		{
-			return _soundEvents.ContainsKey(eventName) ? _soundEvents[eventName] : null;
+			if (_soundEvents.ContainsKey(eventName))
+				return _soundEvents[eventName];
+			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "SFX not loaded");
+			return null;
 		}	
 		
 		internal static AudioParameter GetAudioParameter(string parameterName)
 		{
-			return _audioParameters.ContainsKey(parameterName) ? _audioParameters[parameterName] : null;
+			if (_audioParameters.ContainsKey(parameterName))
+				return _audioParameters[parameterName];
+			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, parameterName, null, "Parameter not loaded");
+			return null;
 		}	
 		
 		internal static AudioSwitch GetAudioSwitch(string switchName)
 		{
-			return _audioSwitches.ContainsKey(switchName) ? _audioSwitches[switchName] : null;
+			if (_audioSwitches.ContainsKey(switchName))
+				return _audioSwitches[switchName];
+			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, switchName, null, "Switch not loaded");
+			return null;
 		}
 		#endregion
 		
@@ -162,8 +169,7 @@ namespace AudioStudio
 			{                                                            
 				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, "N/A", null, "Event not found");                                    
 				return;
-			}                        
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, music.name);
+			}
 			_musicEvents[music.name] = music;
 			music.Init();
 			music.Play(null, -1f);
@@ -182,8 +188,7 @@ namespace AudioStudio
 			{                                                            
 				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, stingerName, null, "Stinger not found");                                    
 				return null;
-			}                        
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, stingerName);
+			}
 			_musicEvents[stingerName] = stinger;
 			stinger.Init();	
 			MusicTransport.Instance.QueueStinger(stinger);
@@ -202,8 +207,7 @@ namespace AudioStudio
 			{                                                            
 				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Instrument, AudioAction.Load, AudioTriggerSource.Code, instrumentName, null, "Instrument not found");                                    
 				return null;
-			}                        
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Instrument, AudioAction.Load, AudioTriggerSource.Code, instrumentName);
+			}
 			_musicInstruments[instrumentName] = instrument;
 			instrument.Init(channel);
 			return instrument;
@@ -216,7 +220,6 @@ namespace AudioStudio
 				AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Instrument, AudioAction.Unload, AudioTriggerSource.Code, instrumentName, null, "Instrument already unloads or not found");
 				return;
 			}
-			AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Instrument, AudioAction.Unload, AudioTriggerSource.Code, instrumentName);
 			_musicInstruments[instrumentName].Dispose();
 			_musicInstruments.Remove(instrumentName);
 		}
@@ -240,8 +243,7 @@ namespace AudioStudio
 			{                                                            
 				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, "N/A", null, "Event not found");                                    
 				return;
-			}                        
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, voice.name);
+			}
 			_voiceEvents[voice.name] = voice;
 			voice.Init();
 			voice.Play(GlobalAudioEmitter.GameObject, -1f);

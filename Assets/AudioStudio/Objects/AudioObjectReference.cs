@@ -1,7 +1,8 @@
 ﻿using System;
 using AudioStudio.Tools;
 using UnityEngine;
-using UnityEngine.Serialization;
+using UnityEngine.EventSystems;
+using Object = UnityEngine.Object;
 
 namespace AudioStudio.Configs
 {
@@ -24,24 +25,13 @@ namespace AudioStudio.Configs
 	
 	public abstract class AudioObjectReference
 	{
-		public string Name;		
+		public string Name;
 		
 		public override bool Equals(object obj)
 		{
-			var other = obj as AudioObjectReference;
-			if (other != null) 
+			if (obj is AudioObjectReference other)
 				return Name == other.Name;
 			return false;
-		}
-
-		protected bool Equals(AudioObjectReference other)
-		{
-			return string.Equals(Name, other.Name);
-		}
-
-		public override int GetHashCode()
-		{
-			return Name.GetHashCode();
 		}
 
 		public bool IsValid()
@@ -62,20 +52,15 @@ namespace AudioStudio.Configs
 
 	[Serializable]
 	public class PostEventReference : AudioObjectReference
-	{        
-		[FormerlySerializedAs("EventType")]
+	{
 		public AudioEventType Type = AudioEventType.SFX;
 		public AudioEventAction Action = AudioEventAction.Play;	
 		public float FadeTime;
-		public PostEventReference(string name)
+		public PostEventReference(string name = "")
 		{			
 			Name = name;
 		}
-		
-		public PostEventReference()
-		{			
-		}
-		
+
 		public void Post(GameObject go = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
@@ -128,7 +113,7 @@ namespace AudioStudio.Configs
 			}
 		}
 
-		public void Play(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		private void Play(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			switch (Type)
 			{
@@ -143,8 +128,8 @@ namespace AudioStudio.Configs
 					break;
 			}
 		}
-        
-		public void Stop(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+
+		private void Stop(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
 			switch (Type)
@@ -160,8 +145,8 @@ namespace AudioStudio.Configs
 					break;
 			}
 		}
-		
-		public void Mute(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+
+		private void Mute(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
 			switch (Type)
@@ -177,8 +162,8 @@ namespace AudioStudio.Configs
 					break;
 			}
 		}
-		
-		public void UnMute(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+
+		private void UnMute(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
 			switch (Type)
@@ -194,8 +179,8 @@ namespace AudioStudio.Configs
 					break;
 			}
 		}
-		
-		public void Pause(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+
+		private void Pause(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
 			switch (Type)
@@ -211,8 +196,8 @@ namespace AudioStudio.Configs
 					break;
 			}
 		}
-		
-		public void Resume(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+
+		private void Resume(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;
 			switch (Type)
@@ -231,18 +216,12 @@ namespace AudioStudio.Configs
         
 		public override bool Equals(object obj)
 		{
-			var other = obj as PostEventReference;
-			if (other != null) 
-				return base.Equals(obj) && Type == other.Type;
+			if (obj is PostEventReference other)
+				return base.Equals(other) && Type == other.Type && Action == other.Action && FadeTime == other.FadeTime;
 			return false;
 		}
-		
-		public override int GetHashCode()
-		{
-			return base.GetHashCode();
-		}
-	}        
-	
+	}
+
 	[Serializable]
 	public class AudioParameterReference : AudioObjectReference
 	{			
@@ -293,15 +272,11 @@ namespace AudioStudio.Configs
 	[Serializable]
 	public class SoundBankReference : AudioObjectReference
 	{		       
-		public SoundBankReference(string name)
+		public SoundBankReference(string name = "")
 		{			
 			Name = name;
 		}
-		
-		public SoundBankReference()
-		{			
-		}
-		
+
 		public void Load(AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;			
@@ -318,15 +293,11 @@ namespace AudioStudio.Configs
 	[Serializable]
 	public class AudioSwitchReference : AudioObjectReference
 	{
-		public AudioSwitchReference(string groupName)
+		public AudioSwitchReference(string groupName = "")
 		{			
 			Name = groupName;
 		}
-		
-		public AudioSwitchReference()
-		{			
-		}
-		
+
 		public void SetValue(string switchName, GameObject go = null)
 		{
 			if (!IsValid()) return;			
@@ -356,11 +327,7 @@ namespace AudioStudio.Configs
 			Name = groupName;
 			Selection = switchName;
 		}
-		
-		public SetSwitchReference()
-		{			
-		}
-		
+
 		public void SetValue(GameObject go = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;			

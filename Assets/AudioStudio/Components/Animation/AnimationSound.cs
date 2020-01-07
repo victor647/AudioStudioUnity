@@ -16,14 +16,57 @@ namespace AudioStudio.Components
             AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.AudioState, AudioAction.SetValue, AudioTriggerSource.AudioState, newState.ToString(), gameObject);
         }
 
-        public void PlaySound(string eventName)
+        public void PlaySound(AnimationEvent evt)
+        {
+            var eventName = evt.stringParameter;
+            var eventSplit = eventName.Split('.');
+            if (eventSplit.Length < 2)
+            {
+                if (evt.intParameter == 0 || evt.intParameter - 1 == (int) _animationAudioState)
+                    DoPlaySound(eventName);
+            }
+            else
+            {
+                for (var i = 1; i < eventSplit.Length; i++)
+                {
+                    if (_animationAudioState.ToString() == eventSplit[i] || evt.animatorStateInfo.IsName(eventSplit[i]))
+                        DoPlaySound(eventSplit[0]);								
+                } 
+            }
+        }
+        
+        public void PlayVoice(AnimationEvent evt)
+        {
+            var eventName = evt.stringParameter;
+            var eventSplit = eventName.Split('.');
+            if (eventSplit.Length < 2)
+            {
+                if (evt.intParameter == 0 || evt.intParameter - 1 == (int) AudioManager.VoiceLanguage)
+                    DoPlayVoice(eventName);
+            }
+            else
+            {
+                for (var i = 1; i < eventSplit.Length; i++)
+                {
+                    if (_animationAudioState.ToString() == eventSplit[i] || evt.animatorStateInfo.IsName(eventSplit[i]))
+                        DoPlayVoice(eventSplit[0]);								
+                } 
+            }
+        }
+        
+        private void DoPlaySound(string eventName)
         {
             AudioManager.PlaySound(eventName, GetSoundSource(), 0f, null, AudioTriggerSource.AnimationSound);
         }
         
-        public void PlayVoice(string eventName)
+        private void DoPlayVoice(string eventName)
         {
             AudioManager.PlayVoice(eventName, gameObject, 0f, null, AudioTriggerSource.AnimationSound);
+        }
+
+        public void PlayMusic(string eventName)
+        {
+            AudioManager.PlayMusic(eventName, 0f, gameObject, AudioTriggerSource.AnimationSound);
         }
 
         public void StopSound(string eventName)
@@ -31,34 +74,14 @@ namespace AudioStudio.Components
             AudioManager.StopSound(eventName, GetSoundSource());
         }
         
-        public void PlaySoundByState(string eventName)
-        {			
-            var eventSplit = eventName.Split('.');
-            if (eventSplit.Length < 2)
-            {
-                PlaySound(eventName);
-                return;
-            }
-
-            for (var i = 1; i < eventSplit.Length; i++)
-            {
-                if (_animationAudioState.ToString() == eventSplit[i]) PlaySound(eventSplit[0]);								
-            }			
+        public void StopVoice(string eventName)
+        {                                    
+            AudioManager.StopVoice(eventName, GetSoundSource());
         }
-        
-        public void PlayVoiceByLanguage(string eventName)
-        {			
-            var eventSplit = eventName.Split('.');
-            if (eventSplit.Length < 2)
-            {
-                PlayVoice(eventName);
-                return;
-            }
 
-            for (var i = 1; i < eventSplit.Length; i++)
-            {
-                if (AudioManager.VoiceLanguage.ToString() == eventSplit[i]) PlayVoice(eventSplit[0]);								
-            }			
+        public void StopMusic(string eventName)
+        {                                    
+            AudioManager.StopMusic(0f, gameObject, AudioTriggerSource.AnimationSound);
         }
 
         public override bool IsValid()

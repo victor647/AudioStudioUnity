@@ -183,8 +183,7 @@ namespace AudioStudio.Configs
 			AudioSource.panStereo = MusicTrack.Pan;
 			AudioSource.pitch = MusicTrack.Pitch;
 			AudioSource.timeSamples = timeSamples > MusicTrack.Clip.samples? 0 : timeSamples;
-			StartCoroutine(AudioSource.Play(fadeInTime));			
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Play, AudioTriggerSource.Code, MusicTrack.name, MusicTransport.GameObject);
+			StartCoroutine(AudioSource.Play(fadeInTime));
 		}
 
 		public override void Stop(float fadeOutTime)

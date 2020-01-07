@@ -24,7 +24,6 @@ namespace AudioStudio.Editor
             ShowSpatialSettings();
             ShowPlaybackSettings();
             AsGuiDrawer.DrawList(serializedObject.FindProperty("AudioEvents"), "Audio Events:", AddEvent);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("FadeOutTime"));
             serializedObject.ApplyModifiedProperties();
             ShowButtons(_component);
         }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Root>
+  <Scene AssetPath="Assets/Scenes/3D test.unity">
+    <Component Type="LegacyAnimationSound" GameObject="AudioInit">
+      <SpatialSettings IsUpdatePosition="true" StopOnDestroy="false" />
+      <AnimationAudioEvents>
+        <AnimationAudioEvent ClipName="3648" Frame="11">
+          <AudioEvent Type="SFX" EventName="Footstep_S_Rush_Dirt_01" Action="Stop" FadeTime="0.35" />
+        </AnimationAudioEvent>
+      </AnimationAudioEvents>
+    </Component>
+  </Scene>
+</Root>

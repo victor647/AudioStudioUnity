@@ -51,7 +51,7 @@ namespace AudioStudio.Components
             if (!StopOnDestroy) return;
             foreach (var evt in AudioEvents)
             {
-                evt.Stop(gameObject, AudioTriggerSource.EmitterSound);
+                evt.Cancel(gameObject, AudioTriggerSource.EmitterSound);
             }
         }
         

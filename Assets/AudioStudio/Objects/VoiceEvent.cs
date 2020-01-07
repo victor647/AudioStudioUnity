@@ -52,10 +52,7 @@ namespace AudioStudio.Configs
 			{					
 				case VoicePlayLogic.Random:
 					if (Clips.Count < 2)
-					{
-						AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Voice, AudioAction.Play, AudioTriggerSource.Code, name, soundSource, "Random VoiceEvent only has 1 element");
 						return Clips[0];
-					}
 					var selectedIndex = Random.Range(0, Clips.Count);
 					if (!AvoidRepeat) return Clips[selectedIndex];
 					while (selectedIndex == LastSelectedIndex)
@@ -89,12 +86,7 @@ namespace AudioStudio.Configs
 		{
 			if (PlayLogic != VoicePlayLogic.Single)
 				Clip = GetClip(soundSource);
-			if (!Clip)
-			{
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Play, AudioTriggerSource.Code, name, soundSource, "Audio Clip is missing!");
-				return;
-			}
-
+			if (!Clip) return;
 			var vei = soundSource.AddComponent<VoiceEventInstance>();
 			vei.Init(this, soundSource);
 			vei.Play(fadeInTime);					
@@ -288,8 +280,7 @@ namespace AudioStudio.Configs
 		public void Play(float fadeInTime, Action<GameObject> endCallback = null)
 		{
 			OnAudioEnd = endCallback;
-			StartCoroutine(AudioSource.Play(fadeInTime));	
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Play, AudioTriggerSource.Code, AudioSource.clip.name, gameObject);
+			StartCoroutine(AudioSource.Play(fadeInTime));
 		}
 
 		private void FixedUpdate()

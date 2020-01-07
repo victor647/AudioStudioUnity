@@ -2114,6 +2114,8 @@ GameObject:
   - component: {fileID: 1496834122}
   - component: {fileID: 1496834121}
   - component: {fileID: 1496834123}
+  - component: {fileID: 1496834125}
+  - component: {fileID: 1496834124}
   m_Layer: 0
   m_Name: AudioInit
   m_TagString: Untagged
@@ -2173,6 +2175,47 @@ MonoBehaviour:
     FadeTime: 0
   DisableEvents: []
   DelayTime: 0
+--- !u!114 &1496834124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496834120}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d5b8fac80f42f4487b3cb0a3718b3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SetOn: 0
+  PostFrom: 0
+  MatchTags: 0
+  IsUpdatePosition: 1
+  StopOnDestroy: 0
+  FrameRate: 30
+  AudioEvents:
+  - ClipName: 3648
+    Frame: 11
+    AudioEvent:
+      Name: Footstep_S_Rush_Dirt_01
+      Type: 0
+      Action: 1
+      FadeTime: 0.35
+--- !u!111 &1496834125
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496834120}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 0}
+  m_Animations: []
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1 &1504059536
 GameObject:
   m_ObjectHideFlags: 0
@@ -2763,7 +2806,7 @@ MonoBehaviour:
   IsUpdatePosition: 1
   StopOnDestroy: 1
   AudioEvents:
-  - Name: Menu_Main_Open
+  - Name: 
     Type: 0
     Action: 0
     FadeTime: 0
@@ -2838,6 +2881,36 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1969036087, guid: 9cceead296f249b47a3a223688e05244, type: 3}
+      propertyPath: AudioEvents.Array.size
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 5602038787300645786, guid: 9cceead296f249b47a3a223688e05244, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 9cceead296f249b47a3a223688e05244, type: 3}
+--- !u!1 &8212853870678401620 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8212853868844251493, guid: 9cceead296f249b47a3a223688e05244,
+    type: 3}
+  m_PrefabInstance: {fileID: 8212853870678401619}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8212853870678401621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8212853870678401620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6082aecd990014e49883469842c0b5c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SetOn: 0
+  PostFrom: 0
+  MatchTags: 0
+  OnSwitches:
+  - Name: 
+    Selection: 
+  OffSwitches: []
+  IsGlobal: 0

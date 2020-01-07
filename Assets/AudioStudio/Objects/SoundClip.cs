@@ -249,11 +249,7 @@ namespace AudioStudio.Configs
             {
                 var startSample = Random.Range(0, SoundClip.Clip.samples);
                 AudioSource.timeSamples = startSample;
-                var message = "Loop starts at position " + startSample * 100 / SoundClip.Clip.samples + "%";
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Play, AudioTriggerSource.Code, SoundClip.name, gameObject, message);
-            } 
-            else
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Play, AudioTriggerSource.Code, SoundClip.name, gameObject, SoundClip.Loop ? "Loop" : "");
+            }
             PlayingStatus = PlayingStatus.Playing;  
             StartCoroutine(AudioSource.Play(fadeInTime));
         }
