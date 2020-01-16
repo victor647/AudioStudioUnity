@@ -65,14 +65,9 @@ namespace AudioStudio.Editor
                     case MusicPlayLogic.Random:
 	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);     
 	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RandomOnLoop"), "  Random On Loop", 120);
-	                    EditorGUILayout.LabelField("Music Containers/Clips");
-                        AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);		                    
-                        break;
-	                case MusicPlayLogic.Layer:
-                    case MusicPlayLogic.SequenceStep:
-	                case MusicPlayLogic.SequenceContinuous:
-                        EditorGUILayout.LabelField("Music Containers/Clips");
-                        AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);					
+	                    break;
+                    case MusicPlayLogic.SequenceContinuous:
+	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("LoopEntireSequence"), "  Loop Entire Sequence", 150);     
                         break;
                     case MusicPlayLogic.Switch:
 	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchToSamePosition"), "  To Same Position", 120);
@@ -82,7 +77,12 @@ namespace AudioStudio.Editor
                         EditorGUILayout.LabelField("Switch Assignment");
                         AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"));
                         break;
-                }					
+                }
+                if (_musicContainer.PlayLogic != MusicPlayLogic.Switch)
+                {
+	                EditorGUILayout.LabelField("Music Containers/Clips");
+	                AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);
+                }
             }
 			EditorGUILayout.Separator();
         }

@@ -34,6 +34,11 @@ namespace AudioStudio.Configs
 			return false;
 		}
 
+		public override int GetHashCode()
+		{
+			return base.GetHashCode();
+		}
+
 		public bool IsValid()
 		{
 			return !string.IsNullOrEmpty(Name);
@@ -220,6 +225,11 @@ namespace AudioStudio.Configs
 				return base.Equals(other) && Type == other.Type && Action == other.Action && FadeTime == other.FadeTime;
 			return false;
 		}
+		
+		public override int GetHashCode()
+		{
+			return base.GetHashCode();
+		}
 	}
 
 	[Serializable]
@@ -277,16 +287,16 @@ namespace AudioStudio.Configs
 			Name = name;
 		}
 
-		public void Load(AudioTriggerSource trigger = AudioTriggerSource.Code)
+		public void Load(GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;			
-			AudioManager.LoadBank(Name, trigger);		
+			AudioManager.LoadBank(Name, source, trigger);		
 		}
 		
-		public void Unload(AudioTriggerSource trigger = AudioTriggerSource.Code)
+		public void Unload(GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;			
-			AudioManager.UnloadBank(Name, trigger);		
+			AudioManager.UnloadBank(Name, source, trigger);		
 		}
 	}
 	

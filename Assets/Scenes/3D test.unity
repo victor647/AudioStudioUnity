@@ -2169,8 +2169,8 @@ MonoBehaviour:
   IsUpdatePosition: 1
   StopOnDestroy: 1
   EnableEvents:
-  - Name: 
-    Type: 0
+  - Name: City_Main
+    Type: 1
     Action: 0
     FadeTime: 0
   DisableEvents: []

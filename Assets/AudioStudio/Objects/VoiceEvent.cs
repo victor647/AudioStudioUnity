@@ -2,6 +2,7 @@
 using UnityEngine;
 using System;
 using System.Linq;
+using AudioStudio.Components;
 using AudioStudio.Tools;
 using Random = UnityEngine.Random;
 
@@ -268,6 +269,7 @@ namespace AudioStudio.Configs
 		{
 			_voiceEvent.VoiceEventInstances.Remove(this);
 			OnAudioEnd?.Invoke(Emitter);
+			Destroy(AudioSource);
 			VoiceEvent.GlobalVoiceCount--;
 			
 			if (_voiceEvent.VoiceEventInstances.Count > 0) return;

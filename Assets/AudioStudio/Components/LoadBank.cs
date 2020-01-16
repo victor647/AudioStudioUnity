@@ -16,7 +16,7 @@ namespace AudioStudio.Components
         {
             foreach (var bank in Banks)
             {
-                bank.Load(AudioTriggerSource.LoadBank);
+                bank.Load(gameObject, AudioTriggerSource.LoadBank);
             }            
         }
 
@@ -25,7 +25,7 @@ namespace AudioStudio.Components
             if (!UnloadOnDisable) return;
             foreach (var bank in Banks)
             {
-                bank.Unload(AudioTriggerSource.LoadBank);
+                bank.Unload(gameObject, AudioTriggerSource.LoadBank);
             }            
         }
         public override bool IsValid()

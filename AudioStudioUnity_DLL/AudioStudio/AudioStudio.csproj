@@ -70,6 +70,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioInit.cs">
           <Link>Components\Common\AudioInit.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioTransformFollower.cs">
+          <Link>Components\Common\AudioTransformFollower.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\GlobalAudioEmitter.cs">
           <Link>Components\Common\GlobalAudioEmitter.cs</Link>
         </Compile>

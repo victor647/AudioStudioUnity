@@ -20,7 +20,7 @@ namespace AudioStudio.Configs
     public class TransitionExitData
     {
         public MusicTransitionReference Target;
-        public float FadeOutTime;
+        public float FadeOutTime = 1f;
         public float ExitOffset;
         public TransitionInterval Interval = TransitionInterval.Immediate;
         public BarAndBeat GridLength;
@@ -31,7 +31,7 @@ namespace AudioStudio.Configs
     {
         public MusicTransitionReference Source;
         public float FadeInTime;
-        public float EntryOffset;
+        public float EntryOffset = 1f;
         public MusicSegmentReference TransitionSegment;
     }
     
@@ -48,6 +48,7 @@ namespace AudioStudio.Configs
         public TransitionEntryData[] TransitionEntryConditions = new TransitionEntryData[1];
         public TransitionExitData[] TransitionExitConditions = new TransitionExitData[1];
         public bool SwitchToSamePosition;
+        public bool LoopEntireSequence;
 
         #endregion
         
@@ -217,7 +218,12 @@ namespace AudioStudio.Configs
         public MusicContainer GetNextEvent()
         {
             LastSelectedIndex++;
-            return LastSelectedIndex == ChildEvents.Count ? null : ChildEvents[LastSelectedIndex];
+            if (LastSelectedIndex == ChildEvents.Count)
+            {
+                LastSelectedIndex = 0;
+                return LoopEntireSequence ? ChildEvents[0] : null;
+            }
+            return ChildEvents[LastSelectedIndex];
         }
         
         private void OnSwitchChanged(GameObject soundSource)

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AudioStudio.Tools;
+using UnityEngine;
 
 namespace AudioStudio
 {
@@ -8,45 +9,45 @@ namespace AudioStudio
         private static readonly Dictionary<string, int> _loadedBankList = new Dictionary<string, int>();
 
         #region Load
-        internal static void LoadBank(string bankName, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        internal static void LoadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!_loadedBankList.ContainsKey(bankName) || _loadedBankList[bankName] == 0)
             {
                 if (AsAssetLoader.LoadBank(bankName))
                 {
                     _loadedBankList[bankName] = 1;
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName);
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, source);
                 }
                 else
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, null, "Bank not found");
+                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, source, "Bank not found");
             }
             else
             {
                 _loadedBankList[bankName]++;
-                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, null, "Sound Bank load counter: " + _loadedBankList[bankName]);
+                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, source, "Sound Bank load counter: " + _loadedBankList[bankName]);
             }
         }
         #endregion
         
         #region Unload
-        internal static void UnloadBank(string bankName, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        internal static void UnloadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!_loadedBankList.ContainsKey(bankName) || _loadedBankList[bankName] == 0)
-                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, null, "Sound Bank is already unloaded");
+                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Sound Bank is already unloaded");
             else if (_loadedBankList[bankName] == 1)
             {
                 if (AsAssetLoader.UnloadBank(bankName))
                 {
                     _loadedBankList[bankName] = 0;
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName);
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source);
                 }
                 else
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, null, "Bank not found");
+                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank not found");
             }
             else
             {
                 _loadedBankList[bankName]--;
-                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, null, "Sound Bank unload counter: " + _loadedBankList[bankName]);
+                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Sound Bank unload counter: " + _loadedBankList[bankName]);
             }
         }
         

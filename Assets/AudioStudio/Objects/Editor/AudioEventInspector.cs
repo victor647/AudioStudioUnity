@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using AudioStudio.Components;
+using UnityEditor;
 using UnityEngine;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
@@ -61,10 +62,10 @@ namespace AudioStudio.Editor
             EditorGUILayout.BeginHorizontal();
             GUI.contentColor = Color.green;
             if (GUILayout.Button("Play", EditorStyles.miniButtonLeft))
-                ae.Play(null, 0f);
+                ae.Play(GlobalAudioEmitter.GameObject);
             GUI.contentColor = Color.red;
             if (GUILayout.Button("Stop", EditorStyles.miniButtonRight))
-                ae.Stop(null, 0f);
+                ae.Stop(GlobalAudioEmitter.GameObject);
             EditorGUILayout.EndHorizontal();
             GUI.contentColor = Color.white;
         }

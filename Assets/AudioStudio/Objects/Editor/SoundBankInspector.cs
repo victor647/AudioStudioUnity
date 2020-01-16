@@ -1,8 +1,9 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using AudioStudio.Configs;
-using Object = UnityEngine.Object;
+using AudioStudio.Tools;
 
 namespace AudioStudio.Editor
 {
@@ -20,11 +21,17 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
             DrawEvents();
             DrawControllers();
-            AsGuiDrawer.DrawSaveButton(_soundBank);
+            AsGuiDrawer.DrawPathDisplay("Audio Events Folder", _soundBank.EventsFolder, SetupEventsFolderPath);
             serializedObject.ApplyModifiedProperties();
+            
+            EditorGUILayout.BeginHorizontal();
+            GUI.contentColor = Color.yellow;
+            if (GUILayout.Button("Refresh Events Folder", EditorStyles.toolbarButton))
+                AsBatchProcessor.RefreshBankFolder(_soundBank);
+            AsGuiDrawer.DrawSaveButton(_soundBank);
+            EditorGUILayout.EndHorizontal();
         }
 
         private void DrawEvents()
@@ -63,6 +70,14 @@ namespace AudioStudio.Editor
             {
                 _soundBank.RegisterController(controller);
             }
+        }
+        
+        private void SetupEventsFolderPath()
+        {
+            var oldPath = AsScriptingHelper.CombinePath(Application.dataPath, _soundBank.EventsFolder);
+            var pathNew = EditorUtility.OpenFolderPanel("Select audio events folder", oldPath, "");
+            if (!string.IsNullOrEmpty(pathNew))
+                _soundBank.EventsFolder = AsScriptingHelper.ShortPath(pathNew, false);
         }
     }
 }

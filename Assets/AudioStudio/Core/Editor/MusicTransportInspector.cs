@@ -33,7 +33,7 @@ namespace AudioStudio.Editor
 
                 if (_musicTransport.TransitioningStatus != TransitioningStatus.None)
                 {
-                    EditorGUILayout.LabelField("  Current Sample: " + _musicTransport.TimeSamples);
+                    EditorGUILayout.LabelField("  Current Sample: " + _musicTransport.CurrentSample);
                     EditorGUILayout.LabelField("  Exit Sample: " + _musicTransport.TransitionExitSampleStamp);
                     EditorGUILayout.LabelField("  Enter Sample: " + _musicTransport.TransitionEnterSampleStamp);
                 }

@@ -192,8 +192,6 @@ namespace AudioStudio.Configs
             {
                 evt.StopAll(fadeOutTime);
             }
-            if (IndependentEvent) 
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Stop, AudioTriggerSource.Code, name);
         }
 
         public override void Mute(GameObject soundSource, float fadeOutTime = 0f)

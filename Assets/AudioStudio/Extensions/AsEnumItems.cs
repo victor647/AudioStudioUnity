@@ -21,7 +21,6 @@ namespace AudioStudio
 	
 	public enum Languages
 	{
-		Chinese,
 		English	
 	}
 }

@@ -140,7 +140,7 @@ namespace AudioStudio.Editor
             currentEvent.Use();
         }
 
-        public static void DrawAddDeleteButtons(SerializedProperty list, int index)
+        private static void DrawAddDeleteButtons(SerializedProperty list, int index)
         {
             if (GUILayout.Button("+", EditorStyles.miniButtonLeft, GUILayout.MaxWidth(20)))
                 list.InsertArrayElementAtIndex(index);
@@ -159,11 +159,29 @@ namespace AudioStudio.Editor
             GUI.contentColor = Color.white;
         }     
         
-        public static void CheckLinkedComponent<T>(Component component)
+        public static void DrawPathDisplay(string title, string path, Action action)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+            if (GUILayout.Button("Locate", GUILayout.Width(50))) action();
+            EditorGUILayout.EndHorizontal();
+            if (string.IsNullOrEmpty(path))
+                EditorGUILayout.HelpBox("Path not set!", MessageType.Error);
+            else
+                EditorGUILayout.LabelField(path);
+            EditorGUILayout.Separator();
+        }
+        
+        public static void CheckLinkedComponent<T>(Component component) where T : Component
         {
             var linkedComponent = component.GetComponent<T>();
+            var name = typeof(T).Name;
             if (linkedComponent == null || linkedComponent.ToString() == "null")
-                EditorGUILayout.HelpBox("Can't Find " + typeof(T).Name + " Component!", MessageType.Error);
+            {
+                EditorGUILayout.HelpBox("Can't Find " + name + " Component!", MessageType.Error);
+                if (GUILayout.Button("Add " + name + " to GameObject", EditorStyles.miniButton))
+                    component.gameObject.AddComponent<T>();
+            }
         }
         
         public static void DisplaySearchPath(ref string searchPath)

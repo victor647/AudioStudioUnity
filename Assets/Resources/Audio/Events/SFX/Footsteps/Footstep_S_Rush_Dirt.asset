@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c35d1423c3c8d874f989a858f8603d9f, type: 3}
+  m_Name: Footstep_S_Rush_Dirt
+  m_EditorClassIdentifier: 
+  Platform: 0
+  IndependentEvent: 1
+  OverrideControls: 0
+  OverrideSpatial: 0
+  Volume: 1
+  Pitch: 1
+  Pan: 0
+  LowPassFilter: 0
+  LowPassResonance: 1
+  LowPassCutoff: 22000
+  HighPassFilter: 0
+  HighPassResonance: 1
+  HighPassCutoff: 10
+  SubMixer: 0
+  AudioMixer: 
+  DefaultFadeInTime: 0
+  DefaultFadeOutTime: 0
+  AvoidRepeat: 1
+  RandomOnLoop: 0
+  AudioSwitchReference:
+    Name: Music
+  SwitchEventMappings: []
+  SwitchImmediately: 0
+  CrossFadeTime: 0
+  Mappings: []
+  PlayLogic: 2
+  ChildEvents:
+  - {fileID: 11400000, guid: d7b7011771f2596418a0b11cc17f9f7d, type: 2}
+  - {fileID: 11400000, guid: fa116e6fc96da5c4b845248776a3c484, type: 2}
+  - {fileID: 11400000, guid: bddc5dd3babc6e148a45c64f8f41440e, type: 2}
+  - {fileID: 11400000, guid: 163d5a283e50fd147822cc390f4eaed0, type: 2}
+  - {fileID: 11400000, guid: 04d16b1170c5ab34ba6b71ac700345b5, type: 2}
+  - {fileID: 11400000, guid: fed936565cf39a94ab715e4059b958c3, type: 2}
+  - {fileID: 11400000, guid: 4523377270269154dafdab8b77267a1c, type: 2}
+  - {fileID: 11400000, guid: bc6b4dc485dc8a443aebee73ca3b4a4f, type: 2}
+  - {fileID: 11400000, guid: 3de9af1d66e9d9f44990b557d1121e74, type: 2}
+  ParentContainer: {fileID: 0}
+  SpatialSetting: {fileID: 0}
+  IsUpdatePosition: 0
+  EmitterGameObject: 1
+  RandomizeVolume: 0
+  VolumeRandomRange: 0.1
+  RandomizePitch: 0
+  PitchRandomRange: 0.1
+  EnableVoiceLimit: 0
+  OverrideVoicing: 0
+  VoiceLimiter: {fileID: 11400000, guid: c8af10ca72d9233418633b0933e1546f, type: 2}
+  VoiceLimitGlobal: 8
+  VoiceLimitGameObject: 2
+  Priority: 100

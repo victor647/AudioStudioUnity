@@ -71,17 +71,17 @@ namespace AudioStudio.Components
 
         public void StopSound(string eventName)
         {                                    
-            AudioManager.StopSound(eventName, GetSoundSource());
+            AudioManager.StopSound(eventName, GetSoundSource(), 0.2f, AudioTriggerSource.AnimationSound);
         }
         
         public void StopVoice(string eventName)
         {                                    
-            AudioManager.StopVoice(eventName, GetSoundSource());
+            AudioManager.StopVoice(eventName, gameObject, 0.2f, AudioTriggerSource.AnimationSound);
         }
 
         public void StopMusic(string eventName)
         {                                    
-            AudioManager.StopMusic(0f, gameObject, AudioTriggerSource.AnimationSound);
+            AudioManager.StopMusic(0.5f, gameObject, AudioTriggerSource.AnimationSound);
         }
 
         public override bool IsValid()

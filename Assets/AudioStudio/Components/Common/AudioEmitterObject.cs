@@ -8,21 +8,27 @@ namespace AudioStudio.Components
         public bool StopOnDestroy = true;
 
         private GameObject _emitter;
+        internal bool EmitterInstantiated;
 
         public GameObject GetSoundSource()
         {
+            if (_emitter) 
+                return _emitter;
+            
             if (IsUpdatePosition)
             {
-                if (!StopOnDestroy)
+                if (!StopOnDestroy && !EmitterInstantiated)
                 {
                     _emitter = new GameObject(gameObject.name + " (AudioSource)");
-                    _emitter.transform.position = transform.position;
+                    var slave = _emitter.AddComponent<AudioTransformFollower>();
+                    slave.Master = this;
+                    EmitterInstantiated = true;
                 }
                 else
                     _emitter = gameObject;
             }
             else
-                _emitter = GlobalAudioEmitter.GameObject;
+                _emitter = StopOnDestroy ? gameObject : GlobalAudioEmitter.GameObject;
             return _emitter;
         }
     }

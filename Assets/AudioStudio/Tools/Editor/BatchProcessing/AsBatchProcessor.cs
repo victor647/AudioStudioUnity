@@ -36,6 +36,7 @@ namespace AudioStudio.Tools
                 GenerateMusicTracks(false);
                 GenerateMusicContainers(false);
                 GenerateVoiceEvents(false);
+                RefreshSoundBankFolders();
                 VerifyConfigs();                                                                                           
             }
         }
@@ -82,6 +83,7 @@ namespace AudioStudio.Tools
             EditorGUILayout.LabelField("Miscellaneous Tools", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
+                if (GUILayout.Button("Refresh SoundBank Folders")) RefreshSoundBankFolders();
                 if (GUILayout.Button("Verify All Configs")) VerifyConfigs();
                 if (GUILayout.Button("Delete Empty Configs")) DeleteEmptyConfigs();
             }
@@ -414,7 +416,25 @@ namespace AudioStudio.Tools
         }        
         #endregion
 
-        #region BatchProcessing        
+        #region BatchProcessing    
+        private static void RefreshSoundBankFolders()
+        {
+            var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundBanksPath);
+            SearchFiles<SoundBank>(searchPath, "*.asset", "Refreshing Sound Banks", RefreshBankFolder);
+            AssetDatabase.SaveAssets();	
+        }
+        
+        internal static void RefreshBankFolder(SoundBank bank)
+        {
+            if (string.IsNullOrEmpty(bank.EventsFolder)) return;
+            var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, bank.EventsFolder);
+            SearchFiles<SoundContainer>(searchPath, "*.asset", "Refreshing Events", evt =>
+            {
+                if (!bank.AudioEvents.Contains(evt) && evt.IndependentEvent)
+                    bank.RegisterEvent(evt);
+            });
+        }
+        
         private static void SearchFiles<T>(string path, string _audioFileFormat, string progressBarTitle, Action<T> action) where T : ScriptableObject
         {
             try
@@ -427,6 +447,7 @@ namespace AudioStudio.Tools
                     if (asset) action(asset);
                     if (EditorUtility.DisplayCancelableProgressBar(progressBarTitle, filePaths[i], i * 1.0f / filePaths.Length)) break;
                 }
+                EditorUtility.ClearProgressBar();  
             }
             catch (Exception e)
             {
@@ -461,7 +482,6 @@ namespace AudioStudio.Tools
                         
             searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundBanksPath);
             SearchFiles<SoundBank>(searchPath, "*.asset", "Cleaning Up Sound Banks", Delete);
-            EditorUtility.ClearProgressBar();                          
         } 
         
         private static void VerifyConfigs()
@@ -478,8 +498,7 @@ namespace AudioStudio.Tools
             searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundBanksPath);
             SearchFiles<SoundBank>(searchPath, "*.asset", "Checking Sound Banks", CleanUp);
             
-            AssetDatabase.SaveAssets();	
-            EditorUtility.ClearProgressBar();                          
+            AssetDatabase.SaveAssets();
         }
         #endregion
     }

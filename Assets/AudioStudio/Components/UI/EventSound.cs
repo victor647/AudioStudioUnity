@@ -19,6 +19,11 @@ namespace AudioStudio.Components
                 return AudioEvent.Equals(other.AudioEvent) && TriggerType == other.TriggerType;
             return false;
         }
+        
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
     
     [AddComponentMenu("AudioStudio/EventSound")]

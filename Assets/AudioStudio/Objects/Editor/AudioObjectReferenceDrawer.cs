@@ -162,55 +162,6 @@ public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
     }
 }
 
-[CustomPropertyDrawer(typeof(UIAudioEvent))]
-public class UIAudioEventDrawer : PropertyDrawer
-{
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {
-        var totalWidth = position.width;
-		
-        position.width = 70;
-        EditorGUI.LabelField(position, "Trigger on");
-        position.x += 72;
-        
-        position.width = totalWidth - 70;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("TriggerType"), GUIContent.none);
-        GUILayout.EndHorizontal();
-        
-        GUILayout.BeginHorizontal();
-        EditorGUILayout.PropertyField(property.FindPropertyRelative("AudioEvent"), GUIContent.none);
-    }
-}
-
-[CustomPropertyDrawer(typeof(AnimationAudioEvent))]
-public class AnimationAudioEventDrawer : PropertyDrawer
-{
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-    {
-        var totalWidth = position.width;
-		
-        position.width = 40;
-        EditorGUI.LabelField(position, "Frame");
-        position.x += 42;
-        
-        position.width = 30;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("Frame"), GUIContent.none);
-        position.x += 32;
-        
-        position.width = 30;
-        EditorGUI.LabelField(position, "Clip");
-        position.x += 32;
-        
-        position.width = totalWidth - 100;
-        EditorGUI.PropertyField(position, property.FindPropertyRelative("ClipName"), GUIContent.none);
-        
-        GUILayout.EndHorizontal();
-
-        GUILayout.BeginHorizontal();
-        EditorGUILayout.PropertyField(property.FindPropertyRelative("AudioEvent"), GUIContent.none);
-    }
-}
-
 [CustomPropertyDrawer(typeof(SoundBankReference))]
 public class SoundBankReferenceDrawer : AudioObjectReferenceDrawer
 {							
@@ -224,10 +175,10 @@ public class SoundBankReferenceDrawer : AudioObjectReferenceDrawer
             var bankName = property.FindPropertyRelative("Name").stringValue;
             GUI.contentColor = Color.green;
             if (GUILayout.Button("▶", EditorStyles.miniButtonLeft, GUILayout.Width(20f)))
-                AudioManager.LoadBank(bankName, AudioTriggerSource.InspectorAudition);
+                AudioManager.LoadBank(bankName, null, AudioTriggerSource.InspectorAudition);
             GUI.contentColor = Color.red;
             if (GUILayout.Button("■", EditorStyles.miniButtonRight, GUILayout.Width(20f)))
-                AudioManager.UnloadBank(bankName, AudioTriggerSource.InspectorAudition);
+                AudioManager.UnloadBank(bankName, null, AudioTriggerSource.InspectorAudition);
             GUI.contentColor = Color.white;
         }
     }	

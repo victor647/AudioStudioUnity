@@ -85,9 +85,7 @@ namespace AudioStudio.Configs
             foreach (var sci in SoundClipInstances)
             {                                
                 sci.Stop(fadeOutTime);
-            }     
-            if (IndependentEvent) 
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Stop, AudioTriggerSource.Code, name);
+            }
         }
         
         public override void Mute(GameObject soundSource, float fadeOutTime = 0f)

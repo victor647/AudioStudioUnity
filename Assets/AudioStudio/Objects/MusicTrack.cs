@@ -121,16 +121,19 @@ namespace AudioStudio.Configs
 			track.Clip.LoadAudioData();
 			_source1.clip = track.Clip;			
 			_source1.outputAudioMixerGroup = AudioManager.GetAudioMixer("Music", track.AudioMixer);
-			
-			if (track.UseDefaultLoopStyle)
-				AudioSource.loop = true;
-			else
+
+			if (track.LoopCount != 1)
 			{
-				_source2 = gameObject.AddComponent<AudioSource>();
-				_source2.clip = track.Clip;
-				_source2.outputAudioMixerGroup = AudioManager.GetAudioMixer("Music", track.AudioMixer);			
+				if (track.UseDefaultLoopStyle)
+					AudioSource.loop = true;
+				else
+				{
+					_source2 = gameObject.AddComponent<AudioSource>();
+					_source2.clip = track.Clip;
+					_source2.outputAudioMixerGroup = AudioManager.GetAudioMixer("Music", track.AudioMixer);
+				}
 			}
-			
+
 			if (track.LowPassFilter)
 			{
 				LowPassFilter = gameObject.AddComponent<AudioLowPassFilter>();
@@ -158,7 +161,7 @@ namespace AudioStudio.Configs
 	        }
 	        
 	        Destroy(_source1);
-	        if (!MusicTrack.UseDefaultLoopStyle)
+	        if (_source2)
 				Destroy(_source2);
 	        OnAudioEnd?.Invoke(Emitter);
 	        MusicTrack.Dispose();
@@ -172,7 +175,7 @@ namespace AudioStudio.Configs
 		
 		public void Play(float fadeInTime, int timeSamples = 0)
 		{						
-			if (MusicTrack.UseDefaultLoopStyle)
+			if (!_source2)
 			{				
 				if (AudioSource.isPlaying) return;											
 			}

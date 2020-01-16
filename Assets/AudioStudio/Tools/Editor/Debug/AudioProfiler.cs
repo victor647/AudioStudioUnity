@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using System.Collections.Generic;
 using AudioStudio.Configs;
 using UnityEngine;
@@ -359,7 +360,8 @@ namespace AudioStudio.Tools
                 var position = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
                 position.y += 10;
                 var window = CreateInstance<ProfilerComponentToggle>();
-                window.ShowAsDropDown(new Rect(position, Vector2.zero), new Vector2(130, 350));
+                var optionsCount = Enum.GetNames(typeof(AudioTriggerSource)).Length;
+                window.ShowAsDropDown(new Rect(position, Vector2.zero), new Vector2(130, optionsCount * 15));
             }
 
             private void OnGUI()

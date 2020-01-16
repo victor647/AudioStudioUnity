@@ -121,52 +121,50 @@ namespace AudioStudio
 
 		internal static SoundContainer GetSoundEvent(string eventName)
 		{
-			if (_soundEvents.ContainsKey(eventName))
-				return _soundEvents[eventName];
-			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "SFX not loaded");
-			return null;
+			return _soundEvents.ContainsKey(eventName) ? _soundEvents[eventName] : null;
 		}	
 		
 		internal static AudioParameter GetAudioParameter(string parameterName)
 		{
-			if (_audioParameters.ContainsKey(parameterName))
-				return _audioParameters[parameterName];
-			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, parameterName, null, "Parameter not loaded");
-			return null;
+			return _audioParameters.ContainsKey(parameterName) ? _audioParameters[parameterName] : null;
 		}	
 		
 		internal static AudioSwitch GetAudioSwitch(string switchName)
 		{
-			if (_audioSwitches.ContainsKey(switchName))
-				return _audioSwitches[switchName];
-			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, switchName, null, "Switch not loaded");
-			return null;
+			return _audioSwitches.ContainsKey(switchName) ? _audioSwitches[switchName] : null;
 		}
 		#endregion
 		
 		#region Music
-		internal static MusicContainer LoadMusic(string eventName)
+		internal static void LoadMusic(string eventName, Action<MusicContainer> play)
 		{
-			if (string.IsNullOrEmpty(eventName))
-				return null;
 			if (_musicEvents.ContainsKey(eventName)) 
-				return _musicEvents[eventName];
-			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
-			var music = Resources.Load<MusicContainer>(loadPath);
-			if (music)
-			{
-				_musicEvents[eventName] = music;
-				music.Init();
-			}
+				play(_musicEvents[eventName]);
 			else
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "Music not found");                                    
-			return music;
+			{
+#if !UNITY_EDITOR && UNITY_WEBGL
+				var music = LoadMusicWeb(eventName);
+				if (music)
+				{
+					WebMusicPlayer.Instance.PlayMusic(music);
+					AudioManager.UpdateLastMusic(eventName);
+				}
+#else
+				var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
+				var music = Resources.Load<MusicContainer>(loadPath);
+				if (music)
+				{
+					_musicEvents[eventName] = music;
+					music.Init();
+				}
+				play(music);
+#endif
+			}
 		}
 		
 		internal static MusicStinger LoadStinger(string stingerName)
 		{
-			if (string.IsNullOrEmpty(stingerName))
-				return null;
+#if UNITY_EDITOR || !UNITY_WEBGL
 			if (_musicEvents.ContainsKey(stingerName)) 
 				return _musicEvents[stingerName] as MusicStinger;
 			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + stingerName;
@@ -179,14 +177,15 @@ namespace AudioStudio
 			else
 				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, stingerName, null, "Stinger not found");                                    
 			return stinger;
+#else
+			return null;
+#endif			
 		}
 
 		internal static MusicInstrument LoadInstrument(string instrumentName, byte channel = 1)
 		{
-			if (string.IsNullOrEmpty(instrumentName))
-				return null;
 			if (_musicInstruments.ContainsKey(instrumentName)) 
-				return _musicInstruments[instrumentName] as MusicInstrument;
+				return _musicInstruments[instrumentName];
 			var loadPath = ShortPath(AudioPathSettings.Instance.MusicInstrumentsPath) + "/" + instrumentName;
 			var instrument = Resources.Load<MusicInstrument>(loadPath);
 			if (instrument)
@@ -213,25 +212,25 @@ namespace AudioStudio
 		#endregion
 		
 		#region Voice
-		internal static VoiceEvent LoadVoice(string eventName)
+		internal static void LoadVoice(string eventName, Action<VoiceEvent> play)
 		{
-			if (string.IsNullOrEmpty(eventName))
-				return null;
 			if (_voiceEvents.ContainsKey(eventName))
-				return _voiceEvents[eventName];
-#if !UNITY_EDITOR && UNITY_WEBGL
-			return LoadVoiceWeb(eventName);
-#endif
-			var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
-			var voice = Resources.Load<VoiceEvent>(loadPath);
-			if (voice)
-			{
-				_voiceEvents[eventName] = voice;
-				voice.Init();
-			}
+				play(_voiceEvents[eventName]);
 			else
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "Voice not found");                                    
-			return voice;
+			{
+#if !UNITY_EDITOR && UNITY_WEBGL
+				var loadPath = ShortPath(AudioPathSettings.Instance.WebEventsPath) + $"/Voice/{AudioManager.VoiceLanguage}/{eventName}";
+#else
+				var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
+				var voice = Resources.Load<VoiceEvent>(loadPath);
+				if (voice)
+				{
+					_voiceEvents[eventName] = voice;
+					voice.Init();
+				}
+				play(voice);
+#endif				
+			}
 		}
 		#endregion
 		
@@ -256,23 +255,7 @@ namespace AudioStudio
 				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "Music not found");					
 			return music;
 		}
-		
-		private static VoiceEvent LoadVoiceWeb(string eventName)
-		{
-			if (string.IsNullOrEmpty(eventName))
-				return null;
-			var loadPath = ShortPath(AudioPathSettings.Instance.WebEventsPath) + $"/Voice/{AudioManager.VoiceLanguage}/{eventName}";
-			var voice = Resources.Load<VoiceEvent>(loadPath);
-			if (voice)
-			{
-				_voiceEvents[eventName] = voice;
-				voice.Init();
-			}
-			else
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "Voice not found");                                    
-			return voice;
-		}
-		
+
 		internal static string DataServerUrl;   
 		internal static string GetClipUrl(string eventName, AudioObjectType type)
 		{

@@ -65,7 +65,7 @@ namespace AudioStudio.Tools
         public static void AudioBatchProcessor()
         {
             var window = GetWindow<AsBatchProcessor>();
-            window.position = new Rect(500, 300, 400, 280);
+            window.position = new Rect(500, 300, 400, 300);
             window.titleContent = new GUIContent("Audio Batch Processor");
         }
 

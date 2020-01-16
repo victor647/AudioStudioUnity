@@ -27,6 +27,7 @@ namespace AudioStudio
 			{
 				defaultSampleSettings.loadType = AudioClipLoadType.Streaming;
 				defaultSampleSettings.quality = AudioPathSettings.Instance.MusicQuality / 100f;
+				defaultSampleSettings.sampleRateSetting = AudioSampleRateSetting.PreserveSampleRate;
 			}
 			else if (audioName.StartsWith("Ambience_"))
 			{

@@ -18,6 +18,11 @@ namespace AudioStudio.Components
                 return AudioEvent.Equals(other.AudioEvent) && ClipName == other.ClipName && Frame == other.Frame;
             return false;
         }
+        
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
     
     [AddComponentMenu("AudioStudio/LegacyAnimationSound")]
@@ -83,7 +88,7 @@ namespace AudioStudio.Components
 
         public override bool IsValid()
         {
-            return GetComponent<Animation>() != null;
+            return AudioEvents.Any(e => e.AudioEvent.IsValid());
         }
     }
 }

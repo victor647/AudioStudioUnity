@@ -25,6 +25,8 @@ namespace AudioStudio.Configs
 		#endregion
 		
 		#region Editor		
+		public string EventsFolder;
+		
 		public void RegisterEvent(SoundContainer evt)
 		{
 			if (AudioEvents.Contains(evt)) return;			

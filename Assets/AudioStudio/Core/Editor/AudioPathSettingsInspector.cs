@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using AudioStudio.Tools;
 using UnityEditor;
@@ -24,10 +23,10 @@ namespace AudioStudio.Editor
             EditorGUILayout.LabelField("Path Settings", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                DrawPathDisplay("AudioStudio Library Path", AudioPathSettings.AudioStudioLibraryPath, SetupAudioStudioLibrary);
-                DrawPathDisplay("Original Resource Path", _component.OriginalResourcesPath, SetupOriginalResourcesPath);
-                DrawPathDisplay("Build Assets Path", _component.BuildAssetsPath, SetupBuildAssetsPath);
-                DrawPathDisplay("Game Start Scene Path", _component.StartScenePath, SetupStartScenePath);
+                AsGuiDrawer.DrawPathDisplay("AudioStudio Library Path", AudioPathSettings.AudioStudioLibraryPath, SetupAudioStudioLibrary);
+                AsGuiDrawer.DrawPathDisplay("Original Resource Path", _component.OriginalResourcesPath, SetupOriginalResourcesPath);
+                AsGuiDrawer.DrawPathDisplay("Build Assets Path", _component.BuildAssetsPath, SetupBuildAssetsPath);
+                AsGuiDrawer.DrawPathDisplay("Game Start Scene Path", _component.StartScenePath, SetupStartScenePath);
             }
 
             EditorGUILayout.LabelField("Import Settings", EditorStyles.boldLabel);
@@ -48,25 +47,11 @@ namespace AudioStudio.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawPathDisplay(string title, string path, Action action)
-        {
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
-            if (GUILayout.Button("Locate", GUILayout.Width(50))) action();
-            EditorGUILayout.EndHorizontal();
-            if (string.IsNullOrEmpty(path))
-                EditorGUILayout.HelpBox("Path not set!", MessageType.Error);
-            else
-                EditorGUILayout.LabelField(path);
-            EditorGUILayout.Separator();
-        }
-
         private void SetupAudioStudioLibrary()
         {
             var scriptPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.AudioStudioLibraryPath, "Extensions/AsPathSettingsExt.cs");
             Process.Start(scriptPath);
         }
-
 
         private void SetupOriginalResourcesPath()
         {

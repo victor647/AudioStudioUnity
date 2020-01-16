@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AudioStudio.Components;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
 using Core;
@@ -37,7 +36,7 @@ namespace AudioStudio
 		}   
 
 		#region SoundBank
-		internal static bool LoadBank(string bankName, PostEventReference finishedPostEvent = null)
+		internal static bool LoadBank(string bankName)
 		{
 			if (string.IsNullOrEmpty(bankName) || _soundBanks.ContainsKey(bankName))
 				return false;
@@ -73,8 +72,7 @@ namespace AudioStudio
 					}
 					evt.Init();
 					_soundEvents[evt.name] = evt;
-				}            
-				finishedPostEvent?.Post();
+				}
 			});
 			return true;
 		}
@@ -128,58 +126,43 @@ namespace AudioStudio
 
 		internal static SoundContainer GetSoundEvent(string eventName)
 		{
-			if (_soundEvents.ContainsKey(eventName))
-				return _soundEvents[eventName];
-			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, eventName, null, "SFX not loaded");
-			return null;
+			return _soundEvents.ContainsKey(eventName) ? _soundEvents[eventName] : null;
 		}	
 		
 		internal static AudioParameter GetAudioParameter(string parameterName)
 		{
-			if (_audioParameters.ContainsKey(parameterName))
-				return _audioParameters[parameterName];
-			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, parameterName, null, "Parameter not loaded");
-			return null;
+			return _audioParameters.ContainsKey(parameterName) ? _audioParameters[parameterName] : null;
 		}	
 		
 		internal static AudioSwitch GetAudioSwitch(string switchName)
 		{
-			if (_audioSwitches.ContainsKey(switchName))
-				return _audioSwitches[switchName];
-			AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Load, AudioTriggerSource.Code, switchName, null, "Switch not loaded");
-			return null;
+			return _audioSwitches.ContainsKey(switchName) ? _audioSwitches[switchName] : null;
 		}
 		#endregion
 		
 		#region Music
-		internal static MusicContainer LoadMusic(string eventName)
+		internal static void LoadMusic(string eventName, Action<MusicContainer> play)
 		{
-			if (string.IsNullOrEmpty(eventName))
-				return null;
-			if (_musicEvents.ContainsKey(eventName)) 
-				return _musicEvents[eventName];
-			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
-			ResourceManager.Instance.Load<MusicContainer>(loadPath, LoadMusicAndPlay);
-			return null;
+			if (_musicEvents.ContainsKey(eventName))
+				play(_musicEvents[eventName]);
+			else
+			{
+				var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
+				ResourceManager.Instance.Load<MusicContainer>(loadPath, music =>
+				{
+					if (music)
+					{
+						music.Init();
+						_musicEvents[eventName] = music;
+					}
+
+					play(music);
+				});
+			}
 		}
 
-		private static void LoadMusicAndPlay(MusicContainer music)
-		{
-			if (!music)
-			{                                                            
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, "N/A", null, "Event not found");                                    
-				return;
-			}
-			_musicEvents[music.name] = music;
-			music.Init();
-			music.Play(null, -1f);
-			AudioManager.UpdateLastMusic(music.name);
-		}
-		
 		internal static MusicStinger LoadStinger(string stingerName)
 		{
-			if (string.IsNullOrEmpty(stingerName))
-				return null;
 			if (_musicEvents.ContainsKey(stingerName)) 
 				return _musicEvents[stingerName] as MusicStinger;
 			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + stingerName;
@@ -200,7 +183,7 @@ namespace AudioStudio
 			if (string.IsNullOrEmpty(instrumentName))
 				return null;
 			if (_musicInstruments.ContainsKey(instrumentName)) 
-				return _musicInstruments[instrumentName] as MusicInstrument;
+				return _musicInstruments[instrumentName];
 			var loadPath = ShortPath(AudioPathSettings.Instance.MusicInstrumentsPath) + "/" + instrumentName;
 			var instrument = Resources.Load<MusicInstrument>(loadPath);
 			if (!instrument)
@@ -226,28 +209,24 @@ namespace AudioStudio
 		#endregion
 		
 		#region Voice
-		internal static VoiceEvent LoadVoice(string eventName)
+		internal static void LoadVoice(string eventName, Action<VoiceEvent> play)
 		{
-			if (string.IsNullOrEmpty(eventName))
-				return null;
-			if (_musicEvents.ContainsKey(eventName)) 
-				return _voiceEvents[eventName];
-			var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
-			ResourceManager.Instance.Load<VoiceEvent>(loadPath, LoadVoiceAndPlay);
-			return null;
-		}
+			if (_voiceEvents.ContainsKey(eventName))
+				play(_voiceEvents[eventName]);
+			else
+			{
+				var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
+				ResourceManager.Instance.Load<VoiceEvent>(loadPath, voice =>
+				{
+					if (voice)
+					{
+						voice.Init();
+						_voiceEvents[eventName] = voice;
+					}
 
-		private static void LoadVoiceAndPlay(VoiceEvent voice)
-		{
-			if (!voice)
-			{                                                            
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Load, AudioTriggerSource.Code, "N/A", null, "Event not found");                                    
-				return;
+					play(voice);
+				});
 			}
-			_voiceEvents[voice.name] = voice;
-			voice.Init();
-			voice.Play(GlobalAudioEmitter.GameObject, -1f);
-			AudioManager.SetCurrentPlayingVoice(voice.name);
 		}
 		#endregion
 	}

@@ -24,8 +24,8 @@ namespace AudioStudio.Tools
             RegisterComponent<EffectSound>(EffectSoundImporter, EffectSoundExporter);
             RegisterComponent<EventSound>(EventSoundImporter, EventSoundExporter);
             RegisterComponent<EmitterSound>(EmitterSoundImporter, EmitterSoundExporter);
-            RegisterComponent<LoadBank>(LoadBankImporter, LoadBankExporter);
             RegisterComponent<LegacyAnimationSound>(LegacyAnimationSoundImporter, LegacyAnimationSoundExporter);
+            RegisterComponent<LoadBank>(LoadBankImporter, LoadBankExporter);
             RegisterComponent<MenuSound>(MenuSoundImporter, MenuSoundExporter);
             RegisterComponent<ScrollSound>(ScrollSoundImporter, ScrollSoundExporter);            
             RegisterComponent<SliderSound>(SliderSoundImporter, SliderSoundExporter);
