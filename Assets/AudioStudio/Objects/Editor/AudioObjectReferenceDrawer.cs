@@ -175,7 +175,7 @@ public class SoundBankReferenceDrawer : AudioObjectReferenceDrawer
             var bankName = property.FindPropertyRelative("Name").stringValue;
             GUI.contentColor = Color.green;
             if (GUILayout.Button("▶", EditorStyles.miniButtonLeft, GUILayout.Width(20f)))
-                AudioManager.LoadBank(bankName, null, AudioTriggerSource.InspectorAudition);
+                AudioManager.LoadBank(bankName, null, null, AudioTriggerSource.InspectorAudition);
             GUI.contentColor = Color.red;
             if (GUILayout.Button("■", EditorStyles.miniButtonRight, GUILayout.Width(20f)))
                 AudioManager.UnloadBank(bankName, null, AudioTriggerSource.InspectorAudition);

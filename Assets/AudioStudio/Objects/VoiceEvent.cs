@@ -37,7 +37,8 @@ namespace AudioStudio.Configs
 		public override void Init()
 		{		
 			LastSelectedIndex = 255;		
-			VoiceEventInstances = new List<VoiceEventInstance>();            
+			VoiceEventInstances = new List<VoiceEventInstance>();           
+			
         }
 
 		public override void Dispose()
@@ -85,6 +86,8 @@ namespace AudioStudio.Configs
 #if UNITY_EDITOR || !UNITY_WEBGL
 		public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
 		{
+			if (!soundSource)
+				return;
 			if (PlayLogic != VoicePlayLogic.Single)
 				Clip = GetClip(soundSource);
 			if (!Clip) return;
@@ -290,7 +293,7 @@ namespace AudioStudio.Configs
 			if (AudioSource.timeSamples < TimeSamples && !AudioSource.loop)
 			{
 				AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.End, AudioTriggerSource.Code, AudioSource.clip.name, gameObject);
-				AudioEnd();
+				OnAudioEndOrStop();
 			}
 			TimeSamples = AudioSource.timeSamples;
 		}

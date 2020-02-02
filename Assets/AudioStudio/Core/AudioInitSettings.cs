@@ -81,7 +81,7 @@ namespace AudioStudio
         {
             foreach (var bank in StartBanks)
             {
-                bank.Load(null, AudioTriggerSource.Initialization);
+                bank.Load(null, null, AudioTriggerSource.Initialization);
             }        
         }
         

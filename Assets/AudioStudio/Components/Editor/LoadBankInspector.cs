@@ -22,7 +22,8 @@ namespace AudioStudio.Editor
         {
             serializedObject.Update();
             EditorGUILayout.PropertyField(serializedObject.FindProperty("UnloadOnDisable"));
-            AsGuiDrawer.DrawList(serializedObject.FindProperty("Banks"), "Banks:", AddBank);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("Banks"), "SoundBanks:", AddBank);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("LoadFinishEvents"), "Load Finish Events:", AddEvent);
             serializedObject.ApplyModifiedProperties();
             ShowButtons(_component);
         }
@@ -33,6 +34,15 @@ namespace AudioStudio.Editor
             foreach (var evt in events)
             {
                 AsScriptingHelper.AddToArray(ref _component.Banks, new SoundBankReference(evt.name));
+            }
+        }
+        
+        private void AddEvent(Object[] objects)
+        {
+            var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
+            foreach (var evt in events)
+            {
+                AsScriptingHelper.AddToArray(ref _component.LoadFinishEvents, new PostEventReference(evt.name));
             }
         }
         

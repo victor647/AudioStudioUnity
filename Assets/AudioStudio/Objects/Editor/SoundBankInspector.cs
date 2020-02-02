@@ -24,6 +24,7 @@ namespace AudioStudio.Editor
             DrawEvents();
             DrawControllers();
             AsGuiDrawer.DrawPathDisplay("Audio Events Folder", _soundBank.EventsFolder, SetupEventsFolderPath);
+            
             serializedObject.ApplyModifiedProperties();
             
             EditorGUILayout.BeginHorizontal();

@@ -33,10 +33,10 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="CSharp-Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Core.dll</HintPath>
+          <HintPath>..\..\..\..\..\..\IOE_Beta\Assets\Plugins\Thirdparty\Framework\CSharp-Core.dll</HintPath>
         </Reference>
         <Reference Include="CSharp-Unity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Unity.dll</HintPath>
+          <HintPath>..\..\..\..\..\..\IOE_Beta\Assets\Plugins\Thirdparty\Framework\CSharp-Unity.dll</HintPath>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />

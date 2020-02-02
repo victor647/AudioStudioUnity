@@ -56,7 +56,7 @@ namespace AudioStudio.Components
         
         private void DoPlaySound(string eventName)
         {
-            AudioManager.PlaySound(eventName, GetSoundSource(), 0f, null, AudioTriggerSource.AnimationSound);
+            AudioManager.PlaySound(eventName, GetSoundSource(true), 0f, null, AudioTriggerSource.AnimationSound);
         }
         
         private void DoPlayVoice(string eventName)

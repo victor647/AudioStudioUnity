@@ -412,9 +412,9 @@ namespace AudioStudio
         #endregion
 		
         #region SoundBank
-        public static void LoadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        public static void LoadBank(string bankName, Action onLoadFinished = null, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
-            BankManager.LoadBank(bankName, source, trigger);
+            BankManager.LoadBank(bankName, onLoadFinished, source, trigger);
         }
 
         public static void UnloadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)

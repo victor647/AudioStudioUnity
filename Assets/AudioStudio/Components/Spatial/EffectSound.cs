@@ -22,18 +22,18 @@ namespace AudioStudio.Components
             if (DelayTime > 0f)
                 StartCoroutine(PlaySoundDelayed());
             else
-                PostEvents(EnableEvents, AudioTriggerSource.EffectSound, GetSoundSource());           
+                PostEvents3D(EnableEvents, AudioTriggerSource.EffectSound);           
         }
         
         protected override void HandleDisableEvent()
         {
-            PostEvents(DisableEvents, AudioTriggerSource.EffectSound, GetSoundSource());           
+            PostEvents3D(DisableEvents, AudioTriggerSource.EffectSound);           
         }
 
         private IEnumerator PlaySoundDelayed()
         {
             yield return new WaitForSeconds(DelayTime);
-            PostEvents(EnableEvents, AudioTriggerSource.EffectSound, GetSoundSource());           
+            PostEvents3D(EnableEvents, AudioTriggerSource.EffectSound);           
         }
 
         public override bool IsValid()

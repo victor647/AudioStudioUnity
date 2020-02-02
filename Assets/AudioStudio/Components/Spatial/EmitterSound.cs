@@ -27,7 +27,7 @@ namespace AudioStudio.Components
         protected override void HandleEnableEvent()
         {                                    
             if (PlayMode == EventPlayMode.SingleLoop)
-                PostEvents(AudioEvents, AudioTriggerSource.EmitterSound, GetSoundSource());
+                PostEvents3D(AudioEvents, AudioTriggerSource.EmitterSound);
             else
                 StartCoroutine(PlaySoundPeriod());                      
         }
@@ -39,7 +39,7 @@ namespace AudioStudio.Components
             yield return new WaitForSeconds(InitialDelay);			
             while (isActiveAndEnabled)
             {
-                PostEvents(AudioEvents, AudioTriggerSource.EmitterSound, GetSoundSource());  
+                PostEvents3D(AudioEvents, AudioTriggerSource.EmitterSound);  
                 var waitSecond = Random.Range(MinInterval, MaxInterval);
                 yield return new WaitForSeconds(waitSecond);
             }

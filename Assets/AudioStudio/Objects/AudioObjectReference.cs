@@ -281,16 +281,16 @@ namespace AudioStudio.Configs
 	
 	[Serializable]
 	public class SoundBankReference : AudioObjectReference
-	{		       
+	{
 		public SoundBankReference(string name = "")
 		{			
 			Name = name;
 		}
 
-		public void Load(GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+		public void Load(Action onLoadFinished = null, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
 		{
 			if (!IsValid()) return;			
-			AudioManager.LoadBank(Name, source, trigger);		
+			AudioManager.LoadBank(Name, onLoadFinished, source, trigger);
 		}
 		
 		public void Unload(GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)

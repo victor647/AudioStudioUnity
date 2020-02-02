@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using AudioStudio.Configs;
+using AudioStudio.Tools;
+using UnityEngine;
 
 namespace AudioStudio.Components
 {
@@ -8,21 +11,27 @@ namespace AudioStudio.Components
         public bool StopOnDestroy = true;
 
         private GameObject _emitter;
-        internal bool EmitterInstantiated;
 
-        public GameObject GetSoundSource()
+        public GameObject GetSoundSource(bool isPlay = false)
         {
-            if (_emitter) 
-                return _emitter;
-            
+            if (_emitter)
+            {
+                if (IsUpdatePosition && !StopOnDestroy && isPlay)
+                {
+                    var slave = _emitter.GetComponent<AudioTransformFollower>();
+                    if (slave)
+                        slave.VoiceCount++;
+                }
+                return _emitter;       
+            }
+
             if (IsUpdatePosition)
             {
-                if (!StopOnDestroy && !EmitterInstantiated)
+                if (!StopOnDestroy && isPlay)
                 {
                     _emitter = new GameObject(gameObject.name + " (AudioSource)");
                     var slave = _emitter.AddComponent<AudioTransformFollower>();
                     slave.Master = this;
-                    EmitterInstantiated = true;
                 }
                 else
                     _emitter = gameObject;
@@ -30,6 +39,14 @@ namespace AudioStudio.Components
             else
                 _emitter = StopOnDestroy ? gameObject : GlobalAudioEmitter.GameObject;
             return _emitter;
+        }
+        
+        protected void PostEvents3D(IEnumerable<PostEventReference> events, AudioTriggerSource trigger)
+        {
+            foreach (var evt in events)
+            {
+                evt.Post(GetSoundSource(evt.Action == AudioEventAction.Play), trigger);
+            }  
         }
     }
 }

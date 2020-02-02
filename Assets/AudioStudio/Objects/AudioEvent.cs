@@ -1,4 +1,5 @@
 ﻿using System;
+using AudioStudio.Components;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -78,22 +79,34 @@ namespace AudioStudio.Configs
 		protected AudioLowPassFilter LowPassFilter;
 		protected AudioHighPassFilter HighPassFilter;
 
-		protected virtual void AudioEnd()
+		private void OnDisable()
+		{
+			OnAudioEndOrStop();
+		}
+
+		protected virtual void OnAudioEndOrStop()
 		{
 			PlayingStatus = PlayingStatus.Idle;
-			Destroy(this); 
+			if (gameObject.name.EndsWith("(AudioSource)"))
+			{
+				var slave = gameObject.GetComponent<AudioTransformFollower>();
+				if (slave)
+					slave.AudioEnd(this);
+			}
+			else
+				Destroy(this);
 		}
 
 		public virtual void Stop(float fadeOutTime)
 		{
 			PlayingStatus = PlayingStatus.Stopping;
 			TimeSamples = -1;
-			if (gameObject.activeInHierarchy)
-				StartCoroutine(AudioSource.Stop(fadeOutTime, AudioEnd));
+			if (gameObject.activeInHierarchy && fadeOutTime > 0f)
+				StartCoroutine(AudioSource.Stop(fadeOutTime, OnAudioEndOrStop));
 			else
 			{
 				AudioSource.Stop();
-				AudioEnd();
+				OnAudioEndOrStop();
 			}
 		}
 		

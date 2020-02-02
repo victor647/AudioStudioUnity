@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using AudioStudio.Components;
 using AudioStudio.Tools;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -45,13 +46,15 @@ namespace AudioStudio.Configs
         public override void Dispose()
         {             
             SoundClipInstances.Clear();
-            //Clip.UnloadAudioData();										            
+            Clip.UnloadAudioData();										            
         }
         #endregion
 
         #region Playback                        
         public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
+            if (!soundSource)
+                return;
             if (EnableVoiceLimit)
             {
                 AddVoicing(soundSource);
@@ -268,7 +271,7 @@ namespace AudioStudio.Configs
                 else //finish playing
                 {
                     AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.End, AudioTriggerSource.Code, SoundClip.name, gameObject);
-                    AudioEnd();
+                    OnAudioEndOrStop();
                 }
             }
                         
@@ -276,16 +279,10 @@ namespace AudioStudio.Configs
             TimeSamples = AudioSource.timeSamples;
         }
         
-        protected override void AudioEnd()
+        protected override void OnAudioEndOrStop()
         {
-            PlayingStatus = PlayingStatus.Idle;
-            if (gameObject.name.EndsWith("(AudioSource)"))
-                Destroy(gameObject);
-            else
-            {
-                Destroy(AudioSource);
-                Destroy(this);
-            }
+            Destroy(AudioSource);
+            base.OnAudioEndOrStop();
         }
         #endregion
 
@@ -364,17 +361,11 @@ namespace AudioStudio.Configs
             AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, Emitter);
         }
         
-        protected override void AudioEnd()
+        protected override void OnAudioEndOrStop()
         {
-            PlayingStatus = PlayingStatus.Idle;
-            if (gameObject.name.EndsWith("(AudioSource)"))
-                Destroy(gameObject);
-            else
-            {
-                Destroy(_source1);
-                Destroy(_source2);
-                Destroy(this);
-            }
+            Destroy(_source1);
+            Destroy(_source2);
+            base.OnAudioEndOrStop();
         }
         
         #region Controls

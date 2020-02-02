@@ -11,12 +11,13 @@ namespace AudioStudio.Components
     {
         public SoundBankReference[] Banks = new SoundBankReference[0];
         public bool UnloadOnDisable = true;
+        public PostEventReference[] LoadFinishEvents = new PostEventReference[0];
 
         protected override void HandleEnableEvent()
         {
             foreach (var bank in Banks)
             {
-                bank.Load(gameObject, AudioTriggerSource.LoadBank);
+                bank.Load(PostLoadFinishEvents, gameObject, AudioTriggerSource.LoadBank);
             }            
         }
 
@@ -28,6 +29,13 @@ namespace AudioStudio.Components
                 bank.Unload(gameObject, AudioTriggerSource.LoadBank);
             }            
         }
+
+        private void PostLoadFinishEvents()
+        {
+            if (this != null && gameObject != null && LoadFinishEvents != null)
+                PostEvents(LoadFinishEvents, AudioTriggerSource.LoadBank, gameObject);
+        }
+        
         public override bool IsValid()
         {            
             return Banks.Any(s => s.IsValid());

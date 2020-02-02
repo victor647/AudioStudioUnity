@@ -157,7 +157,10 @@ namespace AudioStudio.Tools
         private static bool ImportEvents(ref PostEventReference[] postEvents, XElement xComponent, string trigger = "")
         {            
             var xEvents = GetXmlAudioEvents(xComponent);
-            var audioEventsTemp = (from xEvent in xEvents where AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger select XmlToEvent(xEvent)).ToList();
+            if (xEvents == null) return false;
+            var audioEventsTemp = string.IsNullOrEmpty(trigger) ? 
+	            (from xEvent in xEvents select XmlToEvent(xEvent)).ToList() : 
+	            (from xEvent in xEvents where AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger select XmlToEvent(xEvent)).ToList();
             if (!postEvents.ToList().SequenceEqual(audioEventsTemp))
             {
                 postEvents = audioEventsTemp.ToArray();
@@ -477,6 +480,9 @@ namespace AudioStudio.Tools
             xSettings.SetAttributeValue("UnloadOnDisable", s.UnloadOnDisable);
             xComponent.Add(xSettings);
             ExportBanks(s.Banks, xComponent);
+            var xEvents = new XElement("AudioEvents");
+            ExportAudioEvents(s.LoadFinishEvents, xEvents);
+            xComponent.Add(xEvents);  
         }    
         
         private static void MenuSoundExporter(Component component, XElement xComponent)
@@ -684,6 +690,7 @@ namespace AudioStudio.Tools
             var xSettings = xComponent.Element("Settings");
             var modified = ImportBool(ref s.UnloadOnDisable, AsScriptingHelper.GetXmlAttribute(xSettings, "UnloadOnDisable"));
             modified |= ImportBanks(ref s.Banks, xComponent);
+            modified |= ImportEvents(ref s.LoadFinishEvents, xComponent);
             return modified;
         }    
         

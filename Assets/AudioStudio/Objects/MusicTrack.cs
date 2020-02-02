@@ -1,6 +1,5 @@
 ﻿using System;
 using AudioStudio.Components;
-using AudioStudio.Tools;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -69,7 +68,7 @@ namespace AudioStudio.Configs
 			return Clip != null;
 		}
 		#endregion
-		
+
 		#region Settings
 		public static int GlobalMusicCount;
 		public MusicMarker[] Markers = new MusicMarker[1];
@@ -191,7 +190,7 @@ namespace AudioStudio.Configs
 
 		public override void Stop(float fadeOutTime)
 		{
-			StartCoroutine(AudioSource.Stop(fadeOutTime, AudioEnd));
+			StartCoroutine(AudioSource.Stop(fadeOutTime, OnAudioEndOrStop));
 		}
 		#endregion
 

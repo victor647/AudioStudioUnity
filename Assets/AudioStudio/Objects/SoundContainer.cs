@@ -168,6 +168,8 @@ namespace AudioStudio.Configs
         #region Playback        
         public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
+            if (!soundSource)
+                return;
             if (EnableVoiceLimit)
             {
                 AddVoicing(soundSource);

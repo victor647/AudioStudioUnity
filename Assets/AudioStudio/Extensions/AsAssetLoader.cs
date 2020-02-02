@@ -35,14 +35,17 @@ namespace AudioStudio
 		}
 
 		#region SoundBank
-		internal static bool LoadBank(string bankName)
+		internal static void LoadBank(string bankName, Action<SoundBank> onLoadFinished)
 		{
-			if (string.IsNullOrEmpty(bankName))
-				return false;
+			if (string.IsNullOrEmpty(bankName) || _soundBanks.ContainsKey(bankName))
+				return;
 			var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + $"/{AudioManager.Platform}/{bankName}";
 			var bank = Resources.Load<SoundBank>(loadPath);
 			if (!bank)
-				return false;
+			{
+				onLoadFinished(bank);
+				return;
+			}
 			_soundBanks[bank.name] = bank;
 			bank.Init();
 			foreach (var ac in bank.AudioControllers)
@@ -68,7 +71,7 @@ namespace AudioStudio
 				evt.Init();
 				_soundEvents[evt.name] = evt;
 			}
-			return true;
+			onLoadFinished(bank);
 		}
 
 		internal static bool UnloadBank(string bankName)
