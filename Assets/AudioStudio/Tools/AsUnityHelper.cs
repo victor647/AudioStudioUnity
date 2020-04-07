@@ -19,7 +19,9 @@ namespace AudioStudio.Tools
         Parameter,
         SoundBank,
         Listener,
-        Language
+        Language,
+        AudioMixer,
+        Component
     }
 
     public enum Severity
@@ -80,6 +82,7 @@ namespace AudioStudio.Tools
         Deactivate
     }
     
+#if UNITY_EDITOR
     public struct ProfilerMessage
     {
         public Severity Severity;
@@ -92,6 +95,7 @@ namespace AudioStudio.Tools
         public string GameObjectName;
         public string Message;
     }
+#endif  
     #endregion
     
     #region Midi
@@ -147,35 +151,48 @@ namespace AudioStudio.Tools
         }
 
         #region Profiler
+        public static Severity DebugLogLevel = Severity.Error;
 #if UNITY_EDITOR
         public static Action<ProfilerMessage> ProfilerCallback;
 #endif
         
-        public static void DebugToProfiler(Severity severity, AudioObjectType objectType, AudioAction action, AudioTriggerSource triggerFrom, 
-            string eventName, GameObject gameObject = null, string message = "")
+        public static void DebugToProfiler(Severity severity, AudioObjectType objectType, AudioAction action, AudioTriggerSource triggerFrom, string eventName, GameObject gameObject = null, string message = "")
         {
 #if UNITY_EDITOR
-            var newMessage = new ProfilerMessage
+            if (ProfilerCallback != null)
             {
-                Severity = severity,
-                Time = Time.time.ToString("0.000"),
-                ObjectType = objectType,
-                Action = action,
-                TriggerFrom = triggerFrom,
-                ObjectName = eventName,
-                GameObject = gameObject,
-                GameObjectName = gameObject ? gameObject.name : "Global Audio Emitter",
-                Message = message,
-            };
-            if (ProfilerCallback != null) 
+                var newMessage = new ProfilerMessage
+                {
+                    Severity = severity,
+                    Time = Time.time.ToString("0.000"),
+                    ObjectType = objectType,
+                    Action = action,
+                    TriggerFrom = triggerFrom,
+                    ObjectName = eventName,
+                    GameObject = gameObject,
+                    GameObjectName = gameObject ? gameObject.name : "Global Audio Emitter",
+                    Message = message,
+                };
                 ProfilerCallback.Invoke(newMessage);
-#else
-            if (severity == Severity.Error && Debug.unityLogger.logEnabled)
-            {
-                var log = string.Format("AudioError: {0}_{1}\tName: {2}\tTrigger: {3}\tGameObject: {4}\tMessage: {5}", objectType, action, eventName, triggerFrom, gameObject ? gameObject.name : "Global Audio Emitter", message);
-                Debug.LogError(log);
-            }    
+                return;
+            }
 #endif
+            if (severity >= DebugLogLevel && Debug.unityLogger.logEnabled)
+            {
+                var log = string.Format("Audio{0}: {1}_{2}\tName: {3}\tTrigger: {4}\tGameObject: {5}\tMessage: {6}", severity, objectType, action, eventName, triggerFrom, gameObject ? gameObject.name : "Global Audio Emitter", message);
+                switch (severity)
+                {
+                    case Severity.Error:
+                        Debug.LogError(log);
+                        break;
+                    case Severity.Warning:
+                        Debug.LogWarning(log);
+                        break;
+                    case Severity.Notification:
+                        Debug.Log(log);
+                        break;
+                }
+            }
         }
         #endregion
 

@@ -11,10 +11,10 @@ using Debug = UnityEngine.Debug;
 
 namespace AudioStudio.Tools
 {
-    public class AsAudioStateBackup : AsSearchers
+    internal class AsAudioStateBackup : AsSearchers
     {						
         private static AsAudioStateBackup _instance;
-        public static AsAudioStateBackup Instance
+        internal static AsAudioStateBackup Instance
         {
             get
             {
@@ -32,17 +32,17 @@ namespace AudioStudio.Tools
         }
 
         #region Export
-        public void Export()
+        internal void Export()
         {
             CleanUp();
             var fileName = EditorUtility.SaveFilePanel("Export to", XmlDocDirectory, "AudioStates.xml", ".xml");
             if (string.IsNullOrEmpty(fileName)) return;			
             FindFiles(ParseAnimator, "Exporting animation controllers...", "*.controller");			
             AsScriptingHelper.WriteXml(fileName, XRoot);
-            EditorUtility.DisplayDialog("Success!", "Found " + TotalCount + " components in " + EditedCount + " animator controllers!", "OK");		
+            EditorUtility.DisplayDialog("Process Finished!", "Found " + TotalCount + " components in " + EditedCount + " animator controllers!", "OK");		
         }
 
-        public void ParseAnimator(string assetPath)
+        internal void ParseAnimator(string assetPath)
         {
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(assetPath);
             if (!controller) return;	
@@ -89,7 +89,7 @@ namespace AudioStudio.Tools
         #endregion
 		
         #region Import
-        public void Import()
+        internal void Import()
         {
             CleanUp();
             var fileName = EditorUtility.OpenFilePanel("Import from", XmlDocDirectory, "xml");
@@ -98,7 +98,7 @@ namespace AudioStudio.Tools
             EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
             AssetDatabase.SaveAssets();
             EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayDialog("Success!", "Updated " + EditedCount + " animator controllers out of " + TotalCount, "OK");			
+            EditorUtility.DisplayDialog("Process Finished!", "Updated " + EditedCount + " animator controllers out of " + TotalCount, "OK");			
         }
 
         private void ImportAnimators(bool isCompare)
@@ -125,7 +125,7 @@ namespace AudioStudio.Tools
             } 
         }
 
-        public bool ImportAnimator(XElement xAnimator)
+        internal bool ImportAnimator(XElement xAnimator)
         {
             var assetPath = AsScriptingHelper.GetXmlAttribute(xAnimator, "AssetPath");
             var modified = false;
@@ -163,14 +163,14 @@ namespace AudioStudio.Tools
                                                          AsScriptingHelper.GetXmlAttribute(x, "AnimationState") == state);
         }
         
-        public bool ComponentBackedUp(string assetPath, string layer, string state)
+        internal bool ComponentBackedUp(string assetPath, string layer, string state = "OnLayer")
         {
             var xAsset = FindAssetNode(assetPath, false);
             if (xAsset == null) return false;
             return FindComponentNode(xAsset, layer, state) != null;
         }
         
-        public static string GetLayerStateName(StateMachineBehaviour component, ref string stateName)
+        internal static string GetLayerStateName(StateMachineBehaviour component, ref string stateName)
         {
             var path = AssetDatabase.GetAssetPath(component);
             var animator = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
@@ -237,7 +237,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Compare
-        public void Compare()
+        internal void Compare()
         {            
             var xmlPath = EditorUtility.OpenFilePanel("Compare with", XmlDocDirectory, "xml");
             if (string.IsNullOrEmpty(xmlPath) || !ReadData(xmlPath)) return;
@@ -275,7 +275,7 @@ namespace AudioStudio.Tools
         #endregion
 		
         #region Update
-        public bool UpdateXmlFromComponent(string assetPath, AudioState component)
+        internal bool UpdateXmlFromComponent(string assetPath, AudioState component)
         {
             var state = "OnLayer";
             var layer = GetLayerStateName(component, ref state);
@@ -295,7 +295,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Revert
-        public bool RevertComponentToXml(string assetPath, AudioState component)
+        internal bool RevertComponentToXml(string assetPath, AudioState component)
         {            
             var state = "OnLayer";
             var layer = GetLayerStateName(component, ref state);
@@ -306,18 +306,54 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Remove
-        public void RemoveAll()
+        internal void RemoveUnsaved()
         {
             CleanUp();
-            FindFiles(RemoveAnimator, "Removing Audio States", "*.playable");
+            FindFiles(RemoveUnsavedInAnimator, "Removing Audio States", "*.playable");
             AssetDatabase.SaveAssets();
-            EditorUtility.DisplayDialog("Success!", "Removed " + EditedCount + " audio states in " + TotalCount + " animator controllers!", "OK");
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + EditedCount + " audio states in " + TotalCount + " animator controllers!", "OK");
+        }
+        
+        internal void RemoveAll()
+        {
+            CleanUp();
+            FindFiles(RemoveAllInAnimator, "Removing Audio States", "*.playable");
+            AssetDatabase.SaveAssets();
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + EditedCount + " audio states in " + TotalCount + " animator controllers!", "OK");
         }
 
-        public void RemoveAnimator(string assetPath)
+        internal void RemoveUnsavedInAnimator(string assetPath)
         {                        
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(assetPath);
             if (!controller) return;
+            var toBeDeleted = new List<AudioState>();
+            foreach (var layer in controller.layers)
+            {
+                toBeDeleted.AddRange(layer.stateMachine.behaviours.OfType<AudioState>().Where(a => !ComponentBackedUp(assetPath, layer.name)));
+                foreach (var state in layer.stateMachine.states)
+                {
+                    toBeDeleted.AddRange(state.state.behaviours.OfType<AudioState>().Where(a => !ComponentBackedUp(assetPath, layer.name, state.state.name)));
+                }
+            }
+
+            TotalCount++;
+            if (toBeDeleted.Count == 0) return;
+            foreach (var component in toBeDeleted)
+            {
+                RemoveComponentXml(assetPath, component);
+                DestroyImmediate(component);
+                EditedCount++;
+            }
+        }
+
+        internal void RemoveAllInAnimator(string assetPath)
+        {                        
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(assetPath);
+            if (!controller) return;
+            var xAsset = FindAssetNode(assetPath, false);
+            if (xAsset != null)
+                xAsset.Remove();
+            
             var toBeDeleted = new List<AudioState>();
             foreach (var layer in controller.layers)
             {
@@ -336,8 +372,9 @@ namespace AudioStudio.Tools
                 EditedCount++;
             }
         }
-        
-        public void RemoveComponentXml(string assetPath, AudioState component)
+
+        // remove node from component inspector
+        internal void RemoveComponentXml(string assetPath, AudioState component)
         {
             ReadData();
             var state = "OnLayer";
@@ -350,6 +387,7 @@ namespace AudioStudio.Tools
             AsScriptingHelper.WriteXml(DefaultXmlPath, XRoot);
         }
         
+        // remove node from compare window
         private void RemoveComponentXml(ComponentComparisonData data)
         {
             var xAsset = FindAssetNode(data.AssetPath, false);
@@ -362,7 +400,7 @@ namespace AudioStudio.Tools
 
         private class AsAudioStateCompare : AsCompareWindow
         {               
-            public static void ShowWindow()
+            internal static void ShowWindow()
             {
                 var window = GetWindow<AsAudioStateCompare>();
                 window.position = new Rect(500, 300, 700, 500);     

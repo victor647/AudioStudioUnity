@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using AudioStudio.Components;
 using AudioStudio.Tools;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -12,13 +11,9 @@ namespace AudioStudio.Configs
     public class SoundClip : SoundContainer
     {      
         #region Fields
-        public static int GlobalSoundCount;
         public AudioClip Clip;        
         public bool Loop;
         public bool SeekRandomPosition;
-        [NonSerialized]
-        public List<SoundClipInstance> SoundClipInstances;        
-        
         #endregion
         
         #region Editor
@@ -37,44 +32,54 @@ namespace AudioStudio.Configs
         #endregion        
         
         #region Initialize
-        public override void Init()
+
+        internal override void Init()
         {            
-            SoundClipInstances = new List<SoundClipInstance>();
+            _playingInstances = new List<AudioEventInstance>();
             Clip.LoadAudioData();									                   
         }
-        
-        public override void Dispose()
+
+        internal override void Dispose()
         {             
-            SoundClipInstances.Clear();
+            _playingInstances.Clear();
             Clip.UnloadAudioData();										            
+        }
+
+        internal void AddInstance(SoundClipInstance instance)
+        {
+            _playingInstances.Add(instance);
+            AudioManager.GlobalSoundInstances.Add(name +  " @ " + instance.gameObject.name);  
+        }
+
+        internal void RemoveInstance(SoundClipInstance instance)
+        {
+            _playingInstances.Remove(instance);
+            AudioManager.GlobalSoundInstances.Remove(name +  " @ " + instance.gameObject.name);  
         }
         #endregion
 
         #region Playback                        
-        public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+
+        public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
             if (!soundSource)
-                return;
+                return string.Empty;
             if (EnableVoiceLimit)
             {
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
             }  
                                                 
-            SoundClipInstance sci;
-            if (ParentContainer && ParentContainer.RandomOnLoop)
-                sci = soundSource.AddComponent<RandomLoopClipsInstance>();
-            else
-                sci = soundSource.AddComponent<SoundClipInstance>();
+            var sci = ParentContainer && ParentContainer.RandomOnLoop ? soundSource.AddComponent<RandomLoopClipsInstance>() : soundSource.AddComponent<SoundClipInstance>();
             sci.Init(this, soundSource);            
-            sci.Play(fadeInTime, endCallback);                        
-        }
-        
+            sci.Play(fadeInTime, endCallback);
+            return Clip.name;
 
+        }
 
         public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
         {
-            foreach (var sci in SoundClipInstances)
+            foreach (var sci in _playingInstances)
             {
                 if (sci.Emitter == soundSource)
                 {                    
@@ -83,17 +88,17 @@ namespace AudioStudio.Configs
             }                        
         }
 
-        public override void StopAll(float fadeOutTime)
+        internal override void StopAll(float fadeOutTime = 0f)
         {
-            foreach (var sci in SoundClipInstances)
+            foreach (var sci in _playingInstances)
             {                                
                 sci.Stop(fadeOutTime);
             }
         }
-        
-        public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
+
+        internal override void Mute(GameObject soundSource, float fadeOutTime = 0f)
         {
-            foreach (var sci in SoundClipInstances)
+            foreach (var sci in _playingInstances)
             {
                 if (sci.Emitter == soundSource)
                 {                    
@@ -101,10 +106,10 @@ namespace AudioStudio.Configs
                 }                                                       
             }  
         }
-        
-        public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+
+        internal override void UnMute(GameObject soundSource, float fadeInTime = 0f)
         {
-            foreach (var sci in SoundClipInstances)
+            foreach (var sci in _playingInstances)
             {
                 if (sci.Emitter == soundSource)
                 {                    
@@ -112,10 +117,10 @@ namespace AudioStudio.Configs
                 }                                                       
             }  
         }
-        
-        public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+
+        internal override void Pause(GameObject soundSource, float fadeOutTime = 0f)
         {
-            foreach (var sci in SoundClipInstances)
+            foreach (var sci in _playingInstances)
             {
                 if (sci.Emitter == soundSource)
                 {                    
@@ -123,10 +128,10 @@ namespace AudioStudio.Configs
                 }                                                       
             }  
         }
-        
-        public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+
+        internal override void Resume(GameObject soundSource, float fadeInTime = 0f)
         {
-            foreach (var sci in SoundClipInstances)
+            foreach (var sci in _playingInstances)
             {
                 if (sci.Emitter == soundSource)
                 {                    
@@ -140,12 +145,27 @@ namespace AudioStudio.Configs
     public class SoundClipInstance : AudioEventInstance
     {
         #region Initialize
-        public string Name => SoundClip ? SoundClip.Name : string.Empty;
+        internal SoundClip SoundClip;
+        internal string Name => SoundClip ? SoundClip.Name : string.Empty;
 
-        private void Awake()
+        internal virtual void Init(SoundClip clip, GameObject emitter)
         {
             AudioSource = gameObject.AddComponent<AudioSource>();
-            SoundClip.GlobalSoundCount++;            
+            SoundClip = clip;
+            Emitter = emitter;
+            
+            SoundClip.AddInstance(this);
+            InitAudioSource(AudioSource);
+            InitFilters();
+            foreach (var mapping in SoundClip.Mappings)
+            {
+                mapping.Init(this, Emitter);
+            }
+        }
+        
+        private void OnDisable()
+        {
+            OnAudioEndOrStop();
         }
 
         private void OnDestroy()
@@ -159,22 +179,9 @@ namespace AudioStudio.Configs
             if (SoundClip.EnableVoiceLimit && SoundClip.VoiceLimiter)
                 SoundClip.VoiceLimiter.RemoveVoice(AudioVoiceInstance);
             
-            SoundClip.SoundClipInstances.Remove(this);
-            SoundClip.GlobalSoundCount--;
-        }
-
-        public virtual void Init(SoundClip clip, GameObject emitter)
-        {
-            SoundClip = clip;
-            Emitter = emitter;
-            clip.SoundClipInstances.Add(this);
-            
-            InitAudioSource(AudioSource);
-            InitFilters();
-            foreach (var mapping in SoundClip.Mappings)
-            {
-                mapping.Init(this, Emitter);
-            }
+            if (AudioSource)
+                Destroy(AudioSource);
+            SoundClip.RemoveInstance(this);
         }
 
         protected void InitAudioSource(AudioSource source)
@@ -212,7 +219,8 @@ namespace AudioStudio.Configs
             source.maxDistance = SoundClip.MaxDistance;
             source.spatialBlend = SoundClip.SpatialBlend;
             source.spread = SoundClip.SpreadWidth;
-            source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, SoundClip.AttenuationCurve);
+            if (SoundClip.RollOffMode == AudioRolloffMode.Custom)
+                source.SetCustomCurve(AudioSourceCurveType.CustomRolloff, SoundClip.AttenuationCurve);
         }
         
         private static float GetRandomValue(float baseValue, float randomRange)
@@ -223,9 +231,8 @@ namespace AudioStudio.Configs
 
         #region Playback        
         protected AudioVoiceInstance AudioVoiceInstance;
-        protected SoundClip SoundClip;        
-        
-        public void Play(float fadeInTime, Action<GameObject> endCallback = null)
+
+        internal void Play(float fadeInTime, Action<GameObject> endCallback = null)
         {
             if (!CheckVoiceLimiter())
                 return;
@@ -238,7 +245,7 @@ namespace AudioStudio.Configs
         {
             if (SoundClip.EnableVoiceLimit && SoundClip.VoiceLimiter)
             {
-                AudioVoiceInstance = new AudioVoiceInstance {SoundClipInstance = this, Priority = SoundClip.Priority, PlayTime = Time.time, Distance = GetDistance()};
+                AudioVoiceInstance = new AudioVoiceInstance {SoundClipInstance = this, Priority = SoundClip.Priority, PlayTime = Time.time};
                 return SoundClip.VoiceLimiter.AddVoice(AudioVoiceInstance);                              
             }
             return true;
@@ -251,13 +258,11 @@ namespace AudioStudio.Configs
                 var startSample = Random.Range(0, SoundClip.Clip.samples);
                 AudioSource.timeSamples = startSample;
             }
-            PlayingStatus = PlayingStatus.Playing;  
-            StartCoroutine(AudioSource.Play(fadeInTime));
-        }
-
-        private float GetDistance()
-        {
-            return SoundClip.SpatialBlend == 0f ? 0f : ListenerManager.GetListenerDistance(gameObject);
+            PlayingStatus = PlayingStatus.Playing;
+            if (isActiveAndEnabled && fadeInTime > 0f)
+                StartCoroutine(AudioSource.Play(fadeInTime));
+            else
+                AudioSource.Play();
         }
 
         private void FixedUpdate()
@@ -278,12 +283,6 @@ namespace AudioStudio.Configs
             //update play head sample
             TimeSamples = AudioSource.timeSamples;
         }
-        
-        protected override void OnAudioEndOrStop()
-        {
-            Destroy(AudioSource);
-            base.OnAudioEndOrStop();
-        }
         #endregion
 
         #region Controls
@@ -300,14 +299,6 @@ namespace AudioStudio.Configs
         private float _volume;
         private int CrossFadeStartSample => Mathf.CeilToInt(SoundClip.Clip.samples - SoundClip.CrossFadeTime * SoundClip.Clip.frequency * Mathf.Abs(SoundClip.Pitch));
         
-        private void Awake()
-        {
-            _source1 = gameObject.AddComponent<AudioSource>();
-            _source2 = gameObject.AddComponent<AudioSource>();
-            AudioSource = _source1;
-            SoundClip.GlobalSoundCount++;            
-        }
-
         private void OnDestroy()
         {            
             foreach (var mapping in _clipPool.Mappings)
@@ -319,15 +310,19 @@ namespace AudioStudio.Configs
             if (SoundClip.EnableVoiceLimit && SoundClip.VoiceLimiter)
                 SoundClip.VoiceLimiter.RemoveVoice(AudioVoiceInstance);
             
-            _originalClip.SoundClipInstances.Remove(this);
-            SoundClip.GlobalSoundCount--;
+            Destroy(_source1);
+            Destroy(_source2);
+            _originalClip.RemoveInstance(this);
         }
-        
-        public override void Init(SoundClip clip, GameObject emitter)
+
+        internal override void Init(SoundClip clip, GameObject emitter)
         {
+            AudioSource = _source1 = gameObject.AddComponent<AudioSource>();
+            _source2 = gameObject.AddComponent<AudioSource>();
             Emitter = emitter;
             SoundClip = _originalClip = clip;
-            _originalClip.SoundClipInstances.Add(this);
+            
+            _originalClip.AddInstance(this);
             _clipPool = clip.ParentContainer;
             _volume = clip.Volume;
             InitAudioSource(_source1);
@@ -350,8 +345,10 @@ namespace AudioStudio.Configs
 
         private void PlayAgain()
         {
-            StartCoroutine(AudioSource.Stop(SoundClip.CrossFadeTime));							
-            
+            if (isActiveAndEnabled && SoundClip.CrossFadeTime > 0f)
+                StartCoroutine(AudioSource.Stop(SoundClip.CrossFadeTime));
+            else
+                AudioSource.Stop();
             AudioSource = AudioSource == _source1 ? _source2 : _source1;
             AudioSource.volume = _volume;
             AudioSource.clip = SoundClip.Clip;
@@ -360,35 +357,29 @@ namespace AudioStudio.Configs
             SeekPositionAndPlay(SoundClip.CrossFadeTime);		
             AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, Emitter);
         }
-        
-        protected override void OnAudioEndOrStop()
-        {
-            Destroy(_source1);
-            Destroy(_source2);
-            base.OnAudioEndOrStop();
-        }
-        
+
         #region Controls
-        public override void SetOutputBus(AudioMixerGroup amg)
+
+        internal override void SetOutputBus(AudioMixerGroup amg)
         {
             _source1.outputAudioMixerGroup = amg;
             if (_source2)
                 _source2.outputAudioMixerGroup = amg;
         }
-		
-        public override void SetVolume(float volume)
+
+        internal override void SetVolume(float volume)
         {
             AudioSource.volume = _volume = volume;				
         }
-		
-        public override void SetPan(float pan)
+
+        internal override void SetPan(float pan)
         {
             _source1.panStereo = pan;
             if (_source2)
                 _source2.panStereo = pan;	
         }
-		
-        public override void SetPitch(float pitch)
+
+        internal override void SetPitch(float pitch)
         {
             _source1.pitch = pitch;
             if (_source2)

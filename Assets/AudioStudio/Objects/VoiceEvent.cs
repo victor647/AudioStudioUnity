@@ -2,7 +2,6 @@
 using UnityEngine;
 using System;
 using System.Linq;
-using AudioStudio.Components;
 using AudioStudio.Tools;
 using Random = UnityEngine.Random;
 
@@ -22,28 +21,74 @@ namespace AudioStudio.Configs
 	public class VoiceEvent : AudioEvent
 	{						
 		#region Fields
-		public static int GlobalVoiceCount;
 		public VoicePlayLogic PlayLogic = VoicePlayLogic.Single;		
 		public SwitchClipMapping[] SwitchClipMappings;					
 		
 		public AudioClip Clip;		
 		public List<AudioClip> Clips = new List<AudioClip>();
-		public int ClipCount;
-		[NonSerialized]
-		public List<VoiceEventInstance> VoiceEventInstances;	
 		#endregion
 		
 		#region Initialize					
-		public override void Init()
-		{		
-			LastSelectedIndex = 255;		
-			VoiceEventInstances = new List<VoiceEventInstance>();           
-			
-        }
 
-		public override void Dispose()
+		internal override void Init()
+		{		
+			LastSelectedIndex = 255;
+			_playingInstances = new List<AudioEventInstance>();
+			switch (PlayLogic)
+			{
+				case VoicePlayLogic.Single:
+					Clip.LoadAudioData();
+					break;
+				case VoicePlayLogic.Switch:
+					Clip = null;
+					foreach (var mapping in SwitchClipMappings)
+					{
+						mapping.Clip.LoadAudioData();
+					}
+					break;
+				default:
+					Clip = null;
+					foreach (var clip in Clips)
+					{
+						clip.LoadAudioData();
+					}
+					break;
+			}
+		}
+
+		internal override void Dispose()
 		{
-			VoiceEventInstances.Clear();
+			_playingInstances.Clear();
+			switch (PlayLogic)
+			{
+				case VoicePlayLogic.Single:
+					Clip.UnloadAudioData();
+					break;
+				case VoicePlayLogic.Switch:
+					foreach (var mapping in SwitchClipMappings)
+					{
+						mapping.Clip.UnloadAudioData();
+					}
+					break;
+				default:
+					foreach (var clip in Clips)
+					{
+						clip.UnloadAudioData();
+					}
+					break;
+			}
+		}
+		
+		internal void AddInstance(VoiceEventInstance instance)
+		{
+			_playingInstances.Add(instance);
+			AudioManager.GlobalVoiceInstances.Add(Clip.name +  " @ " + instance.gameObject.name);  
+		}
+
+		internal void RemoveInstance(VoiceEventInstance instance)
+		{
+			_playingInstances.Remove(instance);
+			AudioManager.GlobalVoiceInstances.Remove(Clip.name +  " @ " + instance.gameObject.name);  
 		}
 		#endregion
 		
@@ -82,99 +127,67 @@ namespace AudioStudio.Configs
 			}
 			return null;
 		}
-
-#if UNITY_EDITOR || !UNITY_WEBGL
-		public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+        
+		public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
 		{
 			if (!soundSource)
-				return;
+				return string.Empty;
 			if (PlayLogic != VoicePlayLogic.Single)
 				Clip = GetClip(soundSource);
-			if (!Clip) return;
+			if (!Clip) return string.Empty;
 			var vei = soundSource.AddComponent<VoiceEventInstance>();
 			vei.Init(this, soundSource);
-			vei.Play(fadeInTime);					
-		}		
-				
+			vei.Play(fadeInTime);
+			return Clip.name;
+		}
+
 		public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
 		{
-			foreach (var vci in VoiceEventInstances)
+			foreach (var vci in _playingInstances)
 			{
 				if (vci.Emitter == soundSource)
 					vci.Stop(fadeOutTime);
 			}				
 		}
-#else
-		private WebGLStreamingAudioSourceInterop _interop;
 
-		private int GetClipName()
+		internal override void StopAll(float fadeOutTime = 0f)
 		{
-			switch (PlayLogic)
-			{					
-				case VoicePlayLogic.Random:					
-					var selectedIndex = Random.Range(0, ClipCount);
-					if (!AvoidRepeat) return selectedIndex;
-					while (selectedIndex == LastSelectedIndex)
-					{
-						selectedIndex = Random.Range(0, ClipCount);
-					}
-					LastSelectedIndex = (byte)selectedIndex;
-					return selectedIndex;					
-				case VoicePlayLogic.SequenceStep:
-					LastSelectedIndex++;
-					if (LastSelectedIndex == ClipCount) LastSelectedIndex = 0;
-					return LastSelectedIndex;		
+			foreach (var vci in _playingInstances)
+			{                                
+				vci.Stop(fadeOutTime);
 			}
-			return 0;
 		}
 
-		public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+		internal override void Mute(GameObject soundSource, float fadeOutTime = 0f)
 		{
-			var clipName = "";
-			if (PlayLogic != VoicePlayLogic.Single)
-				clipName = "Vo_" + name + "_" + (GetClipName() + 1).ToString("00");
-			else
-				clipName = "Vo_" + name;
-			_interop = new WebGLStreamingAudioSourceInterop(AudioAssetLoader.GetClipUrl(clipName, ObjectType.Voice), soundSource);
-			_interop.Play();
-		}
-
-		public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
-		{
-			_interop.Destroy();
-		}	
-#endif	
-		
-		public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
-		{
-			foreach (var vci in VoiceEventInstances)
+			foreach (var vci in _playingInstances)
 			{
 				if (vci.Emitter == soundSource)
 					vci.Mute(fadeOutTime);
 			}
 		}
 
-		public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+		internal override void UnMute(GameObject soundSource, float fadeInTime = 0f)
 		{
-			foreach (var vci in VoiceEventInstances)
+			foreach (var vci in _playingInstances)
 			{
 				if (vci.Emitter == soundSource)
 					vci.UnMute(fadeInTime);
 			}
 		}
 
-		public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+		internal override void Pause(GameObject soundSource, float fadeOutTime = 0f)
 		{
-			foreach (var vci in VoiceEventInstances)
+			foreach (var vci in _playingInstances)
 			{
 				if (vci.Emitter == soundSource)
 					vci.Pause(fadeOutTime);
 			}
 		}
 
-		public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+		internal override void Resume(GameObject soundSource, float fadeInTime = 0f)
 		{
-			foreach (var vci in VoiceEventInstances)
+			foreach (var vci in _playingInstances)
 			{
 				if (vci.Emitter == soundSource)
 					vci.Resume(fadeInTime);
@@ -184,30 +197,28 @@ namespace AudioStudio.Configs
 
 		#region Editor		
 		public override void CleanUp()
-		{			
-			if (Platform == Platform.Web)
+		{
+			switch (PlayLogic)
 			{
-				Clip = null;
-				Clips = null;					
-			}
-			else
-			{
-				switch (PlayLogic)
-				{
-					case VoicePlayLogic.Single:
-						if (!Clip)
-							Debug.LogError("AudioClip of VoiceEvent " + name + " is missing!");
-						break;
-					case VoicePlayLogic.Random:
-					case VoicePlayLogic.SequenceStep:
-						if (Clips.Any(c => !c))
-							Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
-						break;
-					case VoicePlayLogic.Switch:
-						if (SwitchClipMappings.Any( c=> !c.Clip))
-							Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
-						break;
-				}
+				case VoicePlayLogic.Single:
+					Clips.Clear();
+					SwitchClipMappings = new SwitchClipMapping[0];
+					if (!Clip)
+						Debug.LogError("AudioClip of VoiceEvent " + name + " is missing!");
+					break;
+				case VoicePlayLogic.Random:
+				case VoicePlayLogic.SequenceStep:
+					Clip = null;
+					SwitchClipMappings = new SwitchClipMapping[0];
+					if (Clips.Any(c => !c))
+						Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
+					break;
+				case VoicePlayLogic.Switch:
+					Clip = null;
+					Clips.Clear();
+					if (SwitchClipMappings.Any( c=> !c.Clip))
+						Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
+					break;
 			}
 
 			if (PlayLogic != VoicePlayLogic.Switch)
@@ -219,7 +230,12 @@ namespace AudioStudio.Configs
 		
 		public override bool IsValid()
 		{
-			return Clip != null || Clips.Any(c => c != null);
+			return Clip != null || Clips.Any(c => c != null) || SwitchClipMappings.Any(m => m.Clip != null);
+		}
+		
+		internal override AudioObjectType GetEventType()
+		{
+			return AudioObjectType.Voice;
 		}
 		#endregion
 	}
@@ -227,15 +243,15 @@ namespace AudioStudio.Configs
 	public class VoiceEventInstance : AudioEventInstance
 	{	
 		#region Initialize
-
 		private VoiceEvent _voiceEvent;
 		
 		public void Init(VoiceEvent evt, GameObject emitter)
 		{			
+			AudioSource = gameObject.AddComponent<AudioSource>();
 			_voiceEvent = evt;
 			Emitter = emitter;
-			evt.VoiceEventInstances.Add(this);		
 			
+			_voiceEvent.AddInstance(this);
 			AudioSource.clip = evt.Clip;			
 			AudioSource.pitch = evt.Pitch;
 			AudioSource.panStereo = evt.Pan;
@@ -262,21 +278,16 @@ namespace AudioStudio.Configs
 			}
 		}
 
-		private void Awake()
+		private void OnDisable()
 		{
-			AudioSource = gameObject.AddComponent<AudioSource>();
-			VoiceEvent.GlobalVoiceCount++;
+			OnAudioEndOrStop();
 		}
 
 		private void OnDestroy()
 		{
-			_voiceEvent.VoiceEventInstances.Remove(this);
 			OnAudioEnd?.Invoke(Emitter);
 			Destroy(AudioSource);
-			VoiceEvent.GlobalVoiceCount--;
-			
-			if (_voiceEvent.VoiceEventInstances.Count > 0) return;
-			_voiceEvent.Dispose();
+			_voiceEvent.RemoveInstance(this);
 		}
 		#endregion
 		
@@ -285,7 +296,10 @@ namespace AudioStudio.Configs
 		public void Play(float fadeInTime, Action<GameObject> endCallback = null)
 		{
 			OnAudioEnd = endCallback;
-			StartCoroutine(AudioSource.Play(fadeInTime));
+			if (isActiveAndEnabled && fadeInTime > 0f)
+				StartCoroutine(AudioSource.Play(fadeInTime));
+			else
+				AudioSource.Play();
 		}
 
 		private void FixedUpdate()

@@ -17,8 +17,7 @@ namespace AudioStudio.Tools
     }
     
     public class AsBatchProcessor : EditorWindow
-    {		
-        private Platform _platform;
+    {
         private Languages _language;
         private AudioFileFormat _audioFileFormat = AudioFileFormat.wav;
         private string _audioFileExtension => "." + _audioFileFormat;
@@ -46,11 +45,6 @@ namespace AudioStudio.Tools
             EditorGUILayout.LabelField("Object Generator", EditorStyles.boldLabel); 
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                GUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Target Platform");  
-                _platform = (Platform) EditorGUILayout.EnumPopup(_platform);
-                GUILayout.EndHorizontal();
-            
                 GUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Original Audio File Format");  
                 _audioFileFormat = (AudioFileFormat) EditorGUILayout.EnumPopup(_audioFileFormat);
@@ -83,6 +77,7 @@ namespace AudioStudio.Tools
             EditorGUILayout.LabelField("Miscellaneous Tools", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
+                if (GUILayout.Button("Sync Original Event Names")) SyncOriginalEventNames();
                 if (GUILayout.Button("Refresh SoundBank Folders")) RefreshSoundBankFolders();
                 if (GUILayout.Button("Verify All Configs")) VerifyConfigs();
                 if (GUILayout.Button("Delete Empty Configs")) DeleteEmptyConfigs();
@@ -93,12 +88,12 @@ namespace AudioStudio.Tools
         #region GenerateAssets
         private void GenerateMusicTracks(bool saveAssets)
         {
-            var sourceFolder = AsScriptingHelper.CombinePath(_platform == Platform.Web ? AudioPathSettings.Instance.StreamingClipsPath : AudioPathSettings.Instance.SoundFilesPath, "Music");
+            var sourceFolder = AsScriptingHelper.CombinePath(AudioPathSettings.Instance.OriginalsPath, "Music");
 
             string[] audioFilePaths = Directory.GetFiles(AsScriptingHelper.CombinePath(Application.dataPath, sourceFolder), "*" + _audioFileExtension, SearchOption.AllDirectories);			
             for (var i = 0; i < audioFilePaths.Length; i++)
             {
-                var savePathLong = audioFilePaths[i].Replace(sourceFolder, AudioPathSettings.Instance.MusicEventsPath).Replace(_audioFileExtension, ".asset").Replace("Music_", "");
+                var savePathLong = audioFilePaths[i].Replace(sourceFolder, AudioPathSettings.Instance.MusicEventsPath).Replace(_audioFileExtension, ".asset");
                 var loadPathShort = AsScriptingHelper.ShortPath(audioFilePaths[i]);
                 var savePathShort = AsScriptingHelper.ShortPath(savePathLong);              
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Music Tracks", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;
@@ -119,10 +114,7 @@ namespace AudioStudio.Tools
                 AsScriptingHelper.CheckDirectoryExist(savePathLong);												                
                 var newTrack = CreateInstance<MusicTrack>();
                 newTrack.name = clip.name.Substring(6);                
-                if (_platform == Platform.Web)
-                    newTrack.Platform = Platform.Web;
-                else
-                    newTrack.Clip = clip;    
+                newTrack.Clip = clip; 
                 AssetDatabase.CreateAsset(newTrack, savePathShort);
             }		
             if (saveAssets) 
@@ -132,11 +124,11 @@ namespace AudioStudio.Tools
         
         private void GenerateSoundClips(bool saveAssets)
         {
-            var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundFilesPath, "SFX");
+            var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.OriginalsPath, "SFX");
             string[] audioFilePaths = Directory.GetFiles(searchPath, "*" + _audioFileExtension, SearchOption.AllDirectories);			
             for (var i = 0; i < audioFilePaths.Length; i++)
             {				
-                var savePathLong = audioFilePaths[i].Replace(AsScriptingHelper.CombinePath(AudioPathSettings.Instance.SoundFilesPath, "SFX"), AudioPathSettings.Instance.SoundEventsPath).Replace(_audioFileExtension, ".asset");				
+                var savePathLong = audioFilePaths[i].Replace(AsScriptingHelper.CombinePath(AudioPathSettings.Instance.OriginalsPath, "SFX"), AudioPathSettings.Instance.SoundEventsPath).Replace(_audioFileExtension, ".asset");				
                 var loadPathShort = AsScriptingHelper.ShortPath(audioFilePaths[i]);
                 var savePathShort = AsScriptingHelper.ShortPath(savePathLong);
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Sound Clips", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;
@@ -286,7 +278,7 @@ namespace AudioStudio.Tools
         {
             try
             {
-                var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundFilesPath, "Instruments");
+                var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.OriginalsPath, "Instruments");
                 string[] samplePaths = Directory.GetFiles(searchPath, "*" + _audioFileExtension, SearchOption.AllDirectories);
                 for (var i = 0; i < samplePaths.Length; i++)
                 {
@@ -335,21 +327,21 @@ namespace AudioStudio.Tools
         private void GenerateVoiceEvents(bool saveAssets)
         {
             string sourceFolder;
-            sourceFolder = AsScriptingHelper.CombinePath(_platform == Platform.Web ? AudioPathSettings.Instance.StreamingClipsPath : AudioPathSettings.Instance.SoundFilesPath, "Voice", _language.ToString());
+            sourceFolder = AsScriptingHelper.CombinePath(AudioPathSettings.Instance.OriginalsPath, "Voice", _language.ToString());
 
             var destinationFolder = AsScriptingHelper.CombinePath(AudioPathSettings.Instance.VoiceEventsPath, _language.ToString());
             
             string[] audioFilePaths = Directory.GetFiles(AsScriptingHelper.CombinePath(Application.dataPath, sourceFolder), "*" + _audioFileExtension, SearchOption.AllDirectories);			
             for (var i = 0; i < audioFilePaths.Length; i++)
             {
-                var savePathLong = audioFilePaths[i].Replace(sourceFolder, destinationFolder).Replace(_audioFileExtension, ".asset").Replace("Vo_", "");				
+                var savePathLong = audioFilePaths[i].Replace(sourceFolder, destinationFolder).Replace(_audioFileExtension, ".asset");				
                 var loadPathShort = AsScriptingHelper.ShortPath(audioFilePaths[i]);
                 var savePathShort = AsScriptingHelper.ShortPath(savePathLong);
                 if (EditorUtility.DisplayCancelableProgressBar("Generating Voice Events", loadPathShort, (i + 1) * 1.0f / audioFilePaths.Length)) break;
 				
                 var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(loadPathShort);	
                 
-                var result = Regex.Match(savePathLong, @"_\d*.asset$");
+                var result = Regex.Match(savePathLong, @"_0\d.asset$");
                 if (result.Success)
                 {
                     var eventNameShort = savePathShort.Replace(result.Value, "");
@@ -360,14 +352,7 @@ namespace AudioStudio.Tools
                         if (randomEvent)
                         {
                             EditorUtility.SetDirty(randomEvent);
-                            if (_platform != Platform.Web)
-                            {                            
-                                if (!randomEvent.Clips.Contains(clip)) randomEvent.Clips.Add(clip);                            
-                            }
-                            else
-                            {
-                                if (randomEvent.ClipCount < int.Parse(result.Value.Substring(1, 2))) randomEvent.ClipCount++;
-                            }
+                            if (!randomEvent.Clips.Contains(clip)) randomEvent.Clips.Add(clip);      
                         }                        
                     }
                     else
@@ -377,13 +362,7 @@ namespace AudioStudio.Tools
                         var newRandomEvent = CreateInstance<VoiceEvent>();
                         newRandomEvent.PlayLogic = VoicePlayLogic.Random;
                         newRandomEvent.name = clip.name.Replace(result.Value, "");
-                        if (_platform != Platform.Web)
-                            newRandomEvent.Clips.Add(clip);
-                        else
-                        {
-                            newRandomEvent.Platform = Platform.Web;
-                            newRandomEvent.ClipCount++;
-                        }
+                        newRandomEvent.Clips.Add(clip);
                         AssetDatabase.CreateAsset(newRandomEvent, eventNameShort + ".asset");
                     }
                     continue;
@@ -405,10 +384,7 @@ namespace AudioStudio.Tools
                 AsScriptingHelper.CheckDirectoryExist(savePathLong);				
                 var newEvent = CreateInstance<VoiceEvent>();	
                 newEvent.name = clip.name;
-                if (_platform == Platform.Web)
-                    newEvent.Platform = Platform.Web;
-                else
-                    newEvent.Clip = clip;                    
+                newEvent.Clip = clip;       
                 AssetDatabase.CreateAsset(newEvent, savePathShort);	
             }		
             if (saveAssets) AssetDatabase.SaveAssets();	
@@ -417,6 +393,44 @@ namespace AudioStudio.Tools
         #endregion
 
         #region BatchProcessing    
+
+        private static void SyncOriginalEventNames()
+        {
+            var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundEventsPath);
+            SearchFiles<SoundClip>(searchPath, "*.asset", "Syncing Sound Clips", evt =>
+            {
+                if (evt.Clip && evt.name != evt.Clip.name)
+                {
+                    var oldPath = AssetDatabase.GetAssetPath(evt.Clip);
+                    var newPath = oldPath.Replace(evt.Clip.name, evt.name);
+                    AssetDatabase.RenameAsset(oldPath, newPath);
+                }
+            });
+            
+            searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.MusicEventsPath);
+            SearchFiles<MusicTrack>(searchPath, "*.asset", "Syncing Music Tracks", evt =>
+            {
+                if (evt.Clip && evt.name != evt.Clip.name)
+                {
+                    var oldPath = AssetDatabase.GetAssetPath(evt.Clip);
+                    var newPath = oldPath.Replace(evt.Clip.name, evt.name);
+                    AssetDatabase.RenameAsset(oldPath, newPath);
+                }
+            });
+            
+            searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.VoiceEventsPath);
+            SearchFiles<VoiceEvent>(searchPath, "*.asset", "Syncing Voice Events", evt =>
+            {
+                if (evt.PlayLogic == VoicePlayLogic.Single && evt.Clip && evt.name != evt.Clip.name)
+                {
+                    var oldPath = AssetDatabase.GetAssetPath(evt.Clip);
+                    var newPath = oldPath.Replace(evt.Clip.name, evt.name);
+                    AssetDatabase.RenameAsset(oldPath, newPath);
+                }
+            });
+            AssetDatabase.SaveAssets();	
+        }
+        
         private static void RefreshSoundBankFolders()
         {
             var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, AudioPathSettings.Instance.SoundBanksPath);
@@ -428,7 +442,7 @@ namespace AudioStudio.Tools
         {
             if (string.IsNullOrEmpty(bank.EventsFolder)) return;
             var searchPath = AsScriptingHelper.CombinePath(Application.dataPath, bank.EventsFolder);
-            SearchFiles<SoundContainer>(searchPath, "*.asset", "Refreshing Events", evt =>
+            SearchFiles<AudioEvent>(searchPath, "*.asset", "Refreshing Events", evt =>
             {
                 if (!bank.AudioEvents.Contains(evt) && evt.IndependentEvent)
                     bank.RegisterEvent(evt);

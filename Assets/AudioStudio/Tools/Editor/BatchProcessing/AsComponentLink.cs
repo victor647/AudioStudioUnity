@@ -13,40 +13,40 @@ using UnityEngine.Playables;
 
 namespace AudioStudio.Tools
 {
-	public class AsComponentLink : AsSearchers
+	internal class AsComponentLink : AsSearchers
 	{				
 		[Serializable]
 		private class ComponentLink //a data structure that links two components
 		{
-			public Type SearchComponent;
-			public Type LinkedComponent;
-			public string ToggleName;
-			public bool WillSearch = true;
+			internal Type SearchComponent;
+			internal Type LinkedComponent;
+			internal string ToggleName;
+			internal bool WillSearch = true;
 
-			public ComponentLink(Type search, Type linked)
+			internal ComponentLink(Type search, Type linked)
 			{
 				SearchComponent = search;
 				LinkedComponent = linked;
 				ToggleName = search.Name + " (" + linked.Name + ")";				
 			}
 
-			public ComponentLink() {} //empty constructor										
+			internal ComponentLink() {} //empty constructor										
 		}
 
 		[Serializable]
 		private class CustomTypes //converts string to type
 		{
-			public string SearchComponent = "";
-			public string LinkedComponent = "";
-			public ComponentLink CustomLink = new ComponentLink();
+			internal string SearchComponent = "";
+			internal string LinkedComponent = "";
+			internal ComponentLink CustomLink = new ComponentLink();
 
-			public void Validate()
+			internal void Validate()
 			{
 				CustomLink.SearchComponent = AsScriptingHelper.StringToType(SearchComponent);
 				CustomLink.LinkedComponent = AsScriptingHelper.StringToType(LinkedComponent);				
 			}						
 
-			public bool BothTypesFilled()
+			internal bool BothTypesFilled()
 			{
 				return (CustomLink.LinkedComponent != null && CustomLink.SearchComponent != null);
 			}

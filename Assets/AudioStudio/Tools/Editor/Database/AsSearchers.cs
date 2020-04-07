@@ -17,10 +17,10 @@ namespace AudioStudio.Tools
 		Remove
 	}
 	
-	public abstract class AsSearchers : EditorWindow
+	internal abstract class AsSearchers : EditorWindow
 	{		
-		public bool IncludeA = true;
-		public bool IncludeB = true;
+		internal bool IncludeA = true;
+		internal bool IncludeB = true;
 		protected static string SearchPath = "Assets";
 
 		protected string XmlDocDirectory
@@ -152,7 +152,7 @@ namespace AudioStudio.Tools
 		}
 
 		#region AssetOperations
-		public void SaveSelectedAssets(IEnumerable<string> assetPaths, Action<string> parser)
+		internal void SaveSelectedAssets(IEnumerable<string> assetPaths, Action<string> parser)
 		{
 			ReadData();
 			foreach (var assetPath in assetPaths)
@@ -165,7 +165,7 @@ namespace AudioStudio.Tools
 			AsScriptingHelper.WriteXml(DefaultXmlPath, XRoot);
 		}
 		
-		public void ExportSelectedAssets(IEnumerable<string> assetPaths, Action<string> parser)
+		internal void ExportSelectedAssets(IEnumerable<string> assetPaths, Action<string> parser)
 		{
 			CleanUp();
 			var xmlPath = EditorUtility.SaveFilePanel("Export to", XmlDocDirectory, "Selection.xml", "xml");
@@ -179,7 +179,7 @@ namespace AudioStudio.Tools
 				Process.Start(xmlPath);
 		}
 		
-		public void RevertSelectedAssets(IEnumerable<string> assetPaths, Func<XElement, bool> importer)
+		internal void RevertSelectedAssets(IEnumerable<string> assetPaths, Func<XElement, bool> importer)
 		{
 			ReadData();
 			var edited = false;
@@ -193,7 +193,7 @@ namespace AudioStudio.Tools
 				AssetDatabase.SaveAssets();
 		}
 		
-		public void RemoveSelectedAssets(IEnumerable<string> assetPaths, Action<string> remover)
+		internal void RemoveSelectedAssets(IEnumerable<string> assetPaths, Action<string> remover)
 		{
 			ReadData();
 			foreach (var assetPath in assetPaths)
@@ -206,6 +206,72 @@ namespace AudioStudio.Tools
 			AsScriptingHelper.WriteXml(DefaultXmlPath, XRoot);
 			AssetDatabase.SaveAssets();
 		}
+		#endregion
+		
+		#region TypeCast
+		protected static bool ImportFloat(ref float field, string s)
+		{
+			var value = AsScriptingHelper.StringToFloat(s);
+			if (field != value)
+			{
+				field = value;
+				return true;
+			}
+			return false;
+		}
+        
+		protected static bool ImportInt(ref int field, string s)
+		{
+			var value = AsScriptingHelper.StringToInt(s);
+			if (field != value)
+			{
+				field = value;
+				return true;
+			}
+			return false;
+		}
+
+		protected static bool ImportBool(ref bool field, string s)
+		{
+			var value = AsScriptingHelper.StringToBool(s);
+			if (field != value)
+			{
+				field = value;
+				return true;
+			}
+			return false;
+		}
+
+		protected static bool ImportVector3(ref Vector3 field, string s)
+		{
+			var value = AsScriptingHelper.StringToVector3(s);
+			if (Mathf.Abs(field.magnitude - value.magnitude) > 0.01f)
+			{
+				field = value;
+				return true;
+			}
+			return false;
+		}
+		
+		protected static bool ImportEnum<T>(ref T field, string xComponent) where T: struct, IComparable
+		{
+			try
+			{
+				var value = (T) Enum.Parse(typeof(T), xComponent);
+				if (!field.Equals(value))
+				{
+					field = value;
+					return true;
+				}
+			}
+#pragma warning disable 168
+			catch (Exception e)
+#pragma warning restore 168
+			{
+				Debug.LogError("Import failed: Can't find option " + xComponent + " in enum " + typeof(T).Name);
+			}
+			return false;
+		}				
 		#endregion
 	}		
 }

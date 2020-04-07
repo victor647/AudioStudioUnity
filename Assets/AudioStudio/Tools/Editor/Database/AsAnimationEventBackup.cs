@@ -10,13 +10,13 @@ using Debug = UnityEngine.Debug;
 
 namespace AudioStudio.Tools
 {
-    public class AsAnimationEventBackup : AsSearchers
+    internal class AsAnimationEventBackup : AsSearchers
     {
         #region Fields               
-        public bool IncludeNonAudioEvents;
+        internal bool IncludeNonAudioEvents;
 		
         private static AsAnimationEventBackup _instance;
-        public static AsAnimationEventBackup Instance
+        internal static AsAnimationEventBackup Instance
         {
             get
             {
@@ -37,7 +37,7 @@ namespace AudioStudio.Tools
         #endregion
 
         #region Export
-        public void Export()
+        internal void Export()
         {
             CleanUp();
             var fileName = EditorUtility.SaveFilePanel("Export to", XmlDocDirectory, "AnimationEvents.xml", "xml");
@@ -45,10 +45,10 @@ namespace AudioStudio.Tools
             if (IncludeA) FindFiles(ParseAnimation, "Exporting animation clips...", "*.anim");
             if (IncludeB) FindFiles(ParseModel, "Exporting FBX files...", "*.fbx");
             AsScriptingHelper.WriteXml(fileName, XRoot);
-            EditorUtility.DisplayDialog("Success!", "Found " + TotalCount + " animation events in " + EditedCount + " clips and models!", "OK");		
+            EditorUtility.DisplayDialog("Process Finished!", "Found " + TotalCount + " animation events in " + EditedCount + " clips and models!", "OK");		
         }
 
-        public void ParseAnimation(string assetPath)
+        internal void ParseAnimation(string assetPath)
         {
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath);
             if (clip == null) return;
@@ -72,7 +72,7 @@ namespace AudioStudio.Tools
             return xClip;
         }
 
-        public void ParseModel(string assetPath)
+        internal void ParseModel(string assetPath)
         {
             var modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
             if (modelImporter == null) return;		
@@ -119,7 +119,7 @@ namespace AudioStudio.Tools
         #endregion
 		
         #region Import
-        public void Import()
+        internal void Import()
         {
             var fileName = EditorUtility.OpenFilePanel("Import from", XmlDocDirectory, "xml");
             if (string.IsNullOrEmpty(fileName) || !ReadData(fileName)) return;
@@ -128,7 +128,7 @@ namespace AudioStudio.Tools
             EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
             AssetDatabase.SaveAssets();
             EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayDialog("Success!", "Updated " + EditedCount + " animation clips out of " + TotalCount, "OK");			
+            EditorUtility.DisplayDialog("Process Finished!", "Updated " + EditedCount + " animation clips out of " + TotalCount, "OK");			
         }
 
         private void ImportClips(bool isCompare)
@@ -179,7 +179,7 @@ namespace AudioStudio.Tools
             }
         }
 
-        public bool ImportModel(XElement xModel)
+        internal bool ImportModel(XElement xModel)
         {			
             var assetPath = AsScriptingHelper.GetXmlAttribute(xModel, "AssetPath");
             var modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
@@ -206,7 +206,7 @@ namespace AudioStudio.Tools
             return modified;
         }
 
-        public bool ImportClip(XElement xClip)
+        internal bool ImportClip(XElement xClip)
         {
             var assetPath = AsScriptingHelper.GetXmlAttribute(xClip, "AssetPath");
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath);
@@ -270,7 +270,7 @@ namespace AudioStudio.Tools
         #endregion
 		
         #region Compare
-        public void Compare()
+        internal void Compare()
         {            
             var xmlPath = EditorUtility.OpenFilePanel("Compare with", XmlDocDirectory, "xml");
             if (string.IsNullOrEmpty(xmlPath) || !ReadData(xmlPath)) return;
@@ -398,16 +398,16 @@ namespace AudioStudio.Tools
         #endregion
 		
         #region Remove
-        public void RemoveAll()
+        internal void RemoveAll()
         {
             ReadData();
             if (IncludeA) FindFiles(RemoveClip, "Removing animation clips...", "*.anim");
             if (IncludeB) FindFiles(RemoveModel, "Removing FBX files...", "*.fbx");
             AssetDatabase.SaveAssets();
-            EditorUtility.DisplayDialog("Success!", "Removed " + EditedCount + " animation events in " + TotalCount + " clips and models!", "OK");
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + EditedCount + " animation events in " + TotalCount + " clips and models!", "OK");
         }
 
-        public void RemoveClip(string assetPath)
+        internal void RemoveClip(string assetPath)
         {                        
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(assetPath);
             if (!clip || clip.events.Length == 0) return;
@@ -419,7 +419,7 @@ namespace AudioStudio.Tools
             EditorUtility.SetDirty(clip);
         }
 
-        public void RemoveModel(string assetPath)
+        internal void RemoveModel(string assetPath)
         {                        
             var modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
             if (modelImporter == null) return;
@@ -463,7 +463,7 @@ namespace AudioStudio.Tools
 
         private class AsAnimationEventCompare : AsCompareWindow
         {               
-            public static void ShowWindow()
+            internal static void ShowWindow()
             {
                 var window = GetWindow<AsAnimationEventCompare>();
                 window.position = new Rect(500, 300, 700, 500);     

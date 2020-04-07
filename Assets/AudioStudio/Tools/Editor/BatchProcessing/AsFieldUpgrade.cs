@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AudioStudio.Tools
 {
-	public class AsFieldUpgrade : AsSearchers
+	internal class AsFieldUpgrade : AsSearchers
 	{		
 		private MonoScript _script;
 		private Type _type;

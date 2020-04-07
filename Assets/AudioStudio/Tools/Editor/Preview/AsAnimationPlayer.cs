@@ -44,17 +44,13 @@ namespace AudioStudio.Tools
 
         private void Init()
         {
-            AudioInitSettings.Instance.InitializeWithoutLoading();
+            AudioInitSettings.Instance.Initialize(false);
             foreach (var bank in SoundBanks)
             {
                 bank.Load(); 
             }
-
-            if (!_legacyMode)
-            {
-                _model = Instantiate(ModelPrefab);
-                Reset();
-            }
+            _model = Instantiate(ModelPrefab);
+            Reset();
 
             if (_useEmptyScene)
                 Camera.main.fieldOfView = 30;
@@ -73,32 +69,45 @@ namespace AudioStudio.Tools
         
         private void Reset()
         {
-            _layers = new Dictionary<AnimatorControllerLayer, ChildAnimatorState[]>();
-            if (!_model) return;
-            _animator = _model.GetComponentInChildren<Animator>();
-            var controller = _animator.runtimeAnimatorController as AnimatorController;
-            if (!controller)
-                _animator.runtimeAnimatorController = controller = Animator;
-            else
-                Animator = controller;
-
-            if (controller)
+            if (_legacyMode)
             {
-                foreach (var layer in controller.layers)
+                _legacyAnimation = _model.GetComponentInChildren<Animation>();
+                if (!_legacyAnimation) return;
+                Clips = new List<AnimationClip>();
+                foreach (AnimationState state in _legacyAnimation)
                 {
-                    _layers[layer] = layer.stateMachine.states;
+                    Clips.Add(state.clip);
                 }
             }
-            
-            if (Clips.Count > 0)
+            else
             {
-                _tempAnimator = new AnimatorController();
-                _tempAnimator.AddLayer("Base Layer");
-                foreach (var clip in Clips)
+                _layers = new Dictionary<AnimatorControllerLayer, ChildAnimatorState[]>();
+                if (!_model) return;
+                _animator = _model.GetComponentInChildren<Animator>();
+                var controller = _animator.runtimeAnimatorController as AnimatorController;
+                if (!controller)
+                    _animator.runtimeAnimatorController = controller = Animator;
+                else
+                    Animator = controller;
+
+                if (controller)
                 {
-                    if (!clip) continue;
-                    var state = _tempAnimator.layers[0].stateMachine.AddState(clip.name);
-                    state.motion = clip;
+                    foreach (var layer in controller.layers)
+                    {
+                        _layers[layer] = layer.stateMachine.states;
+                    }
+                }
+
+                if (Clips.Count > 0)
+                {
+                    _tempAnimator = new AnimatorController();
+                    _tempAnimator.AddLayer("Base Layer");
+                    foreach (var clip in Clips)
+                    {
+                        if (!clip) continue;
+                        var state = _tempAnimator.layers[0].stateMachine.AddState(clip.name);
+                        state.motion = clip;
+                    }
                 }
             }
         }
@@ -166,15 +175,15 @@ namespace AudioStudio.Tools
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
                 _serializedObject.Update();
+                EditorGUILayout.LabelField("Select Model Prefab:", EditorStyles.boldLabel);
+                ModelPrefab = EditorGUILayout.ObjectField(ModelPrefab, typeof(GameObject), false) as GameObject;
                 if (!_legacyMode)
                 {
-                    EditorGUILayout.LabelField("Select Model Prefab:", EditorStyles.boldLabel);
-                    ModelPrefab = EditorGUILayout.ObjectField(ModelPrefab, typeof(GameObject), false) as GameObject;
                     EditorGUILayout.LabelField("Select Animator Controller:", EditorStyles.boldLabel);
                     Animator = EditorGUILayout.ObjectField(Animator, typeof(AnimatorController), false) as AnimatorController;
+                    AsGuiDrawer.DrawList(Clips, "Custom Animation Clips:");
                 }
-
-                AsGuiDrawer.DrawList(Clips, "Custom Animation Clips:");
+                
                 AsGuiDrawer.DrawList(_serializedObject.FindProperty("SoundBanks"), "SoundBanks To Load:");
                 _serializedObject.ApplyModifiedProperties();
                 
@@ -195,12 +204,12 @@ namespace AudioStudio.Tools
                 EditorApplication.delayCall += Start;
             if (GUILayout.Button("Exit"))
                 EditorApplication.delayCall += Exit;
-            if (!_legacyMode && GUILayout.Button("Reset"))
+            if (GUILayout.Button("Reset"))
                 EditorApplication.delayCall += Reset;
             EditorGUILayout.EndHorizontal();
 
             if (!EditorApplication.isPlaying) return;
-            if (_layers == null)
+            if (!_model)
                 Init();
             DrawTransport();
             
@@ -306,9 +315,6 @@ namespace AudioStudio.Tools
 
         private void PlayLegacy(AnimationClip clip)
         {
-            var selectedGameObject = Selection.activeGameObject;
-            if (!selectedGameObject) return;
-            _legacyAnimation = AsUnityHelper.GetOrAddComponent<Animation>(selectedGameObject);
             _legacyAnimation.clip = clip;
             _legacyAnimation.Play();
         }

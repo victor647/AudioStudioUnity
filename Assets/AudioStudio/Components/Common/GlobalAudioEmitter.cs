@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using AudioStudio.Midi;
 using UnityEngine;
 
@@ -7,10 +8,9 @@ namespace AudioStudio.Components
     public class GlobalAudioEmitter : MonoBehaviour
     {
         private static Action _audioUpdate;
-
         public static GameObject GameObject;
-
-        public static GameObject InstrumentRack;
+        internal static GameObject InstrumentRack;
+        internal static GlobalAudioEmitter Instance;
 
         private void Awake()
         {
@@ -18,17 +18,18 @@ namespace AudioStudio.Components
                 DestroyImmediate(GameObject);
 
             GameObject = gameObject;
+            Instance = this;
             DontDestroyOnLoad(gameObject);
         }
 
-        public static void AddMicrophone()
+        internal static void AddMicrophone()
         {
             var microphone = new GameObject("Microphone Input");
             microphone.transform.parent = GameObject.transform;
             microphone.AddComponent<MicrophoneInput>();
         }
-        
-        public static void AddMidi()
+
+        internal static void AddMidi()
         {
             InstrumentRack = new GameObject("Midi Input");
             InstrumentRack.transform.parent = GameObject.transform;
@@ -39,6 +40,27 @@ namespace AudioStudio.Components
         {
             _audioUpdate?.Invoke();
             ListenerManager.UpdateListenerPositions();
+        }
+
+        internal void SetAudioMixerParameter(string parameterName, float currentValue, float targetValue, float fadeTime)
+        {
+            if (fadeTime == 0f)
+                AudioManager.AudioMixer.SetFloat(parameterName, targetValue);
+            else
+            {
+                var slewRate = (targetValue - currentValue) / fadeTime;
+                StartCoroutine(SlewAudioMixer(parameterName, currentValue, targetValue, slewRate));
+            }
+        }
+
+        private IEnumerator SlewAudioMixer(string parameterName, float currentValue, float targetValue, float slewRate)
+        {
+            while (Mathf.Abs(currentValue - targetValue) > slewRate * 0.01f)
+            {
+                currentValue += slewRate * Time.fixedDeltaTime;                
+                AudioManager.AudioMixer.SetFloat(parameterName, currentValue);
+                yield return new WaitForFixedUpdate();
+            }
         }
     }
 }

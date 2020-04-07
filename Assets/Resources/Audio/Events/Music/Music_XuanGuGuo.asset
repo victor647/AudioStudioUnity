@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: City_Main_Night
+  m_Name: Music_XuanGuGuo
   m_EditorClassIdentifier: 
   Platform: 0
   IndependentEvent: 0
   OverrideControls: 0
   OverrideSpatial: 0
-  Volume: 1
+  Volume: 0.6
   Pitch: 1
   Pan: 0
   LowPassFilter: 0
@@ -33,10 +33,10 @@ MonoBehaviour:
     Name: 
   SwitchEventMappings: []
   SwitchImmediately: 0
-  CrossFadeTime: 0.5
+  CrossFadeTime: 0
   Mappings: []
   PlayLogic: 0
-  LoopCount: 1
+  LoopCount: 0
   ChildEvents: []
   OverrideTransition: 0
   TransitionEntryConditions:
@@ -59,13 +59,13 @@ MonoBehaviour:
   LoopEntireSequence: 0
   Markers:
   - BarNumber: 0
-    Tempo: 70
-    BeatsPerBar: 3
+    Tempo: 0
+    BeatsPerBar: 0
     BeatDuration: 0
-    KeyCenter: 4
+    KeyCenter: 0
   PickupBeats: 0
   ExitPosition:
-    Bar: 34
-    Beat: 0
-  UseDefaultLoopStyle: 1
-  Clip: {fileID: 8300000, guid: 02091da933cb00b4e89f3d9b06b08f16, type: 3}
+    Bar: 41
+    Beat: 2
+  UseDefaultLoopStyle: 0
+  Clip: {fileID: 8300000, guid: bfcb8f2a1e2f1bf4d8f0e2cbe2afb75a, type: 3}

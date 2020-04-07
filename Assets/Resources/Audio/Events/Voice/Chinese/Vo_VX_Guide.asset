@@ -4,13 +4,15 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca79a63d1b78d614690011358d6f049b, type: 3}
-  m_Name: VX_Guide
+  m_Name: Vo_VX_Guide
   m_EditorClassIdentifier: 
+  Platform: 0
   IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
@@ -25,18 +27,16 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 0
-  DefaultFadeOutTime: 0
   AvoidRepeat: 1
   RandomOnLoop: 0
-  AudioSwitchName: 
-  SwitchAssignments: []
+  AudioSwitchReference:
+    Name: 
+  SwitchEventMappings: []
   SwitchImmediately: 0
   CrossFadeTime: 0
   Mappings: []
-  Language: 0
-  PlayLogic: 0
-  VoiceSwitchAssignments: []
+  PlayLogic: 1
+  SwitchClipMappings: []
   Clip: {fileID: 0}
   Clips:
   - {fileID: 8300000, guid: 622412d5e2fcbe54a9b9f46699050689, type: 3}

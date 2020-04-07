@@ -21,7 +21,6 @@ namespace AudioStudio
             set => _instance = value;
         }
 
-
         public static bool Initialized;
         public bool UseMicrophone;
         public bool UseMidi;
@@ -31,40 +30,21 @@ namespace AudioStudio
         public bool LoadBanks;        
         public AudioMixer AudioMixer;
         public AudioPathSettings PathSettings;
+        public Severity DebugLogLevel = Severity.Error;
 
-        public void Initialize()
+        public void Initialize(bool loadAudioData = false)
         {
             if (Initialized) return;     
             Initialized = true;
+            AsUnityHelper.DebugLogLevel = DebugLogLevel;
             AudioPathSettings.Instance = PathSettings;
-            InitAudioManager();
-            CreateGlobalAudioEmitter();
-            ListenerManager.Init();
-            AsAssetLoader.Init();                                                           
-            if (LoadBanks) LoadInitBanks();
-            AudioManager.LoadPreferenceSettings();
-            if (PostEvents) PostGameStartEvents();                        
-        }
-
-        public void InitializeWithoutLoading()
-        {
-            if (Initialized) return;   
-            Initialized = true;
-            InitAudioManager();
-            CreateGlobalAudioEmitter();
-            ListenerManager.Init();
-            AsAssetLoader.Init();                                                                       
-            AudioManager.LoadPreferenceSettings();                        
-        }
-
-        private void InitAudioManager()
-        {
-#if UNITY_EDITOR || !UNITY_WEBGL
-            AudioManager.Platform = Platform.PC;
-#else 
-            AudioManager.Platform = Platform.Web;
-#endif
             AudioManager.AudioMixer = AudioMixer;
+            CreateGlobalAudioEmitter();
+            ListenerManager.Init();
+            AsAssetLoader.Init();
+            AudioManager.LoadPreferenceSettings();
+            if (loadAudioData)
+                LoadAudioData();
         }
 
         private void CreateGlobalAudioEmitter()
@@ -77,20 +57,23 @@ namespace AudioStudio
                 GlobalAudioEmitter.AddMidi();
         }
 
-        private void LoadInitBanks()
+        public void LoadAudioData()
         {
-            foreach (var bank in StartBanks)
+            if (LoadBanks)
             {
-                bank.Load(null, null, AudioTriggerSource.Initialization);
-            }        
-        }
-        
-        private void PostGameStartEvents()
-        {
-            foreach (var evt in StartEvents)
+                foreach (var bank in StartBanks)
+                {
+                    bank.Load(null, null, AudioTriggerSource.Initialization);
+                }
+            }
+
+            if (PostEvents)
             {
-                evt.Post(null, AudioTriggerSource.Initialization);
-            }                                    
+                foreach (var evt in StartEvents)
+                {
+                    evt.Post(null, AudioTriggerSource.Initialization);
+                }
+            }
         }
     }   
 }

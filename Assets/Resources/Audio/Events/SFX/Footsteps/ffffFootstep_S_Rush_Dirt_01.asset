@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0a82c6e5ea08b0043880c80978d5d3c9, type: 3}
-  m_Name: Footstep_S_Rush_Dirt_01
+  m_Name: ffffFootstep_S_Rush_Dirt_01
   m_EditorClassIdentifier: 
   Platform: 0
   IndependentEvent: 1

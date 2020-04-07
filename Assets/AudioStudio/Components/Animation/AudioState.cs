@@ -11,6 +11,7 @@ namespace AudioStudio.Components
         public PostEventReference[] EnterEvents = new PostEventReference[0];
         public PostEventReference[] ExitEvents = new PostEventReference[0];
         public SetSwitchReference[] EnterSwitches = new SetSwitchReference[0];
+        public SetSwitchReference[] ExitSwitches = new SetSwitchReference[0];
         public bool ResetStateOnExit = true;
         public AnimationAudioState AnimationAudioState = AnimationAudioState.None;
         
@@ -35,6 +36,10 @@ namespace AudioStudio.Components
 
         public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo,int layerIndex)
         {
+            foreach (var swc in ExitSwitches)
+            {
+                swc.SetValue(animator.gameObject, AudioTriggerSource.AudioState);             
+            }
             foreach (var evt in ExitEvents)
             {
                 evt.Post(animator.gameObject, AudioTriggerSource.AudioState);               
@@ -45,7 +50,9 @@ namespace AudioStudio.Components
         
         public bool IsValid()
         {
-            return EnterEvents.Any(s => s.IsValid()) || ExitEvents.Any(s => s.IsValid()) || AnimationAudioState != AnimationAudioState.None;
+            return EnterEvents.Any(s => s.IsValid()) || ExitEvents.Any(s => s.IsValid()) || 
+                   EnterSwitches.Any(s => s.IsValid()) || ExitSwitches.Any(s => s.IsValid()) ||
+                   AnimationAudioState != AnimationAudioState.None;
         }
     }
 }

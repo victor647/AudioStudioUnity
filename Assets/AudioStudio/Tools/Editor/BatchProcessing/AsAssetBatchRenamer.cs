@@ -28,9 +28,10 @@ public class AsAssetBatchRenamer : EditorWindow
                 var originalPath = AssetDatabase.GetAssetPath(asset);
                 var oldName = Path.GetFileNameWithoutExtension(originalPath);
                 var extension = Path.GetExtension(originalPath);
-                if (!string.IsNullOrEmpty(_find) && !string.IsNullOrEmpty(_replace))
+                if (!string.IsNullOrEmpty(_find))
                     oldName = oldName.Replace(_find, _replace);
                 var newName = _prefix + oldName + _suffix + extension;
+                EditorUtility.SetDirty(asset);
                 AssetDatabase.RenameAsset(originalPath, newName);
             }
         }

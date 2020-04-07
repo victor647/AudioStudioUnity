@@ -21,6 +21,7 @@ namespace AudioStudio.Editor
             AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchNames"));
 
             EditorGUILayout.PropertyField(serializedObject.FindProperty("DefaultSwitch"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("CooldownTime"));
             AsGuiDrawer.DrawSaveButton(_audioSwitch);
             serializedObject.ApplyModifiedProperties();
         }

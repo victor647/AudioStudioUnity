@@ -12,21 +12,21 @@ using Debug = UnityEngine.Debug;
 
 namespace AudioStudio.Tools
 {           
-    public partial class AsComponentBackup : AsSearchers
+    internal partial class AsComponentBackup : AsSearchers
     {
         #region Fields        
         private delegate bool ComponentImporter(AsComponent component, XElement node);
         private delegate void ComponentExporter(AsComponent component, XElement node);
 
-        public readonly Dictionary<Type, bool> ComponentsToSearch = new Dictionary<Type, bool>();
+        internal readonly Dictionary<Type, bool> ComponentsToSearch = new Dictionary<Type, bool>();
         private static readonly Dictionary<Type, ComponentExporter> _exporters = new Dictionary<Type, ComponentExporter>();
         private static readonly Dictionary<Type, ComponentImporter> _importers = new Dictionary<Type, ComponentImporter>();
         private readonly Dictionary<Type, XElement> _outputTypes = new Dictionary<Type, XElement>();
-        public bool SeparateXmlFiles = true;
-        public bool IncludePrefabInScene = true;
+        internal bool SeparateXmlFiles = true;
+        internal bool IncludePrefabInScene = true;
 
         private static AsComponentBackup _instance;
-        public static AsComponentBackup Instance
+        internal static AsComponentBackup Instance
         {
             get
             {
@@ -71,7 +71,7 @@ namespace AudioStudio.Tools
         #endregion
 
         #region Export
-        public void Export()
+        internal void Export()
         {
             var completed = false;
             var fileName = "";
@@ -111,11 +111,11 @@ namespace AudioStudio.Tools
                 }
                 else
                     AsScriptingHelper.WriteXml(fileName, XRoot);
-                EditorUtility.DisplayDialog("Success!", "Found " + TotalCount + " components!", "OK");
+                EditorUtility.DisplayDialog("Process Finished!", "Found " + TotalCount + " components!", "OK");
             }            
         }
 
-        public void ParsePrefab(string assetPath)
+        internal void ParsePrefab(string assetPath)
         {            
             var prefab = (GameObject)AssetDatabase.LoadAssetAtPath(assetPath, typeof(GameObject));
             if (!prefab) return;
@@ -156,7 +156,7 @@ namespace AudioStudio.Tools
             }
         }
 
-        public void ParseScene(string assetPath)
+        internal void ParseScene(string assetPath)
         {
             var scene = EditorSceneManager.OpenScene(assetPath);
             if (!scene.IsValid()) return;
@@ -236,7 +236,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Import
-        public void Import()
+        internal void Import()
         {            
             CleanUp();
             AsCompareWindow.MissingComponents.Clear();
@@ -256,10 +256,10 @@ namespace AudioStudio.Tools
             EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
             AssetDatabase.SaveAssets();
             EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayDialog("Success!", "Updated " + EditedCount + " components out of " + TotalCount, "OK");            
+            EditorUtility.DisplayDialog("Process Finished!", "Updated " + EditedCount + " components out of " + TotalCount, "OK");            
         }
 
-        public void AutoImport(string searchPath, Type type = null)
+        internal void AutoImport(string searchPath, Type type = null)
         {
             CleanUp();
             if (type != null)
@@ -281,12 +281,13 @@ namespace AudioStudio.Tools
             var xScenes = XRoot.Elements("Scene").ToList();                
             var totalCount = xScenes.Count;
             TotalCount += totalCount;
+            var searchPath = AsScriptingHelper.ShortPath(SearchPath);
             try
             {
                 for (var i = 0; i < xScenes.Count; i++)
                 {
                     var assetPath = AsScriptingHelper.GetXmlAttribute(xScenes[i], "AssetPath");
-                    if (!assetPath.Contains(SearchPath)) continue;
+                    if (!assetPath.Contains(searchPath)) continue;
                     if (isCompare)
                         CompareScene(xScenes[i]);
                     else
@@ -302,7 +303,7 @@ namespace AudioStudio.Tools
             EditorSceneManager.OpenScene(currentScene);
         }
 
-        public bool ImportScene(XElement xScene)
+        internal bool ImportScene(XElement xScene)
         {
             var scenePath = AsScriptingHelper.GetXmlAttribute(xScene, "AssetPath");
             var scene = EditorSceneManager.OpenScene(scenePath);
@@ -327,6 +328,7 @@ namespace AudioStudio.Tools
                     {
                         EditedCount++;
                         modified = true;
+                        EditorUtility.SetDirty(component);
                     }
                     break;
                 }
@@ -341,12 +343,13 @@ namespace AudioStudio.Tools
             var xPrefabs = XRoot.Elements("Prefab").ToList();                
             var totalCount = xPrefabs.Count;
             TotalCount += totalCount;
+            var searchPath = AsScriptingHelper.ShortPath(SearchPath);
             try
             {
                 for (var i = 0; i < xPrefabs.Count; i++)
                 {
                     var assetPath = AsScriptingHelper.GetXmlAttribute(xPrefabs[i], "AssetPath");
-                    if (!assetPath.Contains(SearchPath)) continue;
+                    if (!assetPath.Contains(searchPath)) continue;
                     if (isCompare)
                         ComparePrefab(xPrefabs[i]);
                     else
@@ -361,7 +364,7 @@ namespace AudioStudio.Tools
             }
         }
 
-        public bool ImportPrefab(XElement xPrefab)
+        internal bool ImportPrefab(XElement xPrefab)
         {
             var prefabPath = AsScriptingHelper.GetXmlAttribute(xPrefab, "AssetPath");
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
@@ -388,7 +391,11 @@ namespace AudioStudio.Tools
                 {
                     EditedCount++;
                     modified = true;
+#if UNITY_2018_3_OR_NEWER                    
+                    PrefabUtility.SavePrefabAsset(prefab);
+#else
                     EditorUtility.SetDirty(prefab);
+#endif                    
                 }
             }
             return modified;
@@ -396,7 +403,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Compare
-        public void Compare()
+        internal void Compare()
         {            
             var filePath = EditorUtility.OpenFilePanel("Import from", XmlDocDirectory, "xml");
             if (string.IsNullOrEmpty(filePath)) return;               
@@ -501,15 +508,17 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Locate
-        public static string FindComponentAssetPath(Component component, bool defaultOnPrefab = false)
+        internal static string FindComponentAssetPath(Component component, bool defaultOnPrefab = false)
         {
             var path = AssetDatabase.GetAssetPath(component);
+            // path won't be empty if editing on top level of a prefab
             if (string.IsNullOrEmpty(path))
             {
-#if UNITY_2018_3_OR_NEWER
+#if UNITY_2018_3_OR_NEWER //2018.3 and later moves prefab editing to a separate stage
                 var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
                 path = stage != null ? stage.prefabAssetPath : SceneManager.GetActiveScene().path;
 #else
+                // if the component is from part of a prefab
                 if (PrefabUtility.GetPrefabType(component.gameObject) != PrefabType.None)
                 {   
 #if UNITY_2018_1_OR_NEWER
@@ -517,15 +526,10 @@ namespace AudioStudio.Tools
 #else
                     var prefab = PrefabUtility.GetPrefabParent(component.gameObject);
 #endif
-                    if (!defaultOnPrefab)
-                    {
-                        if (EditorUtility.DisplayDialog("Options", "Do you want to apply to prefab or its scene variant?", "Prefab", "Scene"))
-                            path = AssetDatabase.GetAssetPath(prefab);
-                        else
-                            path = SceneManager.GetActiveScene().path;
-                    }
-                    else
+                    if (defaultOnPrefab || EditorUtility.DisplayDialog("Options", "Do you want to apply to prefab or its scene variant?", "Prefab", "Scene"))
                         path = AssetDatabase.GetAssetPath(prefab);
+                    else
+                        path = SceneManager.GetActiveScene().path;
                 } 
                 else                
                     path = SceneManager.GetActiveScene().path;
@@ -552,7 +556,7 @@ namespace AudioStudio.Tools
             return xAsset.Elements().FirstOrDefault(x => GetGameObjectPath(component.transform) == AsScriptingHelper.GetXmlAttribute(x, "GameObject"));
         }
 
-        public bool ComponentBackedUp(string assetPath, AsComponent component)
+        internal bool ComponentBackedUp(string assetPath, AsComponent component)
         {
             var xAsset = FindAssetNode(assetPath, component.GetType(), false);
             if (xAsset == null) return false;
@@ -561,7 +565,7 @@ namespace AudioStudio.Tools
         #endregion
 
         #region Update
-        public bool UpdateXmlFromComponent(string assetPath, AsComponent component)
+        internal bool UpdateXmlFromComponent(string assetPath, AsComponent component)
         {                                    
             var type = component.GetType();
             var xAsset = FindAssetNode(assetPath, type, true);
@@ -579,44 +583,40 @@ namespace AudioStudio.Tools
         }
 
 #if UNITY_2018_3_OR_NEWER
-        public static void SaveComponentAsset(GameObject go, bool saveToScene = false)
+        internal static void SaveComponentAsset(GameObject go, string assetPath)
         {
-            if (!string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go)))
+            if (assetPath.EndsWith(".prefab"))
             {
-                AssetDatabase.SaveAssets();
-                return;
+                var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
+                if (stage == null)
+                    PrefabUtility.SavePrefabAsset(go);
+                else
+                    EditorUtility.SetDirty(go);
             }
-            //if in open prefab mode, no need to save prefab
-            var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-            if (stage == null)
+            else
                 EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
         }
 #else
-        public static void SaveComponentAsset(GameObject go, bool saveToScene = false)
+        internal static void SaveComponentAsset(GameObject go, string assetPath)
         {
-            if (!saveToScene && PrefabUtility.GetPrefabType(go) != PrefabType.None)
+            if (assetPath.EndsWith(".prefab"))
             {
-                if (string.IsNullOrEmpty(AssetDatabase.GetAssetPath(go)))
-                {
 #if UNITY_2018_1_OR_NEWER
-                    var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
+                var prefab = PrefabUtility.GetCorrespondingObjectFromSource(go);
 #else
-                    var prefab = PrefabUtility.GetPrefabParent(go);
+                var prefab = PrefabUtility.GetPrefabParent(go);
 #endif
-                    var prefabRoot = PrefabUtility.FindPrefabRoot(go);
-                    PrefabUtility.ReplacePrefab(prefabRoot, prefab, ReplacePrefabOptions.ConnectToPrefab);
-                }
-                else
-                    AssetDatabase.SaveAssets();
-                return;
+                var prefabRoot = PrefabUtility.FindPrefabRoot(go);
+                PrefabUtility.ReplacePrefab(prefabRoot, prefab, ReplacePrefabOptions.ConnectToPrefab);
             }
-            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
+            else
+                EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
         }
 #endif
         #endregion
         
         #region Revert
-        public bool RevertComponentToXml(string assetPath, AsComponent component)
+        internal bool RevertComponentToXml(string assetPath, AsComponent component)
         {
             var xAsset = FindAssetNode(assetPath, component.GetType(), true);
             var xComponent = FindComponentNode(xAsset, component);
@@ -625,36 +625,97 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Remove
-        public void RemoveScene(string assetPath)
-        {                        
+        internal void RemoveAll()
+        {
+            CleanUp();
+            if (IncludeA)
+                FindFiles(RemoveAllInPrefab, "Removing Prefabs", "*.prefab");
+            if (IncludeB)
+            {
+                var currentScene = SceneManager.GetActiveScene().path;
+                FindFiles(RemoveAllInScene, "Removing Scenes", "*.unity");
+                EditorSceneManager.OpenScene(currentScene);
+            }
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + TotalCount + " components!", "OK");
+        }
+        
+        internal void RemoveUnsaved()
+        {
+            CleanUp();
+            if (IncludeA)
+                FindFiles(RemoveUnsavedInPrefab, "Removing Prefabs not Backed up", "*.prefab");
+            if (IncludeB)
+            {
+                var currentScene = SceneManager.GetActiveScene().path;
+                FindFiles(RemoveUnsavedInScene, "Removing Scenes not Backed up", "*.unity");
+                EditorSceneManager.OpenScene(currentScene);
+            }
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + TotalCount + " components!", "OK");
+        }
+
+        internal void RemoveUnsavedInScene(string assetPath)
+        {
             var scene = EditorSceneManager.OpenScene(assetPath);
             if (!scene.IsValid()) return;
             foreach (var rootGameObject in scene.GetRootGameObjects())
             {
-                var components = rootGameObject.GetComponentsInChildren<AsComponent>(true);
-                foreach (var component in components)
+                RemoveComponent(assetPath, rootGameObject, false);
+            }
+            EditorSceneManager.SaveScene(scene);
+        }
+
+        internal void RemoveUnsavedInPrefab(string assetPath)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
+            if (!prefab) return;
+            RemoveComponent(assetPath, prefab, false);
+#if UNITY_2018_3_OR_NEWER                    
+            PrefabUtility.SavePrefabAsset(prefab);
+#endif 
+        }
+
+        private void RemoveComponent(string assetPath, GameObject gameObject, bool removeAll)
+        {
+            var components = gameObject.GetComponentsInChildren<AsComponent>(true);
+            foreach (var component in components)
+            {
+                if (removeAll || !ComponentBackedUp(assetPath, component))
                 {
-                    RemoveComponentXml(assetPath, component);
+                    TotalCount++;
+                    DestroyImmediate(component, true);
                 }
+            }
+        }
+        
+        internal void RemoveAllInScene(string assetPath)
+        {                        
+            var scene = EditorSceneManager.OpenScene(assetPath);
+            if (!scene.IsValid()) return;
+            var xAsset = XRoot.Elements("Scene").FirstOrDefault(x => assetPath == AsScriptingHelper.GetXmlAttribute(x, "AssetPath"));
+            if (xAsset != null)
+                xAsset.Remove();
+            foreach (var rootGameObject in scene.GetRootGameObjects())
+            {
+                RemoveComponent(assetPath, rootGameObject, true);
             }
             EditorSceneManager.SaveScene(scene);
         }
         
-        public void RemovePrefab(string assetPath)
+        internal void RemoveAllInPrefab(string assetPath)
         {                        
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(assetPath);
             if (!prefab) return;
-            var components = prefab.GetComponentsInChildren<AsComponent>(true);
             var xAsset = XRoot.Elements("Prefab").FirstOrDefault(x => assetPath == AsScriptingHelper.GetXmlAttribute(x, "AssetPath"));
             if (xAsset != null)
                 xAsset.Remove();
-            foreach (var component in components)
-            {
-                DestroyImmediate(component, true);
-            }
+            RemoveComponent(assetPath, prefab, true);
+#if UNITY_2018_3_OR_NEWER                    
+            PrefabUtility.SavePrefabAsset(prefab);
+#endif 
         }
         
-        public void RemoveComponentXml(string assetPath, AsComponent component)
+        // remove node from component inspector
+        internal void RemoveComponentXml(string assetPath, AsComponent component)
         {
             var type = component.GetType();
             var xAsset = FindAssetNode(assetPath, type, false);
@@ -665,6 +726,7 @@ namespace AudioStudio.Tools
             AsScriptingHelper.WriteXml(IndividualXmlPath(type), _outputTypes[type]);
         }
         
+        // remove node from compare window
         private void RemoveComponentXml(ComponentComparisonData data)
         {
             var type = AsScriptingHelper.StringToType(AsScriptingHelper.GetXmlAttribute(data.ComponentData, "Type"));
@@ -677,7 +739,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Combine
-        public void Combine()
+        internal void Combine()
         {
             ReadData();
             foreach (var type in ComponentsToSearch.Keys)
@@ -710,7 +772,7 @@ namespace AudioStudio.Tools
 
         private class AsComponentCompare : AsCompareWindow
         {               
-            public static void ShowWindow()
+            internal static void ShowWindow()
             {
                 var window = (AsComponentCompare) GetWindow(typeof(AsComponentCompare));
                 window.position = new Rect(500, 300, 700, 500);     

@@ -16,8 +16,8 @@ namespace AudioStudio.Editor
 
 		public override void OnInspectorGUI()
 		{		
-			serializedObject.Update();		
-			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Platform"));			
+			serializedObject.Update();
+			DrawHierarchy(_musicTrack);
 			DrawAudioClipData();
 			DrawRhythm();	
 			DrawTransition(_musicTrack);
@@ -49,12 +49,9 @@ namespace AudioStudio.Editor
 			EditorGUILayout.LabelField("Audio Data", EditorStyles.boldLabel);   
 			using (new GUILayout.VerticalScope(GUI.skin.box))
 			{
-				if (_musicTrack.Platform != Platform.Web)
-				{
-					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip", 80);
-					if (_musicTrack.Clip)
-						EditorGUILayout.LabelField("Sample Rate:  " + _musicTrack.Clip.frequency);
-				}
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip", 80);
+				if (_musicTrack.Clip)
+					EditorGUILayout.LabelField("Sample Rate:  " + _musicTrack.Clip.frequency);
 				GUILayout.BeginHorizontal();
 				EditorGUILayout.LabelField("Loop Count", GUILayout.Width(80));
 				EditorGUILayout.PropertyField(serializedObject.FindProperty("LoopCount"), GUIContent.none, GUILayout.Width(40));

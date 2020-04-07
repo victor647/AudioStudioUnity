@@ -1,11 +1,12 @@
-﻿using AudioStudio.Components;
+﻿using System.Collections.Generic;
+using AudioStudio.Components;
 using UnityEngine;
 
 namespace AudioStudio
 {
 	internal static class ListenerManager
 	{
-		private static AudioListener3D _currentFollowingListener;
+		private static List<AudioListener3D> _listeners = new List<AudioListener3D>();
 		
 		internal static void Init()
 		{
@@ -14,20 +15,22 @@ namespace AudioStudio
 		
 		internal static void AssignAudioListener(AudioListener3D listener)
 		{
-			_currentFollowingListener = listener;
+			if (!_listeners.Contains(listener))
+				_listeners.Add(listener);
 		}
 		
 		internal static void RemoveAudioListener(AudioListener3D listener)
 		{
-			if (_currentFollowingListener == listener)
-				_currentFollowingListener = null;
+			if (_listeners.Contains(listener))
+				_listeners.Remove(listener);
 		}
 		
 		internal static void UpdateListenerPositions()
 		{
-			if (!_currentFollowingListener) return;
-			GlobalAudioEmitter.GameObject.transform.position = _currentFollowingListener.Position;
-			GlobalAudioEmitter.GameObject.transform.rotation = _currentFollowingListener.transform.rotation;
+			if (_listeners.Count == 0) return;
+			var activeListener = _listeners[_listeners.Count - 1];
+			GlobalAudioEmitter.GameObject.transform.position = activeListener.Position;
+			GlobalAudioEmitter.GameObject.transform.rotation = activeListener.transform.rotation;
 		}
 
 		internal static float GetListenerDistance(GameObject emitter)

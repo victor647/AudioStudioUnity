@@ -37,9 +37,10 @@ namespace AudioStudio.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("ResetStateOnExit"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("StopEventsOnExit"));
 
-            AsGuiDrawer.DrawList(serializedObject.FindProperty("EnterEvents"), "On State Enter:", AddEnterEvent);
-            AsGuiDrawer.DrawList(serializedObject.FindProperty("ExitEvents"), "On State Enter:", AddExitEvent);
-
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("EnterEvents"), "Enter Events", AddEnterEvent);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("ExitEvents"), "Exit Events", AddExitEvent);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("EnterSwitches"), "Enter Switches", AddEnterSwitch);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("ExitSwitches"), "Exit Switches", AddExitSwitch);
             GUILayout.EndVertical();
             serializedObject.ApplyModifiedProperties();
             ShowButtons(_component);
@@ -50,7 +51,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.EnterEvents, new PostEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.EnterEvents, new PostEventReference(evt));
             }
         }
 
@@ -59,7 +60,25 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.ExitEvents, new PostEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.ExitEvents, new PostEventReference(evt));
+            }
+        }
+        
+        private void AddEnterSwitch(Object[] objects)
+        {
+            var switches = objects.Select(obj => obj as AudioSwitch).Where(a => a).ToArray();
+            foreach (var swc in switches)
+            {
+                AsScriptingHelper.AddToArray(ref _component.EnterSwitches, new SetSwitchReference(swc.name, swc.DefaultSwitch));
+            }
+        }
+
+        private void AddExitSwitch(Object[] objects)
+        {
+            var switches = objects.Select(obj => obj as AudioSwitch).Where(a => a).ToArray();
+            foreach (var swc in switches)
+            {
+                AsScriptingHelper.AddToArray(ref _component.ExitSwitches, new SetSwitchReference(swc.name, swc.DefaultSwitch));
             }
         }
 
@@ -68,6 +87,18 @@ namespace AudioStudio.Editor
             foreach (var evt in _component.EnterEvents)
             {
                 AsComponentBackup.RefreshEvent(evt);
+            }
+            foreach (var evt in _component.ExitEvents)
+            {
+                AsComponentBackup.RefreshEvent(evt);
+            }
+            foreach (var swc in _component.EnterSwitches)
+            {
+                AsComponentBackup.RefreshSwitch(swc);
+            }
+            foreach (var swc in _component.ExitSwitches)
+            {
+                AsComponentBackup.RefreshSwitch(swc);
             }
         }
 

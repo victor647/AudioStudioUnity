@@ -7,49 +7,80 @@ namespace AudioStudio.Configs
 {
 	[CreateAssetMenu(fileName = "New Parameter", menuName = "AudioStudio/Controller/Parameter")]
 	public class AudioParameter : AudioController
-	{								
+	{							
+		#region Fields
 		public float MinValue;		
 		public float MaxValue = 100f;								
 		public bool Slew;		
 		public float SlewRate = 20f;
 		public float DefaultValue = 50f;
-		
-		private List<AudioParameterInstance> _audioParameterInstances;
+		#endregion
 
 		#region Initialize
-		public override void Init()
+		private List<AudioParameterInstance> _activeInstances;
+
+		internal override void Init()
 		{			
-			_audioParameterInstances = new List<AudioParameterInstance>();
+			_activeInstances = new List<AudioParameterInstance>();
 		}
-		
-		public override void Dispose()
+
+		internal override void Dispose()
 		{             
-			_audioParameterInstances = null;											            
+			foreach (var api in _activeInstances)
+			{
+				Destroy(api);
+			}
 		}
-		#endregion
 		
-		public void RegisterMapping(ParameterMapping mapping, GameObject gameObject)
+		internal void RegisterMapping(ParameterMapping mapping, GameObject gameObject)
 		{
 			GetOrAddParameterInstance(gameObject);
-			foreach (var api in _audioParameterInstances)
+			foreach (var api in _activeInstances)
 			{
 				if (api.gameObject == gameObject)
 					api.ParameterMappings.Add(mapping);
 			}															
 		}
 
-		public void UnRegisterMapping(ParameterMapping mapping, GameObject gameObject)
+		internal void UnRegisterMapping(ParameterMapping mapping, GameObject gameObject)
 		{
-			foreach (var api in _audioParameterInstances)
+			foreach (var api in _activeInstances)
 			{
 				if (api.gameObject == gameObject)
 					api.ParameterMappings.Remove(mapping);
 			}
 		}
+		
+		internal void AddInstance(AudioParameterInstance instance)
+		{
+			_activeInstances.Add(instance);
+			AudioManager.GlobalParameterInstances.Add(name +  " @ " + instance.gameObject.name);  
+		}
 
+		internal void RemoveInstance(AudioParameterInstance instance)
+		{
+			_activeInstances.Remove(instance);
+			AudioManager.GlobalParameterInstances.Remove(name +  " @ " + instance.gameObject.name);  
+		}
+		
+		private AudioParameterInstance GetOrAddParameterInstance(GameObject gameObject)
+		{
+			var instances = gameObject.GetComponents<AudioParameterInstance>();
+			foreach (var api in instances)
+			{
+				if (api.Parameter == this)
+					return api;
+			}
+			var newInstance = gameObject.AddComponent<AudioParameterInstance>();
+			newInstance.Init(this);
+			return newInstance;
+		}
+		#endregion
+		
+		#region Controls
 		public void SetValueGlobal(float newValue)
 		{
-			foreach (var api in _audioParameterInstances)
+			foreach (var api in _activeInstances)
 			{
 				api.SetParameterValue(newValue);
 			}			
@@ -67,19 +98,7 @@ namespace AudioStudio.Configs
 			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Parameter, AudioAction.GetValue, AudioTriggerSource.Code, name, api.gameObject, value.ToString("0.000"));
 			return value;
 		}
-
-		private AudioParameterInstance GetOrAddParameterInstance(GameObject gameObject)
-		{
-			var instances = gameObject.GetComponents<AudioParameterInstance>();
-			foreach (var api in instances)
-			{
-				if (api.Parameter == this)
-					return api;
-			}
-			var newInstance = gameObject.AddComponent<AudioParameterInstance>();
-			newInstance.Init(this);
-			return newInstance;
-		}
+		#endregion
 		
 		#region Editor
 		public override void CleanUp()
@@ -90,90 +109,92 @@ namespace AudioStudio.Configs
 				Debug.LogError("Default Value in AudioParameter " + name + " out of range!");
 		}
 		#endregion
-		
-		public class AudioParameterInstance : MonoBehaviour
-		{			
-			public AudioParameter Parameter;
-			public List<ParameterMapping> ParameterMappings = new List<ParameterMapping>();
-			public float CurrentValue;
-			private bool _isSlewing;
-			private float _targetSetValue;
-
-			private void OnDestroy()
-			{
-				Parameter._audioParameterInstances.Remove(this);
-			}
-
-			public void Init(AudioParameter parameter)
-			{
-				Parameter = parameter;								
-				CurrentValue = _targetSetValue = Parameter.DefaultValue;					
-				parameter._audioParameterInstances.Add(this);
-			}
-		
-			public void SetParameterValue(float newValue)
-			{
-				if (_targetSetValue == newValue) return;
-				AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Parameter, AudioAction.SetValue, AudioTriggerSource.Code, name, gameObject, newValue.ToString("0.000"));
-				_targetSetValue = newValue;		
-				SlewValue(newValue);
-			}
-
-			private void SlewValue(float value)
-			{
-				value = Mathf.Clamp(value, Parameter.MinValue, Parameter.MaxValue);			
-
-				if (!Parameter.Slew) 				
-					CurrentValue = value;				
-				else //slewing the parameter change rate
-				{
-					if (Mathf.Abs(CurrentValue - _targetSetValue) > Parameter.SlewRate * 0.01f) //if still slewing
-					{
-						_isSlewing = true;
-						//increment the slewing value
-						CurrentValue += Mathf.Sign(_targetSetValue - CurrentValue) * Parameter.SlewRate * Time.fixedDeltaTime;                    
-					}
-					else //slewing has finished
-					{
-						_isSlewing = false;
-						CurrentValue = _targetSetValue; 
-					}
-				}			
-				ApplyToMappings();		                     
-			}
-		
-			//continue to slew using the current parameter as input
-			private void FixedUpdate()
-			{				
-				if (_isSlewing)				
-					SlewValue(CurrentValue); 				
-			}
-
-			//apply the value change to all the mappings
-			private void ApplyToMappings()
-			{
-				foreach (var mapping in ParameterMappings)
-				{
-					mapping.ConvertParameterToTarget(CurrentValue, gameObject); 
-				}	
-			}
-		}
 	}		
 	
-	public enum TargetType
-	{
-		Volume,
-		Pan, 
-		Pitch,
-		LowPassFilterCutoff,
-		HighPassFilterCutoff
-	} 
+	public class AudioParameterInstance : AudioControllerInstance
+	{			
+		public AudioParameter Parameter;
+		public List<ParameterMapping> ParameterMappings = new List<ParameterMapping>();
+		public float CurrentValue;
+		private bool _isSlewing;
+		private float _targetSetValue;
+
+		private void OnDestroy()
+		{
+			Parameter.RemoveInstance(this);
+		}
+
+		internal void Init(AudioParameter parameter)
+		{
+			Parameter = parameter;								
+			CurrentValue = _targetSetValue = Parameter.DefaultValue;					
+			Parameter.AddInstance(this);
+		}
+
+		internal void SetParameterValue(float newValue)
+		{
+			if (_targetSetValue == newValue) return;
+			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Parameter, AudioAction.SetValue, AudioTriggerSource.Code, name, gameObject, newValue.ToString("0.000"));
+			_targetSetValue = newValue;		
+			SlewValue(newValue);
+		}
+
+		private void SlewValue(float value)
+		{
+			value = Mathf.Clamp(value, Parameter.MinValue, Parameter.MaxValue);			
+
+			if (!Parameter.Slew) 				
+				CurrentValue = value;				
+			else //slewing the parameter change rate
+			{
+				if (Mathf.Abs(CurrentValue - _targetSetValue) > Parameter.SlewRate * 0.01f) //if still slewing
+				{
+					_isSlewing = true;
+					//increment the slewing value
+					CurrentValue += Mathf.Sign(_targetSetValue - CurrentValue) * Parameter.SlewRate * Time.fixedDeltaTime;                    
+				}
+				else //slewing has finished
+				{
+					_isSlewing = false;
+					CurrentValue = _targetSetValue; 
+				}
+			}			
+			ApplyToMappings();		                     
+		}
+		
+		//continue to slew using the current parameter as input
+		private void FixedUpdate()
+		{				
+			if (_isSlewing)				
+				SlewValue(CurrentValue); 				
+		}
+
+		//apply the value change to all the mappings
+		private void ApplyToMappings()
+		{
+			foreach (var mapping in ParameterMappings)
+			{
+				mapping.ConvertParameterToTarget(CurrentValue, gameObject); 
+			}	
+		}
+	}
+	
+	
 	
 	[Serializable]
 	public class ParameterMapping
     {        
+	    public enum TargetType
+	    {
+		    Volume,
+		    Pan, 
+		    Pitch,
+		    LowPassFilterCutoff,
+		    HighPassFilterCutoff
+	    } 
+	    
         public AudioParameterReference AudioParameterReference;        
-        public TargetType TargetType = TargetType.Volume;	    
+        public TargetType Target = TargetType.Volume;	    
         public float CurveExponent;       
         public float MinTargetValue;       
         public float MaxTargetValue;     
@@ -191,15 +212,15 @@ namespace AudioStudio.Configs
 	        MaxTargetValue = 1f; 
 	        MaxParameterValue = 100f;
         }
-        
-	    public void Init(AudioEventInstance evt, GameObject go)
+
+        internal void Init(AudioEventInstance evt, GameObject go)
 	    {		   
 		    _affectedEventInstance = evt;
 		    _parameter = AsAssetLoader.GetAudioParameter(AudioParameterReference.Name);
 		    if (!_parameter) return;
 		    _parameter.RegisterMapping(this, go);	
 		    
-		    switch (TargetType)
+		    switch (Target)
 		    {
 			    case TargetType.Volume:
 				    _modifyTarget = SetVolume;				    
@@ -220,7 +241,7 @@ namespace AudioStudio.Configs
 		    ConvertParameterToTarget(_parameter.GetValue(go), go);
 	    }
 
-	    public void Dispose(GameObject go)
+	    internal void Dispose(GameObject go)
 	    {		    
 			_parameter.UnRegisterMapping(this, go);
 			_affectedEventInstance = null;
@@ -251,21 +272,13 @@ namespace AudioStudio.Configs
 	    {
 		    _affectedEventInstance.SetLowPassCutoff(cutoff);
 	    }
-	    
-        public void ConvertParameterToTarget(float value, GameObject go)
-        {
-            float parameterPercentage;
-            if (MinParameterValue > MaxParameterValue)
-            {
-                parameterPercentage = 1f - (Mathf.Clamp(value, MaxParameterValue, MinParameterValue) - MaxParameterValue) 
-                                      / (MinParameterValue - MaxParameterValue);
-            }
-            else
-            {
-                parameterPercentage = (Mathf.Clamp(value, MinParameterValue, MaxParameterValue) - MinParameterValue) 
-                                      / (MaxParameterValue - MinParameterValue);
-            }
-            
+
+	    internal void ConvertParameterToTarget(float value, GameObject go)
+	    {
+		    value = Mathf.Clamp(value, MaxParameterValue, MinParameterValue);
+            var parameterPercentage = MinParameterValue <= MaxParameterValue ? 
+	            (value - MinParameterValue) / (MaxParameterValue - MinParameterValue) :
+	            1f - (value - MaxParameterValue) / (MinParameterValue - MaxParameterValue);
             var targetValue = Mathf.Lerp(MinTargetValue, MaxTargetValue, Mathf.Pow(parameterPercentage, CurveExponent));            
             _modifyTarget?.Invoke(targetValue, go);                     
         }

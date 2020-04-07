@@ -10,10 +10,10 @@ using Debug = UnityEngine.Debug;
 
 namespace AudioStudio.Tools
 {
-    public class AsTimelineAudioBackup : AsSearchers
+    internal class AsTimelineAudioBackup : AsSearchers
     {
         private static AsTimelineAudioBackup _instance;
-        public static AsTimelineAudioBackup Instance
+        internal static AsTimelineAudioBackup Instance
         {
             get
             {
@@ -29,17 +29,17 @@ namespace AudioStudio.Tools
         }
 
         #region Export
-        public void Export()
+        internal void Export()
         {
             CleanUp();
             var fileName = EditorUtility.SaveFilePanel("Export to", XmlDocDirectory, "AudioTimelineClip.xml", ".xml");
             if (string.IsNullOrEmpty(fileName)) return;                        
             FindFiles(ParseTimeline, "Exporting Timeline Assets", "*.playable");			
             AsScriptingHelper.WriteXml(fileName, XRoot);
-            EditorUtility.DisplayDialog("Success!", "Found " + TotalCount + " components in " + EditedCount + " timeline assets!", "OK");
+            EditorUtility.DisplayDialog("Process Finished!", "Found " + TotalCount + " components in " + EditedCount + " timeline assets!", "OK");
         }
 
-        public void ParseTimeline(string assetPath)
+        internal void ParseTimeline(string assetPath)
         {                        
             var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(assetPath);
             if (!timeline) return;
@@ -75,7 +75,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Import
-        public void Import()
+        internal void Import()
         {
             var xmlPath = EditorUtility.OpenFilePanel("Import from", XmlDocDirectory, "xml");
             if (string.IsNullOrEmpty(xmlPath) || !ReadData(xmlPath)) return;
@@ -83,7 +83,7 @@ namespace AudioStudio.Tools
             EditorUtility.DisplayProgressBar("Saving", "Overwriting assets...(might take a few minutes)", 1f);
             AssetDatabase.SaveAssets();
             EditorUtility.ClearProgressBar();
-            EditorUtility.DisplayDialog("Success!", "Updated " + EditedCount + " timeline assets out of " + TotalCount, "OK");            
+            EditorUtility.DisplayDialog("Process Finished!", "Updated " + EditedCount + " timeline assets out of " + TotalCount, "OK");            
         }
 
         private void ImportTimelines(bool isCompare)
@@ -113,7 +113,7 @@ namespace AudioStudio.Tools
             } 
         }
 
-        public bool ImportTimeline(XElement xTimeline)
+        internal bool ImportTimeline(XElement xTimeline)
         {
             var assetPath = AsScriptingHelper.GetXmlAttribute(xTimeline, "AssetPath");
             var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(assetPath);
@@ -139,7 +139,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Compare
-        public void Compare()
+        internal void Compare()
         {
             var xmlPath = EditorUtility.OpenFilePanel("Compare with", XmlDocDirectory, "xml");
             if (string.IsNullOrEmpty(xmlPath) || !ReadData(xmlPath)) return;
@@ -212,14 +212,14 @@ namespace AudioStudio.Tools
             return null;
         }
         
-        public bool ComponentBackedUp(string assetPath, TimelineClip component)
+        internal bool ComponentBackedUp(string assetPath, TimelineClip component)
         {
             var xAsset = FindAssetNode(assetPath, false);
             if (xAsset == null) return false;
             return FindComponentNode(xAsset, component) != null;
         }
         
-        public static TimelineClip GetClipFromComponent(string assetPath, AudioTimelineClip component)
+        internal static TimelineClip GetClipFromComponent(string assetPath, AudioTimelineClip component)
         {
             var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(assetPath);
             if (!timeline) return null;
@@ -246,7 +246,7 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Update
-        public bool UpdateXmlFromComponent(string assetPath, TimelineClip clip, AudioTimelineClip component)
+        internal bool UpdateXmlFromComponent(string assetPath, TimelineClip clip, AudioTimelineClip component)
         {
             var trackName = clip.parentTrack.name;
             var xAsset = FindAssetNode(assetPath, true);
@@ -265,7 +265,7 @@ namespace AudioStudio.Tools
         #endregion
 
         #region Revert
-        public bool RevertComponentToXml(string assetPath, TimelineClip clip, AudioTimelineClip component)
+        internal bool RevertComponentToXml(string assetPath, TimelineClip clip, AudioTimelineClip component)
         {                      
             var xAsset = FindAssetNode(assetPath, true);
             var xComponent = FindComponentNode(xAsset, clip);
@@ -274,18 +274,49 @@ namespace AudioStudio.Tools
         #endregion
         
         #region Remove
-        public void RemoveAll()
+        internal void RemoveUnsaved()
         {
             CleanUp();
-            FindFiles(RemoveTimeline, "Removing Timeline Assets", "*.playable");
+            FindFiles(RemoveUnsavedInTimeline, "Removing Unsaved Timeline Assets", "*.playable");
             AssetDatabase.SaveAssets();
-            EditorUtility.DisplayDialog("Success!", "Removed " + EditedCount + " audio tracks in " + TotalCount + " timeline assets!", "OK");
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + EditedCount + " audio tracks in " + TotalCount + " timeline assets!", "OK");
+        }
+        
+        internal void RemoveAll()
+        {
+            CleanUp();
+            FindFiles(RemoveAllInTimeline, "Removing Timeline Assets", "*.playable");
+            AssetDatabase.SaveAssets();
+            EditorUtility.DisplayDialog("Process Finished!", "Removed " + EditedCount + " audio tracks in " + TotalCount + " timeline assets!", "OK");
         }
 
-        public void RemoveTimeline(string assetPath)
-        {                        
+        internal void RemoveUnsavedInTimeline(string assetPath)
+        {
             var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(assetPath);
             if (!timeline) return;
+
+            var audioTracks = timeline.GetOutputTracks().Where(track => track is AudioTimelineTrack);
+            foreach (var track in audioTracks)
+            {
+                foreach (var clip in track.GetClips())
+                {
+                    if (!ComponentBackedUp(assetPath, clip))
+                        DestroyImmediate(clip.asset);
+                }
+                EditedCount++;
+                EditorUtility.SetDirty(timeline);
+            }
+            TotalCount++;
+        }
+        
+        internal void RemoveAllInTimeline(string assetPath)
+        {
+            var timeline = AssetDatabase.LoadAssetAtPath<TimelineAsset>(assetPath);
+            if (!timeline) return;
+            var xAsset = FindAssetNode(assetPath, false);
+            if (xAsset != null)
+                xAsset.Remove();
+            
             var toBeDeleted = timeline.GetOutputTracks().Where(track => track is AudioTimelineTrack);
             foreach (var track in toBeDeleted)
             {
@@ -296,7 +327,8 @@ namespace AudioStudio.Tools
             TotalCount++;
         }
         
-        public void RemoveComponentXml(string assetPath, TimelineClip clip)
+        // remove node from component inspector
+        internal void RemoveComponentXml(string assetPath, TimelineClip clip)
         {
             ReadData();
             var xAsset = FindAssetNode(assetPath, false);
@@ -307,6 +339,7 @@ namespace AudioStudio.Tools
             AsScriptingHelper.WriteXml(DefaultXmlPath, XRoot);
         }
 
+        // remove node from compare window
         private void RemoveComponentXml(ComponentComparisonData data)
         {
             var xAsset = FindAssetNode(data.AssetPath, false);
@@ -319,7 +352,7 @@ namespace AudioStudio.Tools
 
         private class AsTimelineCompare : AsCompareWindow
         {               
-            public static void ShowWindow()
+            internal static void ShowWindow()
             {
                 var window = GetWindow<AsTimelineCompare>();
                 window.position = new Rect(500, 300, 700, 500);     

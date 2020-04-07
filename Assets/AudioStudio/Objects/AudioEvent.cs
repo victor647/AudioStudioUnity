@@ -1,24 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using AudioStudio.Components;
+using AudioStudio.Tools;
 using UnityEngine;
 using UnityEngine.Audio;
 
 namespace AudioStudio.Configs
 {
-	public enum Platform
-	{
-		PC,
-		Web
-	}
-	
 	public abstract class AudioEvent : AudioConfig
 	{							
-		#region Settings				
-		public Platform Platform;
+		#region Fields				
 		public bool IndependentEvent = true;
 		public bool OverrideControls;
 		public bool OverrideSpatial;
-		
 		//Audio Control Settings
 		[Range(0f, 1f)]
 		public float Volume = 1f;
@@ -38,53 +32,53 @@ namespace AudioStudio.Configs
 		//Audio Mixer Settings
 		public bool SubMixer;
 		public string AudioMixer;
-
 		//For Random		
 		protected byte LastSelectedIndex = 255;
 		public bool AvoidRepeat = true;
 		public bool RandomOnLoop;
 		//For Switch			 
 		public AudioSwitchReference AudioSwitchReference = new AudioSwitchReference();		
-		public SwitchEventMapping[] SwitchEventMappings;
+		public SwitchEventMapping[] SwitchEventMappings = new SwitchEventMapping[0];
 		public bool SwitchImmediately;
 		public float CrossFadeTime = 0.5f;
-		
 		//For Parameter
-		public ParameterMapping[] Mappings;						
+		public ParameterMapping[] Mappings = new ParameterMapping[0];						
 		#endregion								
 
+		#region Initialize
+		protected List<AudioEventInstance> _playingInstances = new List<AudioEventInstance>(); 
 		//When an event is loaded, before playing
-		public abstract void Init();						
-
+		internal abstract void Init();
 		//When an event is unloaded
-		public abstract void Dispose();
+		internal abstract void Dispose();
+		#endregion
 		
 		#region Playback		
-		public abstract void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null);
+		public abstract string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null);
 		public abstract void Stop(GameObject soundSource, float fadeOutTime = 0f);
-		public abstract void Mute(GameObject soundSource, float fadeOutTime = 0f);
-		public abstract void UnMute(GameObject soundSource, float fadeInTime = 0f);
-		public abstract void Pause(GameObject soundSource, float fadeOutTime = 0f);
-		public abstract void Resume(GameObject soundSource, float fadeInTime = 0f);
+		internal abstract void StopAll(float fadeOutTime = 0f);
+		internal abstract void Mute(GameObject soundSource, float fadeOutTime = 0f);
+		internal abstract void UnMute(GameObject soundSource, float fadeInTime = 0f);
+		internal abstract void Pause(GameObject soundSource, float fadeOutTime = 0f);
+		internal abstract void Resume(GameObject soundSource, float fadeInTime = 0f);
+		#endregion
+
+		#region Editor
+		internal abstract AudioObjectType GetEventType();
 		#endregion
 	}
 
 	public abstract class AudioEventInstance : MonoBehaviour
 	{
-		public AudioSource AudioSource;
-		public GameObject Emitter;
+		internal AudioSource AudioSource;
+		internal GameObject Emitter;
 		protected Action<GameObject> OnAudioEnd;
 		protected int TimeSamples = -1;
 		protected PlayingStatus PlayingStatus = PlayingStatus.Idle;
 		protected AudioLowPassFilter LowPassFilter;
 		protected AudioHighPassFilter HighPassFilter;
 
-		private void OnDisable()
-		{
-			OnAudioEndOrStop();
-		}
-
-		protected virtual void OnAudioEndOrStop()
+		protected void OnAudioEndOrStop()
 		{
 			PlayingStatus = PlayingStatus.Idle;
 			if (gameObject.name.EndsWith("(AudioSource)"))
@@ -97,11 +91,11 @@ namespace AudioStudio.Configs
 				Destroy(this);
 		}
 
-		public virtual void Stop(float fadeOutTime)
+		internal void Stop(float fadeOutTime)
 		{
 			PlayingStatus = PlayingStatus.Stopping;
 			TimeSamples = -1;
-			if (gameObject.activeInHierarchy && fadeOutTime > 0f)
+			if (isActiveAndEnabled && fadeOutTime > 0f)
 				StartCoroutine(AudioSource.Stop(fadeOutTime, OnAudioEndOrStop));
 			else
 			{
@@ -111,53 +105,65 @@ namespace AudioStudio.Configs
 		}
 		
 		#region Controls
-		public virtual void SetOutputBus(AudioMixerGroup amg)
+		internal virtual void SetOutputBus(AudioMixerGroup amg)
 		{
 			AudioSource.outputAudioMixerGroup = amg;
 		}
 
-		public void Mute(float fadeOutTime)
+		internal void Mute(float fadeOutTime)
 		{
-			StartCoroutine(AudioSource.Mute(fadeOutTime));
+			if (isActiveAndEnabled && fadeOutTime > 0)
+				StartCoroutine(AudioSource.Mute(fadeOutTime));
+			else
+				AudioSource.mute = true;
 		}
 
-		public void UnMute(float fadeInTime)
+		internal void UnMute(float fadeInTime)
 		{
-			StartCoroutine(AudioSource.UnMute(fadeInTime));
-		}
-		
-		public void Pause(float fadeOutTime)
-		{
-			StartCoroutine(AudioSource.Pause(fadeOutTime));
+			if (isActiveAndEnabled && fadeInTime > 0)
+				StartCoroutine(AudioSource.UnMute(fadeInTime));
+			else
+				AudioSource.mute = true;
 		}
 
-		public void Resume(float fadeInTime)
+		internal void Pause(float fadeOutTime)
 		{
-			StartCoroutine(AudioSource.Resume(fadeInTime));
+			if (isActiveAndEnabled && fadeOutTime > 0)
+				StartCoroutine(AudioSource.Pause(fadeOutTime));
+			else
+				AudioSource.Pause();
 		}
 
-		public virtual void SetVolume(float volume)
+		internal void Resume(float fadeInTime)
+		{
+			if (isActiveAndEnabled && fadeInTime > 0)
+				StartCoroutine(AudioSource.Resume(fadeInTime));
+			else
+				AudioSource.UnPause();
+		}
+
+		internal virtual void SetVolume(float volume)
 		{
 			AudioSource.volume = volume;
 		}
 
-		public virtual void SetPitch(float pitch)
+		internal virtual void SetPitch(float pitch)
 		{
 			AudioSource.pitch = pitch;
 		}
 
-		public virtual void SetPan(float pan)
+		internal virtual void SetPan(float pan)
 		{
 			AudioSource.panStereo = pan;
 		}
 
-		public void SetLowPassCutoff(float cutoff)
+		internal void SetLowPassCutoff(float cutoff)
 		{
 			if (LowPassFilter) 
 				LowPassFilter.cutoffFrequency = cutoff;
 		}
 
-		public void SetHighPassCutoff(float cutoff)
+		internal void SetHighPassCutoff(float cutoff)
 		{
 			if (HighPassFilter) 
 				HighPassFilter.cutoffFrequency = cutoff;

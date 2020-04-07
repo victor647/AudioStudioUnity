@@ -33,10 +33,10 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="CSharp-Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\..\..\..\IOE_Beta\Assets\Plugins\Thirdparty\Framework\CSharp-Core.dll</HintPath>
+          <HintPath>..\..\..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Core.dll</HintPath>
         </Reference>
         <Reference Include="CSharp-Unity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\..\..\..\IOE_Beta\Assets\Plugins\Thirdparty\Framework\CSharp-Unity.dll</HintPath>
+          <HintPath>..\..\..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Unity.dll</HintPath>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
@@ -160,9 +160,6 @@
         <Compile Include="..\..\Assets\AudioStudio\Core\MusicTransport.cs">
           <Link>Core\MusicTransport.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\WebMusicPlayer.cs">
-          <Link>Core\WebMusicPlayer.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Extensions\AsEnumItems.cs">
           <Link>Extensions\AsEnumItems.cs</Link>
         </Compile>
@@ -216,13 +213,16 @@
         </Compile>
         <Compile Include="AsAssetLoader.cs" />
         <Compile Include="AudioPathSettingsExt.cs" />
-        <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\AudioStudio_Deployment\AudioStudio_Deployment.csproj">
         <Project>{7451dbb3-62a4-4401-82ec-f6a84cfb0832}</Project>
         <Name>AudioStudio_Deployment</Name>
       </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Plugins" />
+      <Folder Include="Properties" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

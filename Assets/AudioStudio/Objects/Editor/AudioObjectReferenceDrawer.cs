@@ -1,4 +1,5 @@
-﻿using AudioStudio;
+﻿using System.Linq;
+using AudioStudio;
 using AudioStudio.Components;
 using AudioStudio.Configs;
 using AudioStudio.Editor;
@@ -79,8 +80,8 @@ public class MusicSegmentReferenceDrawer : MusicTransitionReferenceDrawer
     }
 }
 
-[CustomPropertyDrawer(typeof(PostEventReference))]
-public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
+[CustomPropertyDrawer(typeof(AudioEventReference))]
+public class AudioEventReferenceDrawer : AudioObjectReferenceDrawer
 {						
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
@@ -92,7 +93,6 @@ public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
         position.x += 57;
         
         position.width = totalWidth - 55;
-        var type = eventType.enumValueIndex;
         if (ShowButton(position, property, "Event"))
         {
             switch (eventType.enumValueIndex)
@@ -107,25 +107,22 @@ public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
                     ShowPicker<VoiceEvent>(position);
                     break;
             }
-        }		
-        GUILayout.EndHorizontal();
-        
-        GUILayout.BeginHorizontal();
-        AsGuiDrawer.DrawProperty(property.FindPropertyRelative("Action"), "", 40);
-        AsGuiDrawer.DrawProperty(property.FindPropertyRelative("FadeTime"), "", 70, 40);
-        GUILayout.EndHorizontal();
-        
-        GUILayout.BeginHorizontal();
-        EditorGUILayout.LabelField(" ");
+        }
+        DrawAuditionButtons(property);
+    }
+
+    protected void DrawAuditionButtons(SerializedProperty property)
+    {
         if (Application.isPlaying)
         {
+            var eventType = property.FindPropertyRelative("Type").enumValueIndex;			
             GUI.contentColor = Color.green;
             if (GUILayout.Button("▶", EditorStyles.miniButtonLeft, GUILayout.Width(20f)))
             {
                 var eventName = property.FindPropertyRelative("Name").stringValue;
                 var component = property.serializedObject.targetObject as MonoBehaviour;
                 var gameObject = component ? component.gameObject : GlobalAudioEmitter.GameObject;
-                switch (type)
+                switch (eventType)
                 {
                     case 0:
                         AudioManager.PlaySound(eventName, gameObject, 0, null, AudioTriggerSource.InspectorAudition);
@@ -144,7 +141,7 @@ public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
                 var eventName = property.FindPropertyRelative("Name").stringValue;
                 var component = property.serializedObject.targetObject as MonoBehaviour;
                 var gameObject = component ? component.gameObject : GlobalAudioEmitter.GameObject;
-                switch (type)
+                switch (eventType)
                 {
                     case 0:
                         AudioManager.StopSound(eventName, gameObject, 0, AudioTriggerSource.InspectorAudition);
@@ -159,6 +156,24 @@ public class PostEventReferenceDrawer : AudioObjectReferenceDrawer
             }
             GUI.contentColor = Color.white;
         }
+    }
+}
+
+[CustomPropertyDrawer(typeof(PostEventReference))]
+public class PostEventReferenceDrawer : AudioEventReferenceDrawer
+{						
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        base.OnGUI(position, property, label);
+        GUILayout.EndHorizontal();
+        
+        GUILayout.BeginHorizontal();
+        AsGuiDrawer.DrawProperty(property.FindPropertyRelative("Action"), "", 40);
+        AsGuiDrawer.DrawProperty(property.FindPropertyRelative("FadeTime"), "", 70, 40);
+        GUILayout.EndHorizontal();
+        
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField(" ");
     }
 }
 
@@ -182,6 +197,42 @@ public class SoundBankReferenceDrawer : AudioObjectReferenceDrawer
             GUI.contentColor = Color.white;
         }
     }	
+}
+
+[CustomPropertyDrawer(typeof(LoadBankReference))]
+public class LoadBankReferenceDrawer : SoundBankReferenceDrawer
+{							
+    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+    {
+        base.OnGUI(position, property, label);
+        GUILayout.EndHorizontal();
+        EditorGUILayout.PropertyField(property.FindPropertyRelative("UnloadOnDisable"));
+        var eventsProperty = property.FindPropertyRelative("LoadFinishEvents");
+        AsGuiDrawer.DrawList(eventsProperty, "Play On Load Finish:", objects =>
+        {
+            var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
+            foreach (var evt in events)
+            {
+                eventsProperty.arraySize++;
+                var item = eventsProperty.GetArrayElementAtIndex(eventsProperty.arraySize - 1);
+                item.FindPropertyRelative("Name").stringValue = evt.name;
+                switch (evt)
+                {
+                    case SoundContainer _:
+                        item.FindPropertyRelative("Type").enumValueIndex = 0;
+                        break;
+                    case MusicContainer _:
+                        item.FindPropertyRelative("Type").enumValueIndex = 1;
+                        break;
+                    case VoiceEvent _:
+                        item.FindPropertyRelative("Type").enumValueIndex = 2;
+                        break;
+                }
+            }
+        });
+        GUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField(" ");
+    }
 }
 
 [CustomPropertyDrawer(typeof(AudioParameterReference))]
@@ -242,12 +293,12 @@ public class SetSwitchReferenceDrawer : AudioObjectReferenceDrawer
     {
         var totalWidth = position.width;
 		
-        position.width = 130;		        
+        position.width = 120;		        
         if (ShowButton(position, property, "Switch"))
             ShowPicker<AudioSwitch>(position);
         
-        position.x += 132;
-        position.width = totalWidth - 132;
+        position.x += 122;
+        position.width = totalWidth - 122;
         var selection = property.FindPropertyRelative("Selection");
         EditorGUI.PropertyField(position, selection, GUIContent.none);
 

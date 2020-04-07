@@ -24,11 +24,23 @@ namespace AudioStudio
     {
         None,
         PendingTransition,
-        PendingSwitch,
-        PendingSequence,
-        Transitioning           
+        Transitioning,
     }
-    
+
+    public enum SequencingStatus
+    {
+        None,
+        PendingSequence,
+        ChangingSequence
+    }
+
+    public enum SwitchingStatus
+    {
+        None,
+        PendingSwitch,
+        SwitchCrossFading
+    }
+
     public enum BeatDuration
     {
         _4,
@@ -84,10 +96,12 @@ namespace AudioStudio
         {
             get
             {
-                if (_instance) return _instance;
-                var go = new GameObject("Music Transport");
-                _instance = go.AddComponent<MusicTransport>();
-                DontDestroyOnLoad(_instance);
+                if (!_instance)
+                {
+                    var go = new GameObject("Music Transport");
+                    _instance = go.AddComponent<MusicTransport>();
+                    DontDestroyOnLoad(_instance);
+                }
                 return _instance;
             }
         }
@@ -101,191 +115,124 @@ namespace AudioStudio
             get => ActiveMusicData.RemainingLoops;
             set => ActiveMusicData.RemainingLoops = value;
         }
-        private int SampleRate => ActiveMusicData.SampleRate;
+        private int SampleRate
+        {
+            get
+            {
+                if (ActiveMusicData != null)
+                    return ActiveMusicData.SampleRate;
+                Debug.LogError("AudioStudio: Can't find Active Music Data!");
+                return 44100;
+            }
+        }
+
+        public int CurrentSample => PlayHeadAudioSource ? PlayHeadAudioSource.timeSamples : 0;
         public MusicMarker CurrentMarker => ActiveMusicData.CurrentMarker;
         public BarAndBeat ExitPosition => ActiveMusicData.MusicTrack.ExitPosition;
         private int BeatsPerBar => ActiveMusicData.CurrentMarker.BeatsPerBar;
         private int BeatDurationSamples => Mathf.FloorToInt(CurrentMarker.BeatDurationRealtime() * SampleRate);
         private int PickUpLengthSamples => ActiveMusicData.PickUpLengthSamples;
-        private int ExitPositionSamples => Mathf.FloorToInt(ActiveMusicData.MusicTrack.LoopDurationRealTime() * SampleRate) + PickUpLengthSamples;
+        private int ExitPositionSamples => ActiveMusicData.MusicTrack.LoopDurationSamples() + PickUpLengthSamples;
         private int TrackLengthSamples => ActiveMusicData.MusicTrack.Clip.samples;
-        public MusicKey CurrentKey => CurrentMarker.KeyCenter;
-        private float FadeInTime => _currentTransitionEntryData.FadeInTime;
-        private float EntryOffset => _currentTransitionEntryData.EntryOffset;
-        private float FadeOutTime => _currentTransitionExitData.FadeOutTime;
-        private float ExitOffset => _currentTransitionExitData.ExitOffset;
-        private TransitionInterval TransitionInterval => _currentTransitionExitData.Interval;
-        private BarAndBeat GridLength => _currentTransitionExitData.GridLength;
-        private int GridLengthSamples
-        {
-            get
-            {
-                switch (_currentTransitionExitData.Interval)
-                {
-                    case TransitionInterval.NextBeat:                    
-                        return BeatDurationSamples;
-                    case TransitionInterval.NextBar:                    
-                        return BeatDurationSamples * CurrentMarker.BeatsPerBar;
-                    case TransitionInterval.NextGrid:
-                        return GridLength.ToBeats(CurrentMarker.BeatsPerBar) * BeatDurationSamples;
-                    case TransitionInterval.ExitCue:
-                        return TrackLengthSamples;
-                    default:
-                        return 0;
-                }
-            }
-        }
-
-        public int CurrentSample => PlayHeadAudioSource.timeSamples;
         #endregion
         
         #region PlayEvent
-        public TransportData ActiveMusicData;
-        public TransportData QueuedMusicData;
-        public MusicContainer CurrentPlayingEvent;    
-        public MusicContainer NextPlayingEvent;
-        public List<MusicTrack> ActiveTracks = new List<MusicTrack>();
-        public List<MusicTrack> QueuedTracks = new List<MusicTrack>();        
-        public List<MusicTrackInstance> PlayingTrackInstances = new List<MusicTrackInstance>();
-        private List<MusicTrackInstance> _exitingTrackInstances = new List<MusicTrackInstance>();
-        
-        private TransitionEntryData _currentTransitionEntryData;
-        private TransitionExitData _currentTransitionExitData;
-        
-        public void SetMusicQueue(MusicContainer newMusic, float fadeInTime = 0f)
+        public TransportData ActiveMusicData, QueuedMusicData;
+        public MusicContainer CurrentEvent, QueuedEvent;
+        public List<MusicTrack> ActiveTracks = new List<MusicTrack>(); 
+        public List<MusicTrack> QueuedTracks = new List<MusicTrack>();
+        private List<MusicTrackInstance> _playingInstances = new List<MusicTrackInstance>();
+        private List<MusicTrackInstance> _exitingInstances = new List<MusicTrackInstance>();
+
+        public string SetMusicQueue(MusicContainer newMusic, float fadeInTime = 0f)
         {
             _currentTransitionExitData = GetTransitionExitCondition(newMusic);
             _currentTransitionEntryData = GetTransitionEntryCondition(newMusic);
 
-            if (!CurrentPlayingEvent) //no music is currently playing
+            var selectedTrack = string.Empty;
+            // directly play the music if no music is playing
+            if (!CurrentEvent) 
             {
-                CurrentPlayingEvent = newMusic;
+                CurrentEvent = newMusic;
                 ActiveTracks.Clear();
                 GetTracks(newMusic, ActiveTracks);
-                if (ActiveTracks.Count == 0) return;
                 ActiveMusicData = new TransportData(ActiveTracks[0]);
+                selectedTrack = ActiveTracks[0].name;
                 Play(fadeInTime);                                
             }
-            else if (CurrentPlayingEvent != newMusic)
+            else if (CurrentEvent != newMusic)
             {
-                if (TransitioningStatus != TransitioningStatus.None) 
-                    CancelTransition();                
-                NextPlayingEvent = newMusic;
+                // stop any pending transition, switch or sequence
+                CancelTransition();
+                CancelSwitch();
+                CancelSequence();
+                
+                QueuedEvent = newMusic;
                 QueuedTracks.Clear();
                 GetTracks(newMusic, QueuedTracks);
-                if (QueuedTracks.Count == 0) return;
                 QueuedMusicData = new TransportData(QueuedTracks[0]);
+                selectedTrack = QueuedTracks[0].name;
+                // calculate the time for transition
                 PrepareTransition();
             }
-            _exitingTrackInstances = PlayingTrackInstances;
+            _exitingInstances = _playingInstances;
+            return selectedTrack;
         }
 
-        private static void GetTracks(MusicContainer evt, List<MusicTrack> trackList)
+        private static void GetTracks(MusicContainer evt, ICollection<MusicTrack> trackList)
         {
-            var track = evt as MusicTrack; 
-            if (track) //if this is single track just get it
+            var track = evt as MusicTrack;
+            // if this is single track just get it
+            if (track) 
             {
                 trackList.Add(track);
                 return;
             }
-
-            if (evt.PlayLogic == MusicPlayLogic.Layer) //play all tracks together
+            // play all layered tracks together
+            if (evt.PlayLogic == MusicPlayLogic.Layer) 
             {
                 foreach (var childEvent in evt.ChildEvents)
                 {
                     GetTracks(childEvent, trackList);
                 }
             }
-            else //choose a track by play logic
+            // choose a track by play logic
+            else 
             {
                 var musicContainer = evt.GetEvent();
                 GetTracks(musicContainer, trackList);
             }
         }
-
-        //generate the audio sources
-        private void CreateMusicTrackInstances(float fadeInTime = 0f, int timeSamples = 0)
+        
+        private void CreatePlayingInstances(float fadeInTime = 0f, int timeSamples = 0)
         {            
-            PlayingTrackInstances = new List<MusicTrackInstance>();
+            if (ActiveTracks.Count == 0) return;
+            _playingInstances = new List<MusicTrackInstance>();
+            // generate the audio sources
             foreach (var track in ActiveTracks)
             {
                 var mti = gameObject.AddComponent<MusicTrackInstance>();                     
                 mti.Init(track);
+                _playingInstances.Add(mti);
                 mti.Play(fadeInTime, timeSamples);                    
             }
-            PlayHeadAudioSource = PlayingTrackInstances[0].AudioSource;
-        }
-        #endregion
-        
-        #region Stinger
-        private MusicStinger _queuedStinger;
-        private int _triggerStingerSampleStamp;
-        
-        //play a stinger on top of currently playing tracks
-        public void QueueStinger(MusicStinger stinger)
-        {            
-            _queuedStinger = stinger;
-            switch (stinger.TriggerSync)
-            {
-                case TransitionInterval.Immediate:
-                    PlayStinger();
-                    break;
-                case TransitionInterval.NextBar:
-                    _triggerStingerSampleStamp = Mathf.FloorToInt(_beatSampleStamp + BeatsPerBar * BeatDurationSamples - stinger.PickUpLength * SampleRate);                                         
-                    while (CurrentSample >= _triggerStingerSampleStamp)
-                    {
-                        _triggerStingerSampleStamp += BeatsPerBar * BeatDurationSamples;
-                    }
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "MusicStinger queued on NextBar");
-                    break;
-                case TransitionInterval.NextBeat:
-                    _triggerStingerSampleStamp = Mathf.FloorToInt(_beatSampleStamp + BeatDurationSamples - stinger.PickUpLength * SampleRate);                                            
-                    while (CurrentSample >= _triggerStingerSampleStamp)
-                    {
-                        _triggerStingerSampleStamp += BeatDurationSamples;
-                    }
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "MusicStinger queued on NextBeat");
-                    break;
-            }            
-        }
-        
-        private void PlayStinger()
-        {
-            _triggerStingerSampleStamp = 0;
-            if (PlayingTrackInstances.Count == 0)
-            {
-                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, "No music is playing, MusicStinger won't play");
-                return;
-            }
-
-            foreach (var keyAssignment in _queuedStinger.KeyAssignments)
-            {
-                if ((keyAssignment.Keys & CurrentKey) != MusicKey.None)
-                    PlayHeadAudioSource.PlayOneShot(keyAssignment.Clip, _queuedStinger.Volume);       
-            }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, CurrentKey.ToString());
         }
         #endregion
 
         #region PlayingStatus
         public PlayingStatus PlayingStatus = PlayingStatus.Idle;
-        public Action PlayCallback;
-        public Action LoopCallback;
-        public Action ExitCallback;
-        public Action StopCallback;
-        public Action BeatCallback;
-        public Action BarCallback;
-        
+        public Action PlayCallback, LoopCallback, ExitCallback, StopCallback, BeatCallback, BarCallback;
+
         public void Play(float fadeInTime)
         {                      
-            CreateMusicTrackInstances(fadeInTime);              
+            CreatePlayingInstances(fadeInTime);              
             PreEntry();        
             PlayCallback?.Invoke();            
         }
 
         private void PreEntry()
         {
-            _beatSampleStamp = 0;
+            _beatSample = 0;
             if (UseDefaultLoopStyle || PickUpLengthSamples == 0) //no pre-entry needed
             {
                 OnLoopStartPosition();
@@ -302,7 +249,7 @@ namespace AudioStudio
         {            
             PlayingStatus = PlayingStatus.Playing;            
             PlayHeadPosition = BarAndBeat.Zero;            
-            _beatSampleStamp = _transitionGridSampleStamp = PickUpLengthSamples;
+            _beatSample = _transitionGridSample = PickUpLengthSamples;
             foreach (var track in ActiveTracks)
             {
                 track.OnPlay();
@@ -311,8 +258,8 @@ namespace AudioStudio
             
             if (RemainingLoops != 1) //more loops to go
                 AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Loop, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
-            else if (CurrentPlayingEvent.PlayLogic == MusicPlayLogic.SequenceContinuous)            
-                SetSequence(CurrentPlayingEvent.GetNextEvent());            
+            else if (CurrentEvent.PlayLogic == MusicPlayLogic.SequenceContinuous)            
+                SetSequence(CurrentEvent.GetNextEvent());            
         }
 
         private void OnPreEntryAgainPosition()
@@ -328,12 +275,11 @@ namespace AudioStudio
             }                       
             PlayingStatus = PlayingStatus.PreEntryAgain;     
             ActiveMusicData.ResetMarker(); //go back to the first tempo marker
-            _beatSampleStamp = 0;
-            foreach (var msi in PlayingTrackInstances)
+            _beatSample = 0;
+            foreach (var msi in _playingInstances)
             {
                 msi.Play(0); //play from the top again
             }
-            PlayHeadAudioSource = PlayingTrackInstances[0].AudioSource; //switching audio source                          
         }
 
         private void OnDefaultLoopStyleEndPosition()
@@ -373,11 +319,11 @@ namespace AudioStudio
             if (PlayingStatus == PlayingStatus.Idle)
                 return;
             PlayingStatus = PlayingStatus.Stopping;
-            foreach (var instance in PlayingTrackInstances)
+            foreach (var instance in _playingInstances)
             {
                 if (instance) instance.Stop(fadeOutTime);                                
             }
-            foreach (var instance in _exitingTrackInstances)
+            foreach (var instance in _exitingInstances)
             {
                 if (instance) instance.Stop(fadeOutTime);                
             }
@@ -388,11 +334,14 @@ namespace AudioStudio
         {            
             PlayingStatus = PlayingStatus.Idle;
             CancelTransition();
+            CancelSwitch();
+            CancelSequence();
+            
             PlayHeadPosition = BarAndBeat.Zero;            
-            CurrentPlayingEvent = null;
-            NextPlayingEvent = null;
-            PlayingTrackInstances.Clear();  
-            _exitingTrackInstances.Clear();
+            CurrentEvent = null;
+            QueuedEvent = null;
+            _playingInstances.Clear();  
+            _exitingInstances.Clear();
             ActiveMusicData = null;
             QueuedMusicData = null;
             StopCallback?.Invoke();
@@ -401,71 +350,95 @@ namespace AudioStudio
 
         #region Transition       
         public TransitioningStatus TransitioningStatus = TransitioningStatus.None;
-        public int TransitionExitSampleStamp;
-        public int TransitionEnterSampleStamp;
-        private int _transitionGridSampleStamp;
+        private TransitionEntryData _currentTransitionEntryData;
+        private TransitionExitData _currentTransitionExitData;
+        private float FadeInTime => _currentTransitionEntryData.FadeInTime;
+        private float EntryOffset => _currentTransitionEntryData.EntryOffset;
+        private float FadeOutTime => _currentTransitionExitData.FadeOutTime;
+        private float ExitOffset => _currentTransitionExitData.ExitOffset;
+        private TransitionInterval TransitionInterval => _currentTransitionExitData.Interval;
+        private BarAndBeat GridLength => _currentTransitionExitData.GridLength;
+        private int GridLengthSamples
+        {
+            get
+            {
+                switch (_currentTransitionExitData.Interval)
+                {
+                    case TransitionInterval.NextBeat:                    
+                        return BeatDurationSamples;
+                    case TransitionInterval.NextBar:                    
+                        return BeatDurationSamples * CurrentMarker.BeatsPerBar;
+                    case TransitionInterval.NextGrid:
+                        return GridLength.ToBeats(CurrentMarker.BeatsPerBar) * BeatDurationSamples;
+                    case TransitionInterval.ExitCue:
+                        return TrackLengthSamples;
+                    default:
+                        return 0;
+                }
+            }
+        }
+        public int TransitionExitSample;
+        public int TransitionEnterSample;
+        private int _transitionGridSample;
         private bool _exitFirst = true;
         
         private TransitionExitData GetTransitionExitCondition(MusicContainer newMusic)
         {
-            if (!CurrentPlayingEvent)
+            if (!CurrentEvent)
                 return new TransitionExitData();
-            return CurrentPlayingEvent.TransitionExitConditions.FirstOrDefault(c => c.Target.Name == newMusic.name) ?? 
-                   CurrentPlayingEvent.TransitionExitConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Target.Name)) ??
+            return CurrentEvent.TransitionExitConditions.FirstOrDefault(c => c.Target.Name == newMusic.name) ?? 
+                   CurrentEvent.TransitionExitConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Target.Name)) ??
                    new TransitionExitData();
         }
         
         private TransitionEntryData GetTransitionEntryCondition(MusicContainer newMusic)
         {
-            if (!CurrentPlayingEvent)
+            if (!CurrentEvent)
                 return newMusic.TransitionEntryConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Source.Name)) ?? new TransitionEntryData();
-            return newMusic.TransitionEntryConditions.FirstOrDefault(c => c.Source.Name == CurrentPlayingEvent.name) ?? 
+            return newMusic.TransitionEntryConditions.FirstOrDefault(c => c.Source.Name == CurrentEvent.name) ?? 
                    newMusic.TransitionEntryConditions.FirstOrDefault(c => string.IsNullOrEmpty(c.Source.Name)) ??
                    new TransitionEntryData();
         }
         
         private void PrepareTransition()
         {
-            //See if there are any segments connecting
+            // check if there are any segments connecting
             if (!string.IsNullOrEmpty(_currentTransitionEntryData.TransitionSegment.Name))
             {
-                var nextEvent = NextPlayingEvent;
-                var segmentFound = false;
-                AsAssetLoader.LoadMusic(_currentTransitionEntryData.TransitionSegment.Name, segment =>
+                var nextEvent = QueuedEvent;
+                var segment = AsAssetLoader.GetAudioEvent(_currentTransitionEntryData.TransitionSegment.Name) as MusicTrack;
+                if (segment)
                 {
-                    if (!segment) return;
                     SetMusicQueue(segment);
                     SetSequence(nextEvent);
-                    segmentFound = true;
-                });
-                if (segmentFound) return;
+                    return;
+                }
             }
-
-            //Calculate the sample to exit and enter
+            // calculate the sample of transition exit and enter
             switch (TransitionInterval)
             {
                 case TransitionInterval.Immediate:
-                    TransitionEnterSampleStamp = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(EntryOffset * SampleRate));
-                    TransitionExitSampleStamp = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(ExitOffset * SampleRate));
+                    TransitionEnterSample = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(EntryOffset * SampleRate));
+                    TransitionExitSample = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(ExitOffset * SampleRate));
                     break;
                 case TransitionInterval.ExitCue:
-                    TransitionEnterSampleStamp = ExitPositionSamples - 
-                                                  QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
-                    TransitionExitSampleStamp = ExitPositionSamples + Mathf.FloorToInt(ExitOffset * SampleRate);
+                    TransitionEnterSample = ExitPositionSamples - QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
+                    TransitionExitSample = ExitPositionSamples + Mathf.FloorToInt(ExitOffset * SampleRate);
                     break;
                 default:
-                    TransitionEnterSampleStamp = _transitionGridSampleStamp + GridLengthSamples - 
-                                                  QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
-                    TransitionExitSampleStamp = _transitionGridSampleStamp + GridLengthSamples 
+                    TransitionEnterSample = _transitionGridSample + GridLengthSamples - QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
+                    TransitionExitSample = _transitionGridSample + GridLengthSamples 
                                                                             + Mathf.FloorToInt(ExitOffset * SampleRate);                
-                    while (TransitionEnterSampleStamp < PlayHeadAudioSource.timeSamples)
+                    while (TransitionEnterSample < PlayHeadAudioSource.timeSamples)
                     {
-                        TransitionEnterSampleStamp += GridLengthSamples;
-                        TransitionExitSampleStamp += GridLengthSamples;
+                        TransitionEnterSample += GridLengthSamples;
+                        TransitionExitSample += GridLengthSamples;
                     }             
                     break;
             }
-            _exitFirst = TransitionExitSampleStamp <= TransitionEnterSampleStamp;          
+            // determine if new music plays first or old music stops first
+            _exitFirst = TransitionExitSample <= TransitionEnterSample;
+            // set transition status
             TransitioningStatus = TransitioningStatus.PendingTransition;
         }
 
@@ -476,186 +449,276 @@ namespace AudioStudio
             CancelInvoke(nameof(TransitionExit));
         }
 
-        private void TransitionEnter() //new music starts playing
+        // new music starts playing
+        private void TransitionEnter() 
         {            
-            CurrentPlayingEvent = NextPlayingEvent;
-            NextPlayingEvent = null;
+            if (QueuedMusicData == null) return;
+            // replace current tracks with queued tracks
+            CurrentEvent = QueuedEvent;
+            QueuedEvent = null;
             ActiveTracks = QueuedTracks;
             QueuedTracks = new List<MusicTrack>();
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
             
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionEnter, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _currentTransitionEntryData.FadeInTime + "s fade in");
-            CreateMusicTrackInstances(FadeInTime);            
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionEnter, AudioTriggerSource.Code, CurrentEvent.name, gameObject, _currentTransitionEntryData.FadeInTime + "s fade in");
+            CreatePlayingInstances(FadeInTime);            
             PreEntry();
-
+            // call transition exit if new music should play before old music stops
             if (!_exitFirst)
             {
-                Invoke(nameof(TransitionExit), SamplesToTime(TransitionExitSampleStamp - TransitionEnterSampleStamp));
                 TransitioningStatus = TransitioningStatus.Transitioning;
+                Invoke(nameof(TransitionExit), SamplesToTime(TransitionExitSample - TransitionEnterSample));
             }
+            // transition process has finished
             else if (TransitioningStatus == TransitioningStatus.Transitioning)           
                 TransitioningStatus = TransitioningStatus.None;
         }
 
         private void TransitionExit() //old music finishes playing
         {                        
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionExit, AudioTriggerSource.Code, CurrentPlayingEvent.name, gameObject, _currentTransitionExitData.FadeOutTime + "s fade out");
-            foreach (var mti in _exitingTrackInstances)
+            if (ActiveMusicData == null) return;
+            foreach (var mti in _exitingInstances)
             {
                 mti.Stop(FadeOutTime);                
             }
-            _exitingTrackInstances.Clear();    
+            _exitingInstances.Clear();    
+            // call transition enter if new music should stop before new music plays
             if (_exitFirst)
             {
-                Invoke(nameof(TransitionEnter), SamplesToTime(TransitionEnterSampleStamp - TransitionExitSampleStamp));
                 TransitioningStatus = TransitioningStatus.Transitioning;
+                Invoke(nameof(TransitionEnter), SamplesToTime(TransitionEnterSample - TransitionExitSample));
             }
-            else if (TransitioningStatus == TransitioningStatus.Transitioning)
+            else
+                Invoke(nameof(OnTransitionEnd), FadeOutTime);
+        }
+        
+        private void OnTransitionEnd()
+        {
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionExit, AudioTriggerSource.Code, CurrentEvent.name, gameObject, _currentTransitionExitData.FadeOutTime + "s fade out");
+            if (TransitioningStatus == TransitioningStatus.Transitioning)
                 TransitioningStatus = TransitioningStatus.None;
         }
         #endregion
         
         #region Switch
+        public SwitchingStatus SwitchingStatus = SwitchingStatus.None;
         private bool _switchToSamePosition;
         private float _crossFadeTime;
-        private int _switchSampleStamp;
+        public int SwitchEnterSample;
         
         public void OnSwitchChanged(bool switchImmediately, bool toSamePosition, float crossFadeTime) //audio switch is set to a different value that affects music
         {
             _crossFadeTime = crossFadeTime;
             _switchToSamePosition = toSamePosition;
-            if (!switchImmediately)
+            // wait for transition grid to switch
+            if (switchImmediately || TransitionInterval == TransitionInterval.Immediate)
+                SwitchCrossFadeStart();
+            else
             {
                 switch (TransitionInterval)
                 {
-                    case TransitionInterval.Immediate:
-                        SwitchCrossFade();
-                        break;
                     case TransitionInterval.ExitCue:
-                        _switchSampleStamp = ExitPositionSamples - PickUpLengthSamples - TimeToSamples(crossFadeTime / 2f);
-                        TransitioningStatus = TransitioningStatus.PendingSwitch;
+                        SwitchEnterSample = ExitPositionSamples - PickUpLengthSamples - TimeToSamples(crossFadeTime / 2f);
+                        SwitchingStatus = SwitchingStatus.PendingSwitch;
                         break;
                     default:
-                        _switchSampleStamp = _transitionGridSampleStamp + GridLengthSamples - TimeToSamples(crossFadeTime / 2f);
-                        TransitioningStatus = TransitioningStatus.PendingSwitch;
+                        SwitchEnterSample = _transitionGridSample + GridLengthSamples - TimeToSamples(crossFadeTime / 2f);
+                        SwitchingStatus = SwitchingStatus.PendingSwitch;
                         break;
-                }                    
-            }      
-            else
-                SwitchCrossFade();
+                }
+            }
         }
         
-        private void SwitchCrossFade() //cross fade the two music
+        private void SwitchCrossFadeStart()
         {
-            TransitioningStatus = TransitioningStatus.None;                                    
-            foreach (var msi in PlayingTrackInstances)
+            SwitchingStatus = SwitchingStatus.SwitchCrossFading;
+            // fade out the old music
+            foreach (var msi in _playingInstances)
             {
                 msi.Stop(_crossFadeTime);                
             }          
+            // reset active tracks
             ActiveTracks.Clear();            
-            GetTracks(CurrentPlayingEvent, ActiveTracks);
+            GetTracks(CurrentEvent, ActiveTracks);
             ActiveMusicData = new TransportData(ActiveTracks[0]);
-            if (_switchToSamePosition)
-            {
-                CreateMusicTrackInstances(_crossFadeTime, PlayHeadAudioSource.timeSamples);
-            }
+            // play the new music at the same position
+            if (_switchToSamePosition && PlayHeadAudioSource)
+                CreatePlayingInstances(_crossFadeTime, PlayHeadAudioSource.timeSamples);
+            // play the new music from the beginning
             else
             {
-                CreateMusicTrackInstances(_crossFadeTime);
+                CreatePlayingInstances(_crossFadeTime);
                 PreEntry();
             }       
+            Invoke(nameof(CancelSwitch), _crossFadeTime);
+        }
+
+        private void CancelSwitch()
+        {
+            // reset switch status
+            SwitchingStatus = SwitchingStatus.None;
         }
         #endregion
         
         #region SequenceContinuous
 
+        public SequencingStatus SequencingStatus = SequencingStatus.None;
+        public int SequenceEnterSample;
+        public int SequenceExitSample;
+
         private void SetSequence(MusicContainer nextMusic) //get the next item of a sequence continuous music container
         {
-            if (!nextMusic) return; //If reaches the last item in sequence            
-            TransitioningStatus = TransitioningStatus.PendingSequence;                          
+            // return if reaches the last item in sequence
+            if (!nextMusic) return;             
+            SequencingStatus = SequencingStatus.PendingSequence;
+            // get the list of queued sequence tracks
             QueuedTracks.Clear();
             GetTracks(nextMusic, QueuedTracks);
+            QueuedMusicData = new TransportData(QueuedTracks[0]);
             
-            QueuedMusicData = new TransportData(QueuedTracks[0]);                    
-            TransitionEnterSampleStamp = ExitPositionSamples - QueuedMusicData.PickUpLengthSamples;
-            TransitionExitSampleStamp = TrackLengthSamples;
+            SequenceEnterSample = ExitPositionSamples - QueuedMusicData.PickUpLengthSamples;
+            SequenceExitSample = TrackLengthSamples;
         }
         
         private void SequenceEnter() //next sequence track plays
         {   
+            if (QueuedMusicData == null) return;
             AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SequenceEnter, AudioTriggerSource.Code, QueuedTracks[0].name, gameObject);
             ActiveTracks = QueuedTracks;
             QueuedTracks = new List<MusicTrack>();
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
+            _exitingInstances = _playingInstances;
             
-            CreateMusicTrackInstances();
-            Invoke(nameof(SequenceExit), SamplesToTime(TransitionExitSampleStamp - TransitionEnterSampleStamp));
-            TransitioningStatus = TransitioningStatus.Transitioning;
+            CreatePlayingInstances();
             PreEntry();
+            
+            // if the new track has pre-entry, old track should exit later
+            var waitTime = SamplesToTime(SequenceExitSample - SequenceEnterSample);
+            if (waitTime <= 0f)
+                SequenceExit();
+            else
+            {
+                SequencingStatus = SequencingStatus.ChangingSequence;
+                Invoke(nameof(SequenceExit), waitTime);
+            }
         }
         
         private void SequenceExit() //old sequence track finishes
         {
-            foreach (var mti in _exitingTrackInstances)
+            if (ActiveMusicData == null) return;
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SequenceExit, AudioTriggerSource.Code, _exitingInstances[0].MusicTrack.name, gameObject);
+            // stop the old tracks
+            foreach (var mti in _exitingInstances)
             {
                 mti.Stop(0f);                
             }
-
-            _exitingTrackInstances = PlayingTrackInstances;
-            if (TransitioningStatus != TransitioningStatus.PendingSequence) 
-                TransitioningStatus = TransitioningStatus.None;
+            // if no more sequenced tracks, reset transition status
+            if (SequencingStatus != SequencingStatus.PendingSequence) 
+                SequencingStatus = SequencingStatus.None;
+        }
+        
+        private void CancelSequence()
+        {
+            SequencingStatus = SequencingStatus.None;
+            CancelInvoke(nameof(SequenceExit));
+        }
+        #endregion
+        
+        #region Stinger
+        private MusicStinger _queuedStinger;
+        private int _triggerStingerSample;
+        public MusicKey CurrentKey => CurrentMarker.KeyCenter;
+        
+        public void QueueStinger(MusicStinger stinger)
+        {            
+            _queuedStinger = stinger;
+            // determine when the stinger will be played
+            switch (stinger.TriggerSync)
+            {
+                case TransitionInterval.Immediate:
+                    PlayStinger();
+                    break;
+                case TransitionInterval.NextBar:
+                    _triggerStingerSample = Mathf.FloorToInt(_beatSample + BeatsPerBar * BeatDurationSamples - stinger.PickUpLength * SampleRate);                                         
+                    while (CurrentSample >= _triggerStingerSample)
+                    {
+                        _triggerStingerSample += BeatsPerBar * BeatDurationSamples;
+                    }
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "Stinger will play next bar");
+                    break;
+                case TransitionInterval.NextBeat:
+                    _triggerStingerSample = Mathf.FloorToInt(_beatSample + BeatDurationSamples - stinger.PickUpLength * SampleRate);                                            
+                    while (CurrentSample >= _triggerStingerSample)
+                    {
+                        _triggerStingerSample += BeatDurationSamples;
+                    }
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "Stinger will play next beat");
+                    break;
+            }            
+        }
+        
+        private void PlayStinger()
+        {
+            _triggerStingerSample = 0;
+            if (_playingInstances.Count == 0)
+            {
+                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, "Stinger won't play without music");
+                return;
+            }
+            // find stinger for current key
+            foreach (var keyAssignment in _queuedStinger.KeyAssignments)
+            {
+                if ((keyAssignment.Keys & CurrentKey) != MusicKey.None)
+                    PlayHeadAudioSource.PlayOneShot(keyAssignment.Clip, _queuedStinger.Volume);       
+            }
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, CurrentKey.ToString());
         }
         #endregion
 
         #region PlayHead	
-        private int _beatSampleStamp;
+        private int _beatSample;
         public BarAndBeat PlayHeadPosition;
-        public AudioSource PlayHeadAudioSource;
-        
+        public AudioSource PlayHeadAudioSource
+        {
+            get
+            {
+                if (_playingInstances.Count > 0)
+                    return _playingInstances[0].AudioSource;
+                if (_exitingInstances.Count > 0)
+                    return _exitingInstances[0].AudioSource;
+                return null;
+            }
+        }
+
         private void FixedUpdate()
         {
-            if (!PlayHeadAudioSource || ActiveMusicData == null) return;
+            // make sure music is playing
+            if (PlayingStatus == PlayingStatus.Idle || PlayingStatus == PlayingStatus.Stopping) return;
 
-            //sometimes music is delayed one frame, fix it
+            // sometimes music is delayed one frame, fix it
             var adjustedSamples = CurrentSample + (int)(Time.fixedDeltaTime * SampleRate);
-            
-            //stinger queue time stamp is reached
-            if (_triggerStingerSampleStamp > 0 && adjustedSamples > _triggerStingerSampleStamp) 
+            // stinger queue time stamp is reached
+            if (_triggerStingerSample > 0 && adjustedSamples > _triggerStingerSample) 
                 PlayStinger();    
-            
-            if (adjustedSamples > _beatSampleStamp + BeatDurationSamples) 
+            // time of a beat has passed
+            if (adjustedSamples > _beatSample + BeatDurationSamples) 
                 OnBeat();
-            
-            switch (TransitioningStatus)
+            // check if transition will happen
+            if (TransitioningStatus == TransitioningStatus.PendingTransition)
             {
-                case TransitioningStatus.Transitioning:
-                    return;
-                case TransitioningStatus.PendingSwitch:
-                    if (adjustedSamples > _switchSampleStamp) 
-                        SwitchCrossFade();
-                    break;
-                case TransitioningStatus.PendingTransition:
-                    if (adjustedSamples > TransitionExitSampleStamp)
-                    {                                     
-                        TransitionExit();
-                        return;
-                    } 
-                    if (adjustedSamples > TransitionEnterSampleStamp)                
-                    {
-                        TransitionEnter();
-                        return;
-                    } 
-                    break;
-                case TransitioningStatus.PendingSequence:
-                    if (adjustedSamples > TransitionEnterSampleStamp)                
-                    {                                                          
-                        SequenceEnter();
-                        return;
-                    } 
-                    break;
+                if (_exitFirst && adjustedSamples > TransitionExitSample)
+                    TransitionExit();
+                if (!_exitFirst && adjustedSamples > TransitionEnterSample)
+                    TransitionEnter();
             }
+            // check if switch will happen
+            if (SwitchingStatus == SwitchingStatus.PendingSwitch && adjustedSamples > SwitchEnterSample)
+                SwitchCrossFadeStart();
+            // check if sequence will change
+            if (SequencingStatus == SequencingStatus.PendingSequence && adjustedSamples > SequenceEnterSample)
+                SequenceEnter();
 
             //checking for exit or loop point
             switch (PlayingStatus)
@@ -663,7 +726,7 @@ namespace AudioStudio
                 case PlayingStatus.Playing:
                 case PlayingStatus.PreEntryAgain:
                 case PlayingStatus.PendingPostExit:
-                    if (adjustedSamples > _transitionGridSampleStamp + GridLengthSamples)
+                    if (adjustedSamples > _transitionGridSample + GridLengthSamples)
                         OnTransitionGrid();
                     break;
             }
@@ -671,23 +734,26 @@ namespace AudioStudio
             if (UseDefaultLoopStyle)
             {
                 //current sample is reset to 0, so it loops again
-                if (PlayingStatus == PlayingStatus.Playing && adjustedSamples < _beatSampleStamp)
+                if (PlayingStatus == PlayingStatus.Playing && adjustedSamples < _beatSample)
                     OnDefaultLoopStyleEndPosition();
             }
             else
             {
                 switch (PlayingStatus)
                 {
-                    case PlayingStatus.Playing: //prepare to entry again
+                    //prepare to entry again
+                    case PlayingStatus.Playing:
                         if (adjustedSamples > ExitPositionSamples - PickUpLengthSamples)
                             OnPreEntryAgainPosition();
                         break;
-                    case PlayingStatus.PreEntry: //enter loop body
+                    //enter loop body
+                    case PlayingStatus.PreEntry: 
                     case PlayingStatus.PreEntryAgain:
                         if (adjustedSamples > PickUpLengthSamples)
                             OnLoopStartPosition();
                         break;
-                    case PlayingStatus.PendingPostExit: //finish loop body                        
+                    //finish loop body          
+                    case PlayingStatus.PendingPostExit:               
                         if (adjustedSamples > ExitPositionSamples)
                             OnPostExitPosition();
                         break;
@@ -697,7 +763,7 @@ namespace AudioStudio
         
         private void OnBeat()
         {
-            _beatSampleStamp += BeatDurationSamples;
+            _beatSample += BeatDurationSamples;
             PlayHeadPosition.Beat++;                                     
             if (PlayHeadPosition.Beat == BeatsPerBar)
             {
@@ -712,24 +778,24 @@ namespace AudioStudio
 
         private void OnTransitionGrid()
         {                       
-            _transitionGridSampleStamp += GridLengthSamples;
+            _transitionGridSample += GridLengthSamples;
         }
 
         private float SamplesToTime(int samples)
         {
-            return samples / Mathf.Abs(CurrentPlayingEvent.Pitch) / SampleRate;
+            return samples / Mathf.Abs(CurrentEvent.Pitch) / SampleRate;
         }
         
         private int TimeToSamples(float time)
         {
-            return Mathf.FloorToInt(time * Mathf.Abs(CurrentPlayingEvent.Pitch) * SampleRate);
+            return Mathf.FloorToInt(time * Mathf.Abs(CurrentEvent.Pitch) * SampleRate);
         }
         #endregion
 
         #region Controls
         public void Pause(float fadeOutTime)
         {
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.Pause(fadeOutTime);
             }
@@ -737,7 +803,7 @@ namespace AudioStudio
         
         public void Resume(float fadeInTime)
         {
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.Resume(fadeInTime);
             }
@@ -745,7 +811,7 @@ namespace AudioStudio
         
         public void Mute(float fadeOutTime)
         {            
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.Mute(fadeOutTime);
             }
@@ -753,7 +819,7 @@ namespace AudioStudio
         
         public void UnMute(float fadeInTime)
         {            
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			                
                 mti.UnMute(fadeInTime);                
             }
@@ -761,7 +827,7 @@ namespace AudioStudio
         
         public void SetOutputBus(AudioMixerGroup bus)
         {
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.SetOutputBus(bus);
             }
@@ -770,7 +836,7 @@ namespace AudioStudio
         public void SetVolume(float volume)
         {            
             volume = Mathf.Clamp01(volume);
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.SetVolume(volume);
             }
@@ -779,7 +845,7 @@ namespace AudioStudio
         public void SetPan(float pan)
         {            
             pan = Mathf.Clamp(pan, -1f, 1f);
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.SetPan(pan);
             }
@@ -788,7 +854,7 @@ namespace AudioStudio
         public void SetLowPassCutoff(float cutoff)
         {            
             cutoff = Mathf.Clamp(cutoff, 10f, 22000f);
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.SetLowPassCutoff(cutoff);
             }
@@ -797,7 +863,7 @@ namespace AudioStudio
         public void SetHighPassCutoff(float cutoff)
         {            
             cutoff = Mathf.Clamp(cutoff, 10f, 22000f);
-            foreach (var mti in PlayingTrackInstances)
+            foreach (var mti in _playingInstances)
             {			
                 mti.SetHighPassCutoff(cutoff);
             }

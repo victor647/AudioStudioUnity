@@ -189,7 +189,13 @@ namespace AudioStudio.Configs
 				foreach (var voice in _voices)
 				{
 					if (voice.Note == message.DataByte1)
-						StartCoroutine(voice.AudioSource.Stop(_instrument.Release / 1000f));
+					{
+						var releaseTime = _instrument.Release / 1000f;
+						if (isActiveAndEnabled && releaseTime > 0f)
+							StartCoroutine(voice.AudioSource.Stop(releaseTime));
+						else
+							voice.AudioSource.Stop();
+					}
 				}
 			}
 			var notesOn = MidiManager.Instance.GetAllNotesOn(_channel);
@@ -206,7 +212,12 @@ namespace AudioStudio.Configs
 				voice.AudioSource.pitch = keyMapping.Pitch;
 				voice.AudioSource.volume = _instrument.VelocityCurve.Evaluate(velocity / 127f);
 				voice.AudioSource.loop = loop;
-				StartCoroutine(voice.AudioSource.Play(_instrument.Attack / 1000f));
+				
+				var attackTime = _instrument.Attack / 1000f;
+				if (isActiveAndEnabled && attackTime > 0f)
+					StartCoroutine(voice.AudioSource.Play(attackTime));
+				else
+					voice.AudioSource.Play();
 			}
 		}
 

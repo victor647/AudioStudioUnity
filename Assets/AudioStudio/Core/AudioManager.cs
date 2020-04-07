@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections.Generic;
 using AudioStudio.Components;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
@@ -8,40 +9,169 @@ using UnityEngine.Audio;
 namespace AudioStudio
 {		
     public static class AudioManager
-    {		        
-        public static Platform Platform;
+    {
+        #region Debug
+        public static readonly List<string> GlobalMusicInstances = new List<string>();
+        public static readonly List<string> GlobalSoundInstances = new List<string>();
+        public static readonly List<string> GlobalVoiceInstances = new List<string>();
+        public static readonly List<string> GlobalSwitchInstances = new List<string>();
+        public static readonly List<string> GlobalParameterInstances = new List<string>();
+        #endregion    
 
         #region Sound           
-        public static void PlaySound(string eventName, GameObject soundSource = null, float fadeInTime = 0f, 
-            Action<GameObject> callback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        public static string PlaySound(string eventName, GameObject soundSource = null, float fadeInTime = 0f, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {            
-            if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc)
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Play, trigger, eventName, soundSource, "SFX not loaded");
-            else
+            if (string.IsNullOrEmpty(eventName) || !SoundEnabled) return string.Empty;
+            var sound = AsAssetLoader.GetAudioEvent(eventName) as SoundContainer;
+            if (!sound)
             {
-                var emitter = ValidateSoundSource(soundSource, trigger);
-                if (sc.EnableVoiceLimit && sc.ReachVoiceLimit(emitter, trigger)) return;
-                sc.Play(emitter, fadeInTime, callback);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Play, trigger, eventName, soundSource);
+                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Play, trigger, eventName, soundSource, "SFX not loaded");
+                return string.Empty;
             }
+            var emitter = ValidateSoundSource(soundSource, trigger);
+            if (sound.ReachVoiceLimit(emitter, trigger)) 
+                return string.Empty;
+            var clipName = sound.Play(emitter, fadeInTime, endCallback);
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Play, trigger, eventName, soundSource);
+            return clipName;
         }
 
         public static void StopSound(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc)
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Stop, trigger, eventName, soundSource, "SFX not loaded");
+            var sound = AsAssetLoader.GetAudioEvent(eventName) as SoundContainer;
+            if (!sound)
+                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SFX, AudioAction.Stop, trigger, eventName, soundSource, "SFX not loaded");
             else
             {
                 var emitter = ValidateSoundSource(soundSource, trigger);
-                sc.Stop(emitter, fadeOutTime);
+                sound.Stop(emitter, fadeOutTime);
                 AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Stop, trigger, eventName, soundSource);
             }
         }
+        #endregion
+        
+        #region Music		
+        private static string _lastPlayedMusic;
+        private static string _currentPlayingMusic;
 
+        public static string PlayLastMusic()
+        {
+            return PlayMusic(_lastPlayedMusic);
+        }
+
+        public static string PlayMusic(string eventName, float fadeInTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        {
+            if (string.IsNullOrEmpty(eventName)) return string.Empty;
+            if (!MusicEnabled)
+            {
+                UpdateLastMusic(eventName);
+                return string.Empty;
+            }
+            var music = AsAssetLoader.GetAudioEvent(eventName) as MusicContainer;
+            if (!music)
+            {
+                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Play, trigger, eventName, source, "Music not loaded");
+                return string.Empty;
+            }
+            var clipName = MusicTransport.Instance.SetMusicQueue(music, fadeInTime);
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Play, trigger, eventName, source);
+            UpdateLastMusic(eventName);
+            return clipName;
+        }
+
+        private static void UpdateLastMusic(string musicName)
+        {
+            _lastPlayedMusic = string.IsNullOrEmpty(_currentPlayingMusic) ? musicName : _currentPlayingMusic;
+            _currentPlayingMusic = musicName;
+        }
+
+        public static void StopMusic(float fadeOutTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        {
+            MusicTransport.Instance.Stop(fadeOutTime);       
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Stop, trigger, _currentPlayingMusic, source, fadeOutTime + "s fade out");
+            ResetMusic();
+        }
+
+        internal static void ResetMusic()
+        {
+            _lastPlayedMusic = _currentPlayingMusic;
+            _currentPlayingMusic = string.Empty;
+        }
+
+        public static void PlayStinger(string stingerName)
+        {
+            if (string.IsNullOrEmpty(stingerName)) return;            
+            var stinger = AsAssetLoader.GetAudioEvent(stingerName) as MusicStinger;          
+            if (stinger)
+                MusicTransport.Instance.QueueStinger(stinger);
+        }
+
+        public static void ActivateInstrument(string instrumentName, byte channel = 1)
+        {
+            if (string.IsNullOrEmpty(instrumentName))
+                return;
+            AsAssetLoader.LoadInstrument(instrumentName, channel);
+        }
+        
+        public static void DeactivateInstrument(string instrumentName)
+        {
+            AsAssetLoader.UnloadInstrument(instrumentName);
+        }
+        #endregion
+
+        #region Voice        
+        private static string _currentPlayingVoice;
+        public static string PlayVoice(string eventName, GameObject soundSource = null, float fadeInTime = 0f, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        {
+            if (!VoiceEnabled || string.IsNullOrEmpty(eventName)) return string.Empty;
+            var voice = AsAssetLoader.GetAudioEvent(eventName) as VoiceEvent;
+            if (!voice)
+            {
+                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Play, trigger, eventName, soundSource, "Voice not loaded");
+                return string.Empty;
+            }
+            var emitter = ValidateSoundSource(soundSource, trigger);
+            var clipName = voice.Play(emitter, fadeInTime, endCallback);
+            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Play, trigger, voice.name, soundSource);
+            _currentPlayingVoice = eventName;
+            return clipName;
+        }
+
+        public static void StopVoice(string eventName = null, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        {
+            if (string.IsNullOrEmpty(eventName))
+            {
+                if (string.IsNullOrEmpty(_currentPlayingVoice))
+                {
+                    AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Voice, AudioAction.Stop, trigger, "N/A", soundSource, "No voice playing");
+                    return;
+                }
+                eventName = _currentPlayingVoice;
+            }
+
+            var voice = AsAssetLoader.GetAudioEvent(eventName) as VoiceEvent;
+            if (!voice)
+                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Voice, AudioAction.Stop, trigger, eventName, soundSource, "Voice not loaded");
+            else
+            {
+                var emitter = ValidateSoundSource(soundSource, trigger);
+                voice.Stop(emitter, fadeOutTime);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Stop, trigger, eventName, soundSource);
+            }
+        }
+        #endregion       
+        
+        #region Controls
+        public static void SetAudioMixerParameter(string parameterName, float targetValue, float fadeTime = 0f)
+        {
+            if (AudioMixer.GetFloat(parameterName, out var currentValue))
+            {
+                GlobalAudioEmitter.Instance.SetAudioMixerParameter(parameterName, currentValue, targetValue, fadeTime);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.AudioMixer, AudioAction.SetValue, AudioTriggerSource.Code, parameterName, null, "Set to " + targetValue);   
+            }
+        }
+        
         public static void StopAll(GameObject soundSource = null, float fadeOutTime = 0f)
         {
             if (!soundSource) soundSource = GlobalAudioEmitter.GameObject;
@@ -61,65 +191,65 @@ namespace AudioStudio
         public static void StopAll(string eventName, float fadeOutTime = 0f)
         {
             if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc) return;
-            sc.StopAll(fadeOutTime);
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Stop, AudioTriggerSource.Code, eventName, null, "Stop All");
+            var audioEvent = AsAssetLoader.GetAudioEvent(eventName);
+            if (!audioEvent) return;
+            audioEvent.StopAll(fadeOutTime);
+            AsUnityHelper.DebugToProfiler(Severity.Notification, audioEvent.GetEventType(), AudioAction.Stop, AudioTriggerSource.Code, eventName, null, "Stop All");
         }
         
-        public static void MuteSound(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        public static void MuteEvent(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc)
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Mute, trigger, eventName, soundSource, "SFX not loaded");
+            var audioEvent = AsAssetLoader.GetAudioEvent(eventName);
+            if (!audioEvent)
+                AsUnityHelper.DebugToProfiler(Severity.Error, audioEvent.GetEventType(), AudioAction.Mute, trigger, eventName, soundSource, "Event not loaded");
             else
             {
                 var emitter = ValidateSoundSource(soundSource, trigger);
-                sc.Mute(emitter, fadeOutTime);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Mute, trigger, eventName, soundSource);
+                audioEvent.Mute(emitter, fadeOutTime);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, audioEvent.GetEventType(), AudioAction.Mute, trigger, eventName, soundSource);
             }
         }
         
-        public static void UnMuteSound(string eventName, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        public static void UnMuteEvent(string eventName, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc)
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.UnMute, trigger, eventName, soundSource, "SFX not loaded");
+            var audioEvent = AsAssetLoader.GetAudioEvent(eventName);
+            if (!audioEvent)
+                AsUnityHelper.DebugToProfiler(Severity.Error, audioEvent.GetEventType(), AudioAction.UnMute, trigger, eventName, soundSource, "Event not loaded");
             else
             {
                 var emitter = ValidateSoundSource(soundSource, trigger);
-                sc.UnMute(emitter, fadeInTime);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.UnMute, trigger, eventName, soundSource);
+                audioEvent.UnMute(emitter, fadeInTime);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, audioEvent.GetEventType(), AudioAction.UnMute, trigger, eventName, soundSource);
             }
         }
         
-        public static void PauseSound(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        public static void PauseEvent(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc)
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Pause, trigger, eventName, soundSource, "SFX not loaded");
+            var audioEvent = AsAssetLoader.GetAudioEvent(eventName);
+            if (!audioEvent)
+                AsUnityHelper.DebugToProfiler(Severity.Error, audioEvent.GetEventType(), AudioAction.Pause, trigger, eventName, soundSource, "Event not loaded");
             else
             {
                 var emitter = ValidateSoundSource(soundSource, trigger);
-                sc.Pause(emitter, fadeOutTime);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Pause, trigger, eventName, soundSource);
+                audioEvent.Pause(emitter, fadeOutTime);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, audioEvent.GetEventType(), AudioAction.Pause, trigger, eventName, soundSource);
             }
         }
         
-        public static void ResumeSound(string eventName, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        public static void ResumeEvent(string eventName, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
-            var sc = AsAssetLoader.GetSoundEvent(eventName);
-            if (!sc)
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SFX, AudioAction.Resume, trigger, eventName, soundSource, "SFX not loaded");
+            var audioEvent = AsAssetLoader.GetAudioEvent(eventName);
+            if (!audioEvent)
+                AsUnityHelper.DebugToProfiler(Severity.Error, audioEvent.GetEventType(), AudioAction.Resume, trigger, eventName, soundSource, "Event not loaded");
             else
             {
                 var emitter = ValidateSoundSource(soundSource, trigger);
-                sc.Resume(emitter, fadeInTime);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Resume, trigger, eventName, soundSource);
+                audioEvent.Resume(emitter, fadeInTime);
+                AsUnityHelper.DebugToProfiler(Severity.Notification, audioEvent.GetEventType(), AudioAction.Resume, trigger, eventName, soundSource);
             }
         }
         
@@ -141,207 +271,6 @@ namespace AudioStudio
             }
         }
         #endregion
-
-        #region Music		
-        private static string _lastPlayedMusic;
-        private static string _currentPlayingMusic;
-
-        public static void PlayLastMusic()
-        {
-            PlayMusic(_lastPlayedMusic);
-        }
-        
-        public static void PlayMusic(string eventName, float fadeInTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (string.IsNullOrEmpty(eventName) || eventName == _currentPlayingMusic) return;
-            AsAssetLoader.LoadMusic(eventName, music =>
-            {
-                if (!music)
-                {                                                            
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Play, trigger, eventName, source, "Event not found");                                    
-                    return;
-                }
-                MusicTransport.Instance.SetMusicQueue(music, fadeInTime);
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Play, trigger, eventName, source);
-                UpdateLastMusic(eventName);
-            });
-        }
-
-        internal static void UpdateLastMusic(string musicName)
-        {
-            _lastPlayedMusic = string.IsNullOrEmpty(_currentPlayingMusic) ? musicName : _currentPlayingMusic;
-            _currentPlayingMusic = musicName;
-        }
-
-        public static void StopMusic(float fadeOutTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-#if UNITY_EDITOR || !UNITY_WEBGL
-            MusicTransport.Instance.Stop(fadeOutTime);       
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Stop, trigger, _currentPlayingMusic, source, fadeOutTime + "s fade out");
-#else
-            WebMusicPlayer.Instance.StopMusic();
-#endif
-            _lastPlayedMusic = _currentPlayingMusic;
-            _currentPlayingMusic = string.Empty;
-        }
-        
-        public static void MuteMusic(float fadeOutTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            MusicTransport.Instance.Mute(fadeOutTime);
-            CheckIfMusicPlaying(AudioAction.Mute, source, trigger);
-        }
-        
-        public static void UnMuteMusic(float fadeInTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            MusicTransport.Instance.UnMute(fadeInTime);
-            CheckIfMusicPlaying(AudioAction.UnMute, source, trigger);
-        }
-
-        public static void PauseMusic(float fadeOutTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            MusicTransport.Instance.Pause(fadeOutTime);
-            CheckIfMusicPlaying(AudioAction.Pause, source, trigger);
-        }
-
-        public static void ResumeMusic(float fadeInTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            MusicTransport.Instance.Resume(fadeInTime);
-            CheckIfMusicPlaying(AudioAction.Resume, source, trigger);
-        }
-
-        private static void CheckIfMusicPlaying(AudioAction action, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (MusicTransport.Instance.PlayingStatus != PlayingStatus.Idle)
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, action, trigger, _currentPlayingMusic, source);
-            else
-                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Music, action, trigger, _currentPlayingMusic, source, "No music is playing!");
-        }
-
-        public static void PlayStinger(string stingerName)
-        {
-            if (string.IsNullOrEmpty(stingerName)) return;            
-            var stinger = AsAssetLoader.LoadStinger(stingerName);          
-            if (stinger)
-                MusicTransport.Instance.QueueStinger(stinger);
-        }
-
-        public static void PlayInstrument(string instrumentName, byte channel = 1)
-        {
-            if (string.IsNullOrEmpty(instrumentName))
-                return;
-            AsAssetLoader.LoadInstrument(instrumentName, channel);
-        }
-        
-        public static void StopInstrument(string instrumentName)
-        {
-            AsAssetLoader.UnloadInstrument(instrumentName);
-        }
-        #endregion
-
-        #region Voice        
-        private static string _currentPlayingVoice;
-        public static void PlayVoice(string eventName, GameObject soundSource = null, float fadeInTime = 0f, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (!VoiceEnabled || string.IsNullOrEmpty(eventName))  return;
-            var emitter = ValidateSoundSource(soundSource, trigger);
-            AsAssetLoader.LoadVoice(eventName, voice =>
-            {
-                if (!voice)
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Play, trigger, eventName, soundSource, "Event not found");
-                else
-                {
-                    voice.Play(emitter, fadeInTime, endCallback);
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Play, trigger, voice.name, soundSource);
-                    _currentPlayingVoice = eventName;
-                }
-            });
-        }
-
-        public static void StopVoice(string eventName = null, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (string.IsNullOrEmpty(eventName))
-                eventName = _currentPlayingVoice;
-            var emitter = ValidateSoundSource(soundSource, trigger);
-            AsAssetLoader.LoadVoice(eventName, voice =>
-            {
-                if (!voice)
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Stop, trigger, eventName, soundSource, "Event not found");                                    
-                else
-                {
-                    voice.Stop(emitter, fadeOutTime);
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Stop, trigger, eventName, soundSource);
-                }
-            });
-        }
-        
-        public static void MuteVoice(string eventName = null, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (string.IsNullOrEmpty(eventName))
-                eventName = _currentPlayingVoice;
-            var emitter = ValidateSoundSource(soundSource, trigger);
-            AsAssetLoader.LoadVoice(eventName, voice =>
-            {
-                if (!voice)
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Mute, trigger, eventName, soundSource, "Event not found");
-                else
-                {
-                    voice.Mute(emitter, fadeOutTime);
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Mute, trigger, eventName, soundSource);
-                }
-            });
-        }
-        
-        public static void UnMuteVoice(string eventName = null, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (string.IsNullOrEmpty(eventName))
-                eventName = _currentPlayingVoice;
-            var emitter = ValidateSoundSource(soundSource, trigger);
-            AsAssetLoader.LoadVoice(eventName, voice =>
-            {
-                if (!voice)
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.UnMute, trigger, eventName, soundSource, "Event not found");
-                else
-                {
-                    voice.UnMute(emitter, fadeInTime);
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.UnMute, trigger, eventName, soundSource);
-                }
-            });
-        }
-
-        public static void PauseVoice(string eventName = null, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (string.IsNullOrEmpty(eventName))
-                eventName = _currentPlayingVoice;
-            var emitter = ValidateSoundSource(soundSource, trigger);
-            AsAssetLoader.LoadVoice(eventName, voice =>
-            {
-                if (!voice)
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Pause, trigger, eventName, soundSource, "Event not found");
-                else
-                {
-                    voice.Pause(emitter, fadeOutTime);
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Pause, trigger, eventName, soundSource);
-                }
-            });
-        }
-        
-        public static void ResumeVoice(string eventName = null, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
-        {
-            if (string.IsNullOrEmpty(eventName))
-                eventName = _currentPlayingVoice;
-            var emitter = ValidateSoundSource(soundSource, trigger);
-            AsAssetLoader.LoadVoice(eventName, voice =>
-            {
-                if (!voice)
-                    AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Voice, AudioAction.Resume, trigger, eventName, soundSource, "Event not found");
-                else
-                {
-                    voice.Resume(emitter, fadeInTime);
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.Resume, trigger, eventName, soundSource);
-                }
-            });
-        }
-        #endregion       
 		
         #region Switch		
         public static void SetSwitchGlobal(string switchGroupName, string switchName, AudioTriggerSource trigger = AudioTriggerSource.Code)
@@ -372,7 +301,7 @@ namespace AudioStudio
             var swc = AsAssetLoader.GetAudioSwitch(switchGroupName);
             if (swc)
                 return swc.GetSwitch(affectedGameObject);                                
-            AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Switch, AudioAction.GetValue, trigger, switchGroupName, affectedGameObject, "Switch not found");   	
+            AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Switch, AudioAction.GetValue, trigger, switchGroupName, affectedGameObject, "Switch not found");   	
             return "";
         }
         #endregion
@@ -406,7 +335,7 @@ namespace AudioStudio
             var ap = AsAssetLoader.GetAudioParameter(parameterName);
             if (ap)
                 return ap.GetValue(affectedGameObject);         
-            AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Parameter, AudioAction.GetValue, AudioTriggerSource.Code, parameterName, affectedGameObject, "Parameter not loaded");	
+            AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Parameter, AudioAction.GetValue, AudioTriggerSource.Code, parameterName, affectedGameObject, "Parameter not loaded");	
             return 0f;
         }
         #endregion
@@ -414,12 +343,14 @@ namespace AudioStudio
         #region SoundBank
         public static void LoadBank(string bankName, Action onLoadFinished = null, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
-            BankManager.LoadBank(bankName, onLoadFinished, source, trigger);
+            if (!string.IsNullOrEmpty(bankName)) 
+                BankManager.LoadBank(bankName, onLoadFinished, source, trigger);
         }
 
         public static void UnloadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
-            BankManager.UnloadBank(bankName, source, trigger);                                                   
+            if (!string.IsNullOrEmpty(bankName)) 
+                BankManager.UnloadBank(bankName, source, trigger);
         }  
         
         public static void UnloadBanks(string nameFilter)
@@ -429,7 +360,7 @@ namespace AudioStudio
         #endregion
                 
         #region PreferenceSetting
-        public static AudioMixer AudioMixer;
+        internal static AudioMixer AudioMixer;
 
         public static void LoadPreferenceSettings()
         {
@@ -440,8 +371,8 @@ namespace AudioStudio
             MusicVolume = MusicVolume;
             VoiceVolume = VoiceVolume;
         }
-		
-        public static AudioMixerGroup GetAudioMixer(string type, string subMixer = "")
+
+        internal static AudioMixerGroup GetAudioMixer(string type, string subMixer = "")
         {
             return !AudioMixer ? null : AudioMixer.FindMatchingGroups("Master/" + type + (string.IsNullOrEmpty(subMixer) ? "" : "/" + subMixer))[0];
         }
@@ -491,12 +422,17 @@ namespace AudioStudio
             }
             set
             {
+                var currentStatus = MusicEnabled;
                 var volume = value ? MusicVolume : 0f;
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("MusicVolume", decibel);
                 PlayerPrefs.SetInt("AUDIO_MUSIC", value ? 1: 0);             
                 AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, 
                     value ? AudioAction.Activate : AudioAction.Deactivate, AudioTriggerSource.Code, value ? "Music On" : "Music Off");
+                if (!value && currentStatus)
+                    MusicTransport.Instance.Stop();
+                if (value && !currentStatus)
+                    PlayMusic(_currentPlayingMusic);
             }
         }
 
@@ -568,17 +504,5 @@ namespace AudioStudio
             }
         }        
         #endregion
-        
-        #region Listener
-        public static void SyncTransformWithParent(GameObject source, GameObject parent = null)
-        {
-            var parentTransform = parent ? parent.transform : source.transform.parent;
-            if (parent)
-                source.transform.parent = parentTransform;                                       
-            source.transform.position = parentTransform.position;
-            source.transform.rotation = parentTransform.rotation;
-        }
-        #endregion
-        
     }			
 }

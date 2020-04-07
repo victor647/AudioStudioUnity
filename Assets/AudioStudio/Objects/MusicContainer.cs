@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using AudioStudio.Components;
+using AudioStudio.Tools;
 using Random = UnityEngine.Random;
 
 namespace AudioStudio.Configs
@@ -19,7 +20,7 @@ namespace AudioStudio.Configs
     [Serializable]
     public class TransitionExitData
     {
-        public MusicTransitionReference Target;
+        public MusicTransitionReference Target = new MusicTransitionReference();
         public float FadeOutTime = 1f;
         public float ExitOffset;
         public TransitionInterval Interval = TransitionInterval.Immediate;
@@ -29,10 +30,10 @@ namespace AudioStudio.Configs
     [Serializable]
     public class TransitionEntryData
     {
-        public MusicTransitionReference Source;
+        public MusicTransitionReference Source = new MusicTransitionReference();
         public float FadeInTime;
         public float EntryOffset = 1f;
-        public MusicSegmentReference TransitionSegment;
+        public MusicSegmentReference TransitionSegment = new MusicSegmentReference();
     }
     
     [CreateAssetMenu(fileName = "New Music Container", menuName = "AudioStudio/Music/Container")]
@@ -40,7 +41,7 @@ namespace AudioStudio.Configs
     {
         #region Fields
         public MusicPlayLogic PlayLogic;
-        
+        public MusicContainer ParentContainer;
         public byte LoopCount;
         public List<MusicContainer> ChildEvents = new List<MusicContainer>();
         
@@ -75,7 +76,9 @@ namespace AudioStudio.Configs
 
         private void CopySettings(MusicContainer child)
         {
+            child.ParentContainer = this;
             child.IndependentEvent = false;
+            
             if (!child.OverrideTransition)
             {
                 child.TransitionEntryConditions = TransitionEntryConditions;
@@ -105,17 +108,22 @@ namespace AudioStudio.Configs
 
         public override void CleanUp()
         {
+            if (IndependentEvent) 
+                ParentContainer = null;
+            
             if (this is MusicTrack) return;
             
             if (PlayLogic != MusicPlayLogic.Switch)
             {
-                SwitchEventMappings = null;
+                SwitchEventMappings = new SwitchEventMapping[0];
                 if (ChildEvents.Any(c => !c)) 
                     Debug.LogError("ChildEvent of MusicContainer " + name + " is missing!");
             }
-            else if (SwitchEventMappings.Any(c => !c.AudioEvent))
+            else 
             {
-                Debug.LogError("ChildEvent of MusicContainer " + name + " is missing!");
+                ChildEvents.Clear();
+                if (SwitchEventMappings.Any(c => !c.AudioEvent))
+                    Debug.LogError("ChildEvent of MusicContainer " + name + " is missing!");
             }
             foreach (var evt in ChildEvents)
             {
@@ -128,48 +136,91 @@ namespace AudioStudio.Configs
             return PlayLogic != MusicPlayLogic.Switch ? ChildEvents.Any(c => c != null) : SwitchEventMappings.Any(m => m.AudioEvent != null);
         }
 
+        internal override AudioObjectType GetEventType()
+        {
+            return AudioObjectType.Music;
+        }
+
+        public MusicContainer GetParentContainer()
+        {
+            return IndependentEvent || !ParentContainer ? this : ParentContainer.GetParentContainer();
+        }
         #endregion
 
         #region Initialization
-        public override void Init()
+
+        internal override void Init()
         {
             LastSelectedIndex = 255;
-            foreach (var evt in ChildEvents) evt.Init();            
+            if (PlayLogic != MusicPlayLogic.Switch)
+            {
+                foreach (var evt in ChildEvents)
+                {
+                    evt.Init();
+                }
+            }
+            else
+            {
+                foreach (var mapping in SwitchEventMappings)
+                {
+                    mapping.AudioEvent.Init();
+                } 
+            }          
         }
-        
-        public override void Dispose()
+
+        internal override void Dispose()
         {            
-            foreach (var evt in ChildEvents) evt.Dispose();
+            if (PlayLogic != MusicPlayLogic.Switch)
+            {
+                foreach (var evt in ChildEvents)
+                {
+                    evt.Dispose();
+                }
+            }
+            else
+            {
+                foreach (var mapping in SwitchEventMappings)
+                {
+                    mapping.AudioEvent.Dispose();
+                } 
+            }        
         }
         #endregion                
                
         #region Playback         
-        public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+
+        public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {               
-            MusicTransport.Instance.SetMusicQueue(this);
+            return MusicTransport.Instance.SetMusicQueue(this);
         }
-        
+
         public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
         {
             MusicTransport.Instance.Stop(fadeOutTime);
         }
 
-        public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
+        internal override void StopAll(float fadeOutTime = 0f)
+        {
+            if (MusicTransport.Instance.CurrentEvent == this)
+                MusicTransport.Instance.Stop(fadeOutTime);
+        }
+
+        internal override void Mute(GameObject soundSource, float fadeOutTime = 0f)
         {
             MusicTransport.Instance.Mute(fadeOutTime);
         }
 
-        public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+        internal override void UnMute(GameObject soundSource, float fadeInTime = 0f)
         {
             MusicTransport.Instance.UnMute(fadeInTime);
         }
 
-        public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+        internal override void Pause(GameObject soundSource, float fadeOutTime = 0f)
         {
             MusicTransport.Instance.Pause(fadeOutTime);
         }
 
-        public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+        internal override void Resume(GameObject soundSource, float fadeInTime = 0f)
         {
             MusicTransport.Instance.Resume(fadeInTime);
         }

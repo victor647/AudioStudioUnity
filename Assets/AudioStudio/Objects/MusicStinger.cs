@@ -17,9 +17,10 @@ namespace AudioStudio.Configs
 		public KeyAssignment[] KeyAssignments = new KeyAssignment[1];
 		public TransitionInterval TriggerSync = TransitionInterval.Immediate;
 
-		public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+		public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
 		{
 			MusicTransport.Instance.QueueStinger(this);
+			return name;
 		}
 	}
 }

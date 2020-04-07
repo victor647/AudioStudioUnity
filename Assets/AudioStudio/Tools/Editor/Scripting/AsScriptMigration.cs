@@ -7,6 +7,15 @@ using UnityEditor.VersionControl;
 
 namespace AudioStudio.Tools
 {
+	internal enum ScriptType
+	{
+		CSharp,
+		JavaScript,
+		Lua,
+		Python,
+		DLL
+	}
+	
 	public class AsScriptMigration : EditorWindow
 	{
 		private class FileComparisonData
@@ -17,10 +26,11 @@ namespace AudioStudio.Tools
 			public FileInfo SourceFile;
 			public FileInfo TargetFile;
 		}
-		
-		private string _otherGameRootPath;
+
+		private string _sourceRootPath;
+		private string _targetRootPath;
 		private string[] _sourceScripts;
-		private bool _migrateToOtherGame;
+		private ScriptType _scriptType = ScriptType.CSharp;
 		private List<FileComparisonData> _changeList = new List<FileComparisonData>();
 
 		#region GUI
@@ -31,29 +41,28 @@ namespace AudioStudio.Tools
 		private bool _includeExtensions;
 		
 		private Vector2 _scrollPosition;
-		
+
+		private void OnEnable()
+		{
+			_targetRootPath = AudioPathSettings.AudioStudioLibraryPathFull;
+		}
+
 		private void OnGUI()
 		{
-			GUILayout.Label("This tool migrates AudioStudio scripts from this game to another game or vice versa.");			                
+			GUILayout.Label("This tool migrates scripts between games or branches.");			                
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
 			{				
-				_otherGameRootPath = GUILayout.TextField(_otherGameRootPath);
+				DisplaySearchPath(ref _sourceRootPath, "Source");
+				DisplaySearchPath(ref _targetRootPath, "Target");
 				GUILayout.BeginHorizontal();
-				if (GUILayout.Button("Browse AudioStudio Folder of Another Game"))
-					_otherGameRootPath = EditorUtility.OpenFolderPanel("Audio Folder", _otherGameRootPath, "");
-				if (GUILayout.Button("Migrate Dll Library")) 
-					MigrateDll();
+				EditorGUILayout.LabelField("Script Type", GUILayout.Width(100));
+				_scriptType = (ScriptType) EditorGUILayout.EnumPopup(_scriptType, GUILayout.Width(100));
+				_includeExtensions = GUILayout.Toggle(_includeExtensions, "Include Extensions");
+				if (GUILayout.Button("Search Script Difference")) 
+					SearchScriptDifference();
 				GUILayout.EndHorizontal();	
 			}
-			
-								
-			GUILayout.BeginHorizontal();
-			_migrateToOtherGame = GUILayout.Toggle(_migrateToOtherGame, "Migrate from this game to another game");
-			_includeExtensions = GUILayout.Toggle(_includeExtensions, "Include Extensions");
-			if (GUILayout.Button("Search Script Difference")) 
-				SearchScriptDifference();			
-			GUILayout.EndHorizontal();						
-			
+
 			if (_changeList.Count == 0) return;
 			
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
@@ -98,7 +107,18 @@ namespace AudioStudio.Tools
 			if (_selectLater != GUILayout.Toggle(_selectLater, "Select Later Modified")) _selectLater = SelectScripts(!_selectLater, 2);
 			if (_selectLarger != GUILayout.Toggle(_selectLarger, "Select Larger")) _selectLarger = SelectScripts(!_selectLarger, 3);									
 			GUILayout.EndHorizontal();
-			if (GUILayout.Button("Migrate C# Scripts")) MigrateScripts();
+			
+			if (GUILayout.Button("Migrate Scripts")) 
+				MigrateScripts();
+		}
+
+		private void DisplaySearchPath(ref string searchPath, string label)
+		{
+			EditorGUILayout.BeginHorizontal();
+			if (GUILayout.Button(label, GUILayout.Width(60)))
+				searchPath = EditorUtility.OpenFolderPanel("Root Folder", searchPath, "");
+			searchPath = GUILayout.TextField(searchPath);
+			EditorGUILayout.EndHorizontal();
 		}
 
 		private bool SelectScripts(bool select, int action)
@@ -123,20 +143,43 @@ namespace AudioStudio.Tools
 		}
 		#endregion
 		
-		private bool CheckOtherGameExistence()
+		private bool ValidateDirectories()
 		{
-			if (string.IsNullOrEmpty(_otherGameRootPath))
+			if (string.IsNullOrEmpty(_sourceRootPath) || string.IsNullOrEmpty(_targetRootPath))
 			{
-				EditorUtility.DisplayDialog("Error", "Other game not located!", "OK");
+				EditorUtility.DisplayDialog("Error", "Please specify source and target directory!", "OK");
+				return false;
+			}
+			if (!Directory.Exists(_sourceRootPath) || !Directory.Exists(_targetRootPath))
+			{
+				EditorUtility.DisplayDialog("Error", "Please select valid source and target directory!", "OK");
 				return false;
 			}
 			return true;
 		}
-		
+
+		private string GetScriptExtensionName()
+		{
+			switch (_scriptType)
+			{
+				case ScriptType.CSharp:
+					return "*.cs";
+				case ScriptType.JavaScript:
+					return "*.js";
+				case ScriptType.Lua:
+					return "*.lua";
+				case ScriptType.Python:
+					return "*.py";
+				case ScriptType.DLL:
+					return "*.dll";
+			}
+			return "*.*";
+		}
+
 		private void SearchScriptDifference()
 		{
-			if (!CheckOtherGameExistence()) return;
-			_sourceScripts = Directory.GetFiles(_migrateToOtherGame ? AudioPathSettings.AudioStudioLibraryPathFull : _otherGameRootPath, "*.cs", SearchOption.AllDirectories);
+			if (!ValidateDirectories()) return;
+			_sourceScripts = Directory.GetFiles(_sourceRootPath, GetScriptExtensionName(), SearchOption.AllDirectories);
 			_changeList.Clear();
 			for (var i = 0; i < _sourceScripts.Length; i++)
 			{
@@ -146,9 +189,7 @@ namespace AudioStudio.Tools
 				var cd = new FileComparisonData
 				{
 					SourceFilePath = scriptPath,
-					TargetFilePath = _migrateToOtherGame
-						? scriptPath.Replace(AudioPathSettings.AudioStudioLibraryPathFull, _otherGameRootPath)
-						: scriptPath.Replace(_otherGameRootPath, AudioPathSettings.AudioStudioLibraryPathFull),
+					TargetFilePath = scriptPath.Replace(_sourceRootPath, _targetRootPath),
 					SourceFile = new FileInfo(scriptPath)
 				};
 
@@ -204,43 +245,5 @@ namespace AudioStudio.Tools
 			AssetDatabase.Refresh();
 			Close();
 		}
-
-		#region DLL
-		private void MigrateDll()
-		{
-			if (!CheckOtherGameExistence()) return;
-			try
-			{
-				CopyDllFile("AudioStudio", true, false);
-				CopyDllFile("AudioStudio_Editor", true, false);
-				CopyDllFile("AudioStudio_Deployment", false, true);
-				CopyDllFile("AudioStudio_Deployment", true, true);
-			}
-#pragma warning disable 168
-			catch(FileNotFoundException e)
-#pragma warning restore 168
-			{
-				EditorUtility.DisplayDialog("Error", "Dll file not found!", "OK");
-			}
-		}
-
-		private void CopyDllFile(string dllName, bool debugBuild, bool inSubFolder)
-		{
-			var subFolder = debugBuild ? "Debug" : "Release";
-			var dllSource = AsScriptingHelper.CombinePath(_otherGameRootPath, dllName, "bin/" + subFolder, dllName + ".dll");
-			var dllTarget = inSubFolder 
-				? AsScriptingHelper.CombinePath(AudioPathSettings.AudioStudioPluginPathFull, subFolder, dllName + ".dll") 
-				: AsScriptingHelper.CombinePath(AudioPathSettings.AudioStudioPluginPathFull, dllName + ".dll");
-			AsScriptingHelper.CheckoutLockedFile(dllTarget);
-			File.Copy(dllSource, dllTarget, true);
-			if (debugBuild)
-			{
-				var pdbSource = dllSource.Replace(".dll", ".pdb");
-				var pdbTarget = dllTarget.Replace(".dll", ".pdb");
-				AsScriptingHelper.CheckoutLockedFile(pdbTarget);
-				File.Copy(pdbSource, pdbTarget, true);
-			}
-		}
-		#endregion
 	}
 }

@@ -131,13 +131,15 @@ namespace AudioStudio.Configs
             
             if (PlayLogic != SoundPlayLogic.Switch)
             {
-                SwitchEventMappings = null;
+                SwitchEventMappings = new SwitchEventMapping[0];
                 if (ChildEvents.Any(c => !c)) 
                     Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
             }
-            else if (SwitchEventMappings.Any(c => !c.AudioEvent))
+            else 
             {
-                Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
+                ChildEvents.Clear();
+                if (SwitchEventMappings.Any(c => !c.AudioEvent))
+                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
             }                        
             
             foreach (var evt in ChildEvents)
@@ -150,34 +152,73 @@ namespace AudioStudio.Configs
         {
             return PlayLogic != SoundPlayLogic.Switch ? ChildEvents.Any(c => c != null) : SwitchEventMappings.Any(m => m.AudioEvent != null);
         }
+        
+        internal override AudioObjectType GetEventType()
+        {
+            return AudioObjectType.SFX;
+        }
+
+        public SoundContainer GetParentContainer()
+        {
+            return IndependentEvent || !ParentContainer ? this : ParentContainer.GetParentContainer();
+        }
         #endregion
 
         #region Initialize
-        public override void Init()
+        internal override void Init()
         {
-            LastSelectedIndex = 255;                  
-            foreach (var evt in ChildEvents) evt.Init();            
+            LastSelectedIndex = 255;
+            if (PlayLogic != SoundPlayLogic.Switch)
+            {
+                foreach (var evt in ChildEvents)
+                {
+                    evt.Init();
+                }
+            }
+            else
+            {
+                foreach (var mapping in SwitchEventMappings)
+                {
+                    mapping.AudioEvent.Init();
+                } 
+            }
         }
 
-        public override void Dispose()
-        {                        
-            foreach (var evt in ChildEvents) evt.Dispose();
+        internal override void Dispose()
+        {
+            if (PlayLogic != SoundPlayLogic.Switch)
+            {
+                foreach (var evt in ChildEvents)
+                {
+                    evt.Dispose();
+                }
+            }
+            else
+            {
+                foreach (var mapping in SwitchEventMappings)
+                {
+                    mapping.AudioEvent.Dispose();
+                } 
+            }
         }
         #endregion       
 
         #region Playback        
-        public override void Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
+
+        public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
             if (!soundSource)
-                return;
+                return string.Empty;
             if (EnableVoiceLimit)
             {
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
             }
-            var chosenClip = GetChild(soundSource, fadeInTime, endCallback);                                    
-            if (chosenClip)                            
-                chosenClip.Play(soundSource, fadeInTime, endCallback);                                            
+            var chosenClip = GetChild(soundSource, fadeInTime, endCallback);
+            if (!chosenClip)
+                return string.Empty;
+            chosenClip.Play(soundSource, fadeInTime, endCallback);
+            return chosenClip.name;
         }
 
         public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
@@ -188,7 +229,7 @@ namespace AudioStudio.Configs
             }
         }
 
-        public virtual void StopAll(float fadeOutTime)
+        internal override void StopAll(float fadeOutTime = 0f)
         {
             foreach (var evt in ChildEvents)
             {
@@ -196,7 +237,7 @@ namespace AudioStudio.Configs
             }
         }
 
-        public override void Mute(GameObject soundSource, float fadeOutTime = 0f)
+        internal override void Mute(GameObject soundSource, float fadeOutTime = 0f)
         {
             foreach (var evt in ChildEvents)
             {                
@@ -204,7 +245,7 @@ namespace AudioStudio.Configs
             }
         }
 
-        public override void UnMute(GameObject soundSource, float fadeInTime = 0f)
+        internal override void UnMute(GameObject soundSource, float fadeInTime = 0f)
         {
             foreach (var evt in ChildEvents)
             {                
@@ -212,7 +253,7 @@ namespace AudioStudio.Configs
             }
         }
 
-        public override void Pause(GameObject soundSource, float fadeOutTime = 0f)
+        internal override void Pause(GameObject soundSource, float fadeOutTime = 0f)
         {
             foreach (var evt in ChildEvents)
             {                
@@ -220,7 +261,7 @@ namespace AudioStudio.Configs
             }
         }
 
-        public override void Resume(GameObject soundSource, float fadeInTime = 0f)
+        internal override void Resume(GameObject soundSource, float fadeInTime = 0f)
         {
             foreach (var evt in ChildEvents)
             {                
@@ -241,7 +282,6 @@ namespace AudioStudio.Configs
                 for (var i = 0; i < ChildEvents.Count; i++)
                 {
                     var evt = ChildEvents[i];
-                    evt.Init();
                     if (i == 0) //only the first clip will have the end callback
                         evt.Play(soundSource, fadeInTime, endCallback);
                     else
@@ -355,17 +395,17 @@ namespace AudioStudio.Configs
 
         internal bool ReachVoiceLimit(GameObject soundSource, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
-            var voiceGlobal = CurrentVoicesGlobal() + 1;
-            var voiceGameObject = CurrentVoicesGameObject(soundSource) + 1;
-            
-            if (voiceGlobal > VoiceLimitGlobal)
+            if (!EnableVoiceLimit)
+                return false;
+
+            if (CurrentVoicesGlobal() >= VoiceLimitGlobal)
             {
                 AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, trigger, name, soundSource,
                     "Global voice limit of " + VoiceLimitGlobal + " reaches");
                 return true;
             }
 
-            if (voiceGameObject > VoiceLimitGameObject)
+            if (CurrentVoicesGameObject(soundSource) >= VoiceLimitGameObject)
             {
                 AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, trigger, name, soundSource,
                     "GameObject voice limit of " + VoiceLimitGameObject + " reaches");

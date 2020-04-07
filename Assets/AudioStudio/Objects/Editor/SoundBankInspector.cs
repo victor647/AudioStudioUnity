@@ -21,6 +21,7 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("UseLoadCounter"));
             DrawEvents();
             DrawControllers();
             AsGuiDrawer.DrawPathDisplay("Audio Events Folder", _soundBank.EventsFolder, SetupEventsFolderPath);
@@ -29,15 +30,18 @@ namespace AudioStudio.Editor
             
             EditorGUILayout.BeginHorizontal();
             GUI.contentColor = Color.yellow;
-            if (GUILayout.Button("Refresh Events Folder", EditorStyles.toolbarButton))
+            if (GUILayout.Button("Refresh & Sort", EditorStyles.toolbarButton))
+            {
                 AsBatchProcessor.RefreshBankFolder(_soundBank);
+                _soundBank.Sort();
+            }
             AsGuiDrawer.DrawSaveButton(_soundBank);
             EditorGUILayout.EndHorizontal();
         }
 
         private void DrawEvents()
         {
-            AsGuiDrawer.DrawList(serializedObject.FindProperty("AudioEvents"), "Sound Events:", AddEvent);
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("AudioEvents"), "Audio Events:", AddEvent);
             GUI.contentColor = Color.red;
             if (_soundBank.AudioEvents.Count > 0 && GUILayout.Button("Clear All Events", EditorStyles.miniButton))
                 _soundBank.AudioEvents.Clear();
@@ -57,10 +61,11 @@ namespace AudioStudio.Editor
 
         private void AddEvent(Object[] objects)
         {
-            var events = objects.Select(obj => obj as SoundContainer).Where(a => a).ToArray();
+            var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                _soundBank.RegisterEvent(evt);
+                if (evt.IndependentEvent)
+                    _soundBank.RegisterEvent(evt);
             }
         }
 
@@ -75,7 +80,7 @@ namespace AudioStudio.Editor
         
         private void SetupEventsFolderPath()
         {
-            var oldPath = AsScriptingHelper.CombinePath(Application.dataPath, _soundBank.EventsFolder);
+            var oldPath = string.IsNullOrEmpty(_soundBank.EventsFolder) ? "Assets/" + AudioPathSettings.Instance.SoundEventsPath : AsScriptingHelper.CombinePath(Application.dataPath, _soundBank.EventsFolder);
             var pathNew = EditorUtility.OpenFolderPanel("Select audio events folder", oldPath, "");
             if (!string.IsNullOrEmpty(pathNew))
                 _soundBank.EventsFolder = AsScriptingHelper.ShortPath(pathNew, false);

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: Login_Loop
+  m_Name: Music_Login_Loop
   m_EditorClassIdentifier: 
   Platform: 0
   IndependentEvent: 0
@@ -27,8 +27,6 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 0
-  DefaultFadeOutTime: 0
   AvoidRepeat: 1
   RandomOnLoop: 0
   AudioSwitchReference:
@@ -41,13 +39,24 @@ MonoBehaviour:
   LoopCount: 0
   ChildEvents: []
   OverrideTransition: 0
-  TransitionInterval: 2
-  GridLength:
-    Bar: 0
-    Beat: 0
-  DefaultEntryOffset: 0
-  DefaultExitOffset: -1
+  TransitionEntryConditions:
+  - Source:
+      Name: 
+    FadeInTime: 0
+    EntryOffset: 0
+    TransitionSegment:
+      Name: 
+  TransitionExitConditions:
+  - Target:
+      Name: 
+    FadeOutTime: 0
+    ExitOffset: 0
+    Interval: 0
+    GridLength:
+      Bar: 0
+      Beat: 0
   SwitchToSamePosition: 0
+  LoopEntireSequence: 0
   Markers:
   - BarNumber: 0
     Tempo: 150

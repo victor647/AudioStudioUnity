@@ -8,20 +8,14 @@ namespace AudioStudio
 {
 	internal static class AsAssetLoader
 	{
-		private static Dictionary<string, SoundContainer> _soundEvents;
-		private static Dictionary<string, VoiceEvent> _voiceEvents;
-		private static Dictionary<string, MusicContainer> _musicEvents;
+		private static Dictionary<string, AudioEvent> _audioEvents;
 		private static Dictionary<string, MusicInstrument> _musicInstruments;
-		private static Dictionary<string, SoundBank> _soundBanks;
 		private static Dictionary<string, AudioParameter> _audioParameters;
 		private static Dictionary<string, AudioSwitch> _audioSwitches;
 
 		internal static void Init()
 		{
-			_soundEvents = new Dictionary<string, SoundContainer>();
-			_soundBanks = new Dictionary<string, SoundBank>();
-			_voiceEvents = new Dictionary<string, VoiceEvent>();
-			_musicEvents = new Dictionary<string, MusicContainer>();
+			_audioEvents = new Dictionary<string, AudioEvent>();
 			_musicInstruments = new Dictionary<string, MusicInstrument>();
 			_audioSwitches = new Dictionary<string, AudioSwitch>();
 			_audioParameters = new Dictionary<string, AudioParameter>();
@@ -35,19 +29,21 @@ namespace AudioStudio
 		}
 
 		#region SoundBank
-		internal static void LoadBank(string bankName, Action<SoundBank> onLoadFinished)
+		internal static void LoadBank(string bankName, Action<SoundBank, BankLoadStatus> onLoadFinished)
 		{
-			if (string.IsNullOrEmpty(bankName) || _soundBanks.ContainsKey(bankName))
-				return;
-			var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + $"/{AudioManager.Platform}/{bankName}";
+			var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + "/" + bankName;
 			var bank = Resources.Load<SoundBank>(loadPath);
 			if (!bank)
 			{
-				onLoadFinished(bank);
+				onLoadFinished(bank, BankLoadStatus.NotFound);
 				return;
 			}
-			_soundBanks[bank.name] = bank;
-			bank.Init();
+			DoLoadBank(bank);
+			onLoadFinished(bank, BankLoadStatus.Loaded);
+		}
+		
+		internal static void DoLoadBank(SoundBank bank)
+		{
 			foreach (var ac in bank.AudioControllers)
 			{
 				if (!ac)
@@ -55,43 +51,28 @@ namespace AudioStudio
 					Debug.LogError("AudioController of SoundBank " + bank.name + " is missing!");
 					continue;
 				}
+
 				ac.Init();
 				var parameter = ac as AudioParameter;
 				if (parameter != null) _audioParameters[parameter.name] = parameter;
 				var audioSwitch = ac as AudioSwitch;
 				if (audioSwitch != null) _audioSwitches[audioSwitch.name] = audioSwitch;
 			}
+
 			foreach (var evt in bank.AudioEvents)
-			{			
+			{
 				if (!evt)
 				{
 					Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
 					continue;
 				}
+
 				evt.Init();
-				_soundEvents[evt.name] = evt;
-			}
-			onLoadFinished(bank);
-		}
-
-		internal static bool UnloadBank(string bankName)
-		{
-			if (!_soundBanks.ContainsKey(bankName)) return false;
-			UnloadBank(_soundBanks[bankName]);
-			return true;
-		}
-		
-		internal static void UnloadBanks(string nameFilter)
-		{
-			var loadedBanks = new List<string>(_soundBanks.Keys);
-			foreach (var bank in loadedBanks)
-			{
-				if (bank.Contains(nameFilter))
-					UnloadBank(bank);
+				_audioEvents[evt.name] = evt;
 			}
 		}
 
-		private static void UnloadBank(SoundBank bank)
+		internal static void UnloadBank(SoundBank bank)
 		{
 			foreach (var evt in bank.AudioEvents)
 			{       
@@ -100,7 +81,7 @@ namespace AudioStudio
 					Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
 					continue;
 				}
-				_soundEvents.Remove(evt.name);
+				_audioEvents.Remove(evt.name);
 				evt.StopAll(0);				
 				evt.Dispose();
 			}
@@ -117,14 +98,12 @@ namespace AudioStudio
 					_audioSwitches.Remove(ac.name);    
 				ac.Dispose();
 			}
-			_soundBanks.Remove(bank.name);
-			bank.Dispose();
 			Resources.UnloadAsset(bank);
 		}
 
-		internal static SoundContainer GetSoundEvent(string eventName)
+		internal static AudioEvent GetAudioEvent(string eventName)
 		{
-			return _soundEvents.ContainsKey(eventName) ? _soundEvents[eventName] : null;
+			return _audioEvents.ContainsKey(eventName) ? _audioEvents[eventName] : null;
 		}	
 		
 		internal static AudioParameter GetAudioParameter(string parameterName)
@@ -138,53 +117,7 @@ namespace AudioStudio
 		}
 		#endregion
 		
-		#region Music
-		internal static void LoadMusic(string eventName, Action<MusicContainer> play)
-		{
-			if (_musicEvents.ContainsKey(eventName)) 
-				play(_musicEvents[eventName]);
-			else
-			{
-#if !UNITY_EDITOR && UNITY_WEBGL
-				var music = LoadMusicWeb(eventName);
-				if (music)
-				{
-					WebMusicPlayer.Instance.PlayMusic(music);
-					AudioManager.UpdateLastMusic(eventName);
-				}
-#else
-				var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
-				var music = Resources.Load<MusicContainer>(loadPath);
-				if (music)
-				{
-					_musicEvents[eventName] = music;
-					music.Init();
-				}
-				play(music);
-#endif
-			}
-		}
-		
-		internal static MusicStinger LoadStinger(string stingerName)
-		{
-#if UNITY_EDITOR || !UNITY_WEBGL
-			if (_musicEvents.ContainsKey(stingerName)) 
-				return _musicEvents[stingerName] as MusicStinger;
-			var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + stingerName;
-			var stinger = Resources.Load<MusicStinger>(loadPath);
-			if (stinger)
-			{
-				_musicEvents[stingerName] = stinger;
-				stinger.Init();
-			}
-			else
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, stingerName, null, "Stinger not found");                                    
-			return stinger;
-#else
-			return null;
-#endif			
-		}
-
+		#region Instrument
 		internal static MusicInstrument LoadInstrument(string instrumentName, byte channel = 1)
 		{
 			if (_musicInstruments.ContainsKey(instrumentName)) 
@@ -213,30 +146,7 @@ namespace AudioStudio
 			_musicInstruments.Remove(instrumentName);
 		}
 		#endregion
-		
-		#region Voice
-		internal static void LoadVoice(string eventName, Action<VoiceEvent> play)
-		{
-			if (_voiceEvents.ContainsKey(eventName))
-				play(_voiceEvents[eventName]);
-			else
-			{
-#if !UNITY_EDITOR && UNITY_WEBGL
-				var loadPath = ShortPath(AudioPathSettings.Instance.WebEventsPath) + $"/Voice/{AudioManager.VoiceLanguage}/{eventName}";
-#else
-				var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
-				var voice = Resources.Load<VoiceEvent>(loadPath);
-				if (voice)
-				{
-					_voiceEvents[eventName] = voice;
-					voice.Init();
-				}
-				play(voice);
-#endif				
-			}
-		}
-		#endregion
-		
+
 		#region Web
 #if !UNITY_EDITOR && UNITY_WEBGL		
 		private static Dictionary<string, WebMusicInstance> _webMusicList = new Dictionary<string, WebMusicInstance>();

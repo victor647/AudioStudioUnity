@@ -17,6 +17,7 @@ MonoBehaviour:
   StartBanks:
   - Name: Character
   - Name: Interface
+  - Name: Music
   StartEvents: []
   PostEvents: 0
   LoadBanks: 1

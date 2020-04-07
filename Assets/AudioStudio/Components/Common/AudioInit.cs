@@ -7,6 +7,7 @@ namespace AudioStudio.Components
 	{
 		public AudioInitSettings AudioInitSettings;
 		public bool InitOnAwake = true;
+		public bool LoadAudioData = true; 
 
 		private void Awake()
 		{
@@ -16,7 +17,7 @@ namespace AudioStudio.Components
 				AudioInitSettings = AudioInitSettings.Instance;
 			
 			if (InitOnAwake)
-				AudioInitSettings.Initialize();
+				AudioInitSettings.Initialize(LoadAudioData);
 		}
 	}
 }

@@ -24,7 +24,7 @@ namespace AudioStudio.Editor
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
                 AsGuiDrawer.DrawPathDisplay("AudioStudio Library Path", AudioPathSettings.AudioStudioLibraryPath, SetupAudioStudioLibrary);
-                AsGuiDrawer.DrawPathDisplay("Original Resource Path", _component.OriginalResourcesPath, SetupOriginalResourcesPath);
+                AsGuiDrawer.DrawPathDisplay("Original Resource Path", _component.AudioResourcesPath, SetupOriginalResourcesPath);
                 AsGuiDrawer.DrawPathDisplay("Build Assets Path", _component.BuildAssetsPath, SetupBuildAssetsPath);
                 AsGuiDrawer.DrawPathDisplay("Game Start Scene Path", _component.StartScenePath, SetupStartScenePath);
             }
@@ -55,10 +55,10 @@ namespace AudioStudio.Editor
 
         private void SetupOriginalResourcesPath()
         {
-            var oldPath = AsScriptingHelper.CombinePath(Application.dataPath, _component.OriginalResourcesPath);
+            var oldPath = AsScriptingHelper.CombinePath(Application.dataPath, _component.AudioResourcesPath);
             var pathNew = EditorUtility.OpenFolderPanel("Select audio original resources folder", oldPath, "");
             if (!string.IsNullOrEmpty(pathNew))
-                _component.OriginalResourcesPath = AsScriptingHelper.ShortPath(pathNew, false);
+                _component.AudioResourcesPath = AsScriptingHelper.ShortPath(pathNew, false);
         }
 
         private void SetupBuildAssetsPath()

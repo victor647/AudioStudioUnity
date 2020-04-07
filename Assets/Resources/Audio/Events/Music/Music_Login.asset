@@ -9,15 +9,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: City_Main_Day
+  m_Script: {fileID: 11500000, guid: a8e9eddb18cf8b448bae5adcc107792e, type: 3}
+  m_Name: Music_Login
   m_EditorClassIdentifier: 
   Platform: 0
-  IndependentEvent: 0
+  IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
   Volume: 1
-  Pitch: 2
+  Pitch: 1
   Pan: 0
   LowPassFilter: 0
   LowPassResonance: 1
@@ -35,21 +35,23 @@ MonoBehaviour:
   SwitchImmediately: 0
   CrossFadeTime: 0.5
   Mappings: []
-  PlayLogic: 0
-  LoopCount: 1
-  ChildEvents: []
+  PlayLogic: 3
+  LoopCount: 0
+  ChildEvents:
+  - {fileID: 11400000, guid: fd747904c6e4fe547be3f04046d695bb, type: 2}
+  - {fileID: 11400000, guid: 27431c6528d82584f8e85608b30276d5, type: 2}
   OverrideTransition: 0
   TransitionEntryConditions:
   - Source:
       Name: 
     FadeInTime: 0
-    EntryOffset: 1
+    EntryOffset: 0
     TransitionSegment:
       Name: 
   TransitionExitConditions:
   - Target:
       Name: 
-    FadeOutTime: 1
+    FadeOutTime: 0
     ExitOffset: 0
     Interval: 0
     GridLength:
@@ -57,15 +59,3 @@ MonoBehaviour:
       Beat: 0
   SwitchToSamePosition: 0
   LoopEntireSequence: 0
-  Markers:
-  - BarNumber: 0
-    Tempo: 70
-    BeatsPerBar: 3
-    BeatDuration: 0
-    KeyCenter: 1
-  PickupBeats: 1
-  ExitPosition:
-    Bar: 34
-    Beat: 0
-  UseDefaultLoopStyle: 0
-  Clip: {fileID: 8300000, guid: c44e74e7856285c43b30df593fdf717c, type: 3}

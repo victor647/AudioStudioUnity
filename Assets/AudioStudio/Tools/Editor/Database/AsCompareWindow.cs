@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AudioStudio.Tools
 {
-	public enum ComponentBackupStatus
+	internal enum ComponentBackupStatus
 	{
 		Unhandled,
 		Saved,
@@ -13,18 +13,18 @@ namespace AudioStudio.Tools
 		Removed
 	}
 	
-	public class ComponentComparisonData
+	internal class ComponentComparisonData
 	{
-		public string AssetPath;
-		public ComponentBackupStatus BackupStatus;
-		public XElement ComponentData;
+		internal string AssetPath;
+		internal ComponentBackupStatus BackupStatus;
+		internal XElement ComponentData;
 	}
 	
-	public abstract class AsCompareWindow : AsSearchers
+	internal abstract class AsCompareWindow : AsSearchers
 	{
-		public static readonly List<ComponentComparisonData> MissingComponents = new List<ComponentComparisonData>();
-		public static readonly List<ComponentComparisonData> ModifiedComponents = new List<ComponentComparisonData>();
-		public static readonly List<ComponentComparisonData> EmptyComponents = new List<ComponentComparisonData>();
+		internal static readonly List<ComponentComparisonData> MissingComponents = new List<ComponentComparisonData>();
+		internal static readonly List<ComponentComparisonData> ModifiedComponents = new List<ComponentComparisonData>();
+		internal static readonly List<ComponentComparisonData> EmptyComponents = new List<ComponentComparisonData>();
 		private Vector2 _scrollPosition1, _scrollPosition2, _scrollPosition3;
 
 		private void OnDestroy()
@@ -96,13 +96,13 @@ namespace AudioStudio.Tools
 		protected abstract void RemoveComponent(ComponentComparisonData data);
 	}
 
-	public class AsXmlInfo : EditorWindow
+	internal class AsXmlInfo : EditorWindow
 	{
 		private XElement _xComponent;
 		private static AsXmlInfo _instance;
 		private int _lines;
 		private int _maxChar = 20;
-		public static void Init(XElement node)
+		internal static void Init(XElement node)
 		{					
 			var position = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
 			position.y += 10;

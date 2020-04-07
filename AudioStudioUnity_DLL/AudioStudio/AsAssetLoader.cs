@@ -9,18 +9,14 @@ namespace AudioStudio
 {
     internal static class AsAssetLoader
     {
-        private static Dictionary<string, SoundContainer> _soundEvents;
-        private static Dictionary<string, VoiceEvent> _voiceEvents;
-        private static Dictionary<string, MusicContainer> _musicEvents;
+        private static Dictionary<string, AudioEvent> _audioEvents;
         private static Dictionary<string, MusicInstrument> _musicInstruments;
         private static Dictionary<string, AudioParameter> _audioParameters;
         private static Dictionary<string, AudioSwitch> _audioSwitches;
 
         internal static void Init()
         {
-            _soundEvents = new Dictionary<string, SoundContainer>();
-            _voiceEvents = new Dictionary<string, VoiceEvent>();
-            _musicEvents = new Dictionary<string, MusicContainer>();
+            _audioEvents = new Dictionary<string, AudioEvent>();
             _musicInstruments = new Dictionary<string, MusicInstrument>();
             _audioSwitches = new Dictionary<string, AudioSwitch>();
             _audioParameters = new Dictionary<string, AudioParameter>();
@@ -36,9 +32,7 @@ namespace AudioStudio
         #region SoundBank
         internal static void LoadBank(string bankName, Action<SoundBank, BankLoadStatus> onLoadFinished)
         {
-            if (string.IsNullOrEmpty(bankName))
-                return;
-            var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + $"/{AudioManager.Platform}/{bankName}";
+            var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + "/" + bankName;
             ResourceManager.Instance.Load<SoundBank>(loadPath, bank =>
             {
                 if (!bank)
@@ -47,40 +41,44 @@ namespace AudioStudio
                     return;
                 }
 
-                bank.Init();
-                foreach (var ac in bank.AudioControllers)
-                {
-                    if (!ac)
-                    {
-                        Debug.LogError("AudioController of SoundBank " + bank.name + " is missing!");
-                        continue;
-                    }
-
-                    ac.Init();
-                    var parameter = ac as AudioParameter;
-                    if (parameter != null) _audioParameters[parameter.name] = parameter;
-                    var audioSwitch = ac as AudioSwitch;
-                    if (audioSwitch != null) _audioSwitches[audioSwitch.name] = audioSwitch;
-                }
-
-                foreach (var evt in bank.AudioEvents)
-                {
-                    if (!evt)
-                    {
-                        Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
-                        continue;
-                    }
-
-                    evt.Init();
-                    _soundEvents[evt.name] = evt;
-                }
+                DoLoadBank(bank);
                 onLoadFinished(bank, BankLoadStatus.Loaded);
             });
         }
 
+        internal static void DoLoadBank(SoundBank bank)
+        {
+            foreach (var ac in bank.AudioControllers)
+            {
+                if (!ac)
+                {
+                    Debug.LogError("AudioController of SoundBank " + bank.name + " is missing!");
+                    continue;
+                }
+
+                ac.Init();
+                var parameter = ac as AudioParameter;
+                if (parameter != null) _audioParameters[parameter.name] = parameter;
+                var audioSwitch = ac as AudioSwitch;
+                if (audioSwitch != null) _audioSwitches[audioSwitch.name] = audioSwitch;
+            }
+
+            foreach (var evt in bank.AudioEvents)
+            {
+                if (!evt)
+                {
+                    Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
+                    continue;
+                }
+
+                evt.Init();
+                _audioEvents[evt.name] = evt;
+            }
+        }
+
         internal static void UnloadBank(SoundBank bank)
         {
-            var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + $"/{AudioManager.Platform}/{bank.name}";
+            var loadPath = ShortPath(AudioPathSettings.Instance.SoundBanksPath) + "/" + bank.name;
             foreach (var evt in bank.AudioEvents)
             {       
                 if (!evt)
@@ -88,8 +86,8 @@ namespace AudioStudio
                     Debug.LogError("AudioEvent of SoundBank " + bank.name + " is missing!");
                     continue;
                 }
-                _soundEvents.Remove(evt.name);
-                evt.StopAll(0);				
+                _audioEvents.Remove(evt.name);
+                evt.StopAll();				
                 evt.Dispose();
             }
             foreach (var ac in bank.AudioControllers)
@@ -105,13 +103,13 @@ namespace AudioStudio
                     _audioSwitches.Remove(ac.name);    
                 ac.Dispose();
             }
-            bank.Dispose();
-            ResourceManager.Instance.UnLoadBundle(loadPath);
+            if (ResourceManager.Instance != null)
+                ResourceManager.Instance.UnLoadBundle(loadPath);
         }		
 
-        internal static SoundContainer GetSoundEvent(string eventName)
+        internal static AudioEvent GetAudioEvent(string eventName)
         {
-            return _soundEvents.ContainsKey(eventName) ? _soundEvents[eventName] : null;
+            return _audioEvents.ContainsKey(eventName) ? _audioEvents[eventName] : null;
         }	
 		
         internal static AudioParameter GetAudioParameter(string parameterName)
@@ -125,43 +123,7 @@ namespace AudioStudio
         }
         #endregion
 		
-        #region Music
-        internal static void LoadMusic(string eventName, Action<MusicContainer> play)
-        {
-            if (_musicEvents.ContainsKey(eventName))
-                play(_musicEvents[eventName]);
-            else
-            {
-                var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + eventName;
-                ResourceManager.Instance.Load<MusicContainer>(loadPath, music =>
-                {
-                    if (music)
-                    {
-                        music.Init();
-                        _musicEvents[eventName] = music;
-                    }
-                    play(music);
-                });
-            }
-        }
-
-        internal static MusicStinger LoadStinger(string stingerName)
-        {
-            if (_musicEvents.ContainsKey(stingerName)) 
-                return _musicEvents[stingerName] as MusicStinger;
-            var loadPath = ShortPath(AudioPathSettings.Instance.MusicEventsPath) + "/" + stingerName;
-            var stinger = Resources.Load<MusicStinger>(loadPath);
-            if (!stinger)
-            {                                                            
-                AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Music, AudioAction.Load, AudioTriggerSource.Code, stingerName, null, "Stinger not found");                                    
-                return null;
-            }
-            _musicEvents[stingerName] = stinger;
-            stinger.Init();	
-            MusicTransport.Instance.QueueStinger(stinger);
-            return stinger;
-        }
-
+        #region Instrument
         internal static MusicInstrument LoadInstrument(string instrumentName, byte channel = 1)
         {
             if (string.IsNullOrEmpty(instrumentName))
@@ -189,27 +151,6 @@ namespace AudioStudio
             }
             _musicInstruments[instrumentName].Dispose();
             _musicInstruments.Remove(instrumentName);
-        }
-        #endregion
-		
-        #region Voice
-        internal static void LoadVoice(string eventName, Action<VoiceEvent> play)
-        {
-            if (_voiceEvents.ContainsKey(eventName))
-                play(_voiceEvents[eventName]);
-            else
-            {
-                var loadPath = ShortPath(AudioPathSettings.Instance.VoiceEventsPath) + $"/{AudioManager.VoiceLanguage}/{eventName}";
-                ResourceManager.Instance.Load<VoiceEvent>(loadPath, voice =>
-                {
-                    if (voice)
-                    {
-                        voice.Init();
-                        _voiceEvents[eventName] = voice;
-                    }
-                    play(voice);
-                });
-            }
         }
         #endregion
     }

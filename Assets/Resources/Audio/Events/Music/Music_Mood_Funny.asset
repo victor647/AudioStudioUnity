@@ -4,12 +4,13 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: XiaoYinCun
+  m_Name: Music_Mood_Funny
   m_EditorClassIdentifier: 
   Platform: 0
   IndependentEvent: 0
@@ -26,36 +27,65 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 1
-  DefaultFadeOutTime: 1
   AvoidRepeat: 1
   RandomOnLoop: 0
   AudioSwitchReference:
     Name: 
   SwitchEventMappings: []
   SwitchImmediately: 0
-  CrossFadeTime: 0
+  CrossFadeTime: 0.5
   Mappings: []
   PlayLogic: 0
   LoopCount: 0
   ChildEvents: []
   OverrideTransition: 0
-  TransitionInterval: 2
-  GridLength:
-    Bar: 0
-    Beat: 0
-  DefaultEntryOffset: 0
-  DefaultExitOffset: -1
+  TransitionEntryConditions:
+  - Source:
+      Name: 
+    FadeInTime: 0
+    EntryOffset: 1
+    TransitionSegment:
+      Name: 
+  TransitionExitConditions:
+  - Target:
+      Name: 
+    FadeOutTime: 1
+    ExitOffset: 0
+    Interval: 0
+    GridLength:
+      Bar: 0
+      Beat: 0
   SwitchToSamePosition: 0
+  LoopEntireSequence: 0
   Markers:
   - BarNumber: 0
-    Tempo: 0
-    BeatsPerBar: 0
+    Tempo: 95
+    BeatsPerBar: 5
     BeatDuration: 0
-    KeyCenter: 0
-  PickupBeats: 0
+    KeyCenter: 8
+  - BarNumber: 8
+    Tempo: 95
+    BeatsPerBar: 3
+    BeatDuration: 0
+    KeyCenter: 8
+  - BarNumber: 27
+    Tempo: 95
+    BeatsPerBar: 5
+    BeatDuration: 0
+    KeyCenter: 8
+  - BarNumber: 29
+    Tempo: 95
+    BeatsPerBar: 3
+    BeatDuration: 0
+    KeyCenter: 8
+  - BarNumber: 29
+    Tempo: 95
+    BeatsPerBar: 3
+    BeatDuration: 0
+    KeyCenter: 8
+  PickupBeats: 1
   ExitPosition:
     Bar: 33
     Beat: 0
   UseDefaultLoopStyle: 0
-  Clip: {fileID: 8300000, guid: 065476488a66f954383c34823471a9da, type: 3}
+  Clip: {fileID: 8300000, guid: a7f0c56a5af6a774d8e7f3bf8ac88940, type: 3}

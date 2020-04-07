@@ -4,18 +4,19 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: XuanGuGuo
+  m_Name: Music_Login_Intro
   m_EditorClassIdentifier: 
   Platform: 0
   IndependentEvent: 0
   OverrideControls: 0
   OverrideSpatial: 0
-  Volume: 0.6
+  Volume: 1
   Pitch: 1
   Pan: 0
   LowPassFilter: 0
@@ -26,36 +27,45 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 1
-  DefaultFadeOutTime: 1
   AvoidRepeat: 1
   RandomOnLoop: 0
   AudioSwitchReference:
     Name: 
   SwitchEventMappings: []
   SwitchImmediately: 0
-  CrossFadeTime: 0
+  CrossFadeTime: 0.5
   Mappings: []
   PlayLogic: 0
-  LoopCount: 0
+  LoopCount: 1
   ChildEvents: []
   OverrideTransition: 0
-  TransitionInterval: 2
-  GridLength:
-    Bar: 0
-    Beat: 0
-  DefaultEntryOffset: 0
-  DefaultExitOffset: -1
+  TransitionEntryConditions:
+  - Source:
+      Name: 
+    FadeInTime: 0
+    EntryOffset: 0
+    TransitionSegment:
+      Name: 
+  TransitionExitConditions:
+  - Target:
+      Name: 
+    FadeOutTime: 0
+    ExitOffset: 0
+    Interval: 0
+    GridLength:
+      Bar: 0
+      Beat: 0
   SwitchToSamePosition: 0
+  LoopEntireSequence: 0
   Markers:
   - BarNumber: 0
-    Tempo: 0
-    BeatsPerBar: 0
+    Tempo: 150
+    BeatsPerBar: 3
     BeatDuration: 0
-    KeyCenter: 0
-  PickupBeats: 0
+    KeyCenter: 1
+  PickupBeats: 0.4
   ExitPosition:
-    Bar: 41
-    Beat: 2
+    Bar: 1
+    Beat: 0
   UseDefaultLoopStyle: 0
-  Clip: {fileID: 8300000, guid: bfcb8f2a1e2f1bf4d8f0e2cbe2afb75a, type: 3}
+  Clip: {fileID: 8300000, guid: 2df74fbe0fa26454ea2f795ab8566a0c, type: 3}

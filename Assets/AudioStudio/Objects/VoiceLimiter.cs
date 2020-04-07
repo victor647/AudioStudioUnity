@@ -8,7 +8,17 @@ namespace AudioStudio.Configs
 	{
 		public SoundClipInstance SoundClipInstance;
 		public byte Priority;
-		public float Distance;
+
+		public float Distance
+		{
+			get
+			{
+				if (SoundClipInstance.SoundClip.SpatialBlend == 0f)
+					return 0;
+				return ListenerManager.GetListenerDistance(SoundClipInstance.Emitter);
+			}
+		}
+		
 		public float PlayTime;
 	}	
 	
@@ -26,7 +36,7 @@ namespace AudioStudio.Configs
 		public VoiceRemovalRule VoiceRemovalRule = VoiceRemovalRule.Oldest;
 		private readonly List<AudioVoiceInstance> _voices = new List<AudioVoiceInstance>();
 		public byte MaxVoicesLimit = 16;		
-		public float FadeOutTime = 0.1f;		
+		public float FadeOutTime = 0.1f;
 
 		public bool AddVoice(AudioVoiceInstance voice)
 		{						
@@ -51,28 +61,28 @@ namespace AudioStudio.Configs
 			switch (VoiceRemovalRule)
 			{
 				case VoiceRemovalRule.DiscardNew:
-					DebugMessage(soundName, "new voices won't play");
+					DebugMessage(soundName, toBeRemoved, "new voices won't play");
 					return false;
 				case VoiceRemovalRule.Oldest:					
 					foreach (var v in _voices)
 					{
 						if (v.PlayTime < toBeRemoved.PlayTime) toBeRemoved = v;
 					}
-					DebugMessage(soundName, "oldest voice stops");
+					DebugMessage(soundName, toBeRemoved, "oldest voice stops");
 					break;					
 				case VoiceRemovalRule.Farthest:					
 					foreach (var v in _voices)
 					{
 						if (v.Distance > toBeRemoved.Distance) toBeRemoved = v;
 					}					
-					DebugMessage(soundName, "farthest voice stops");
+					DebugMessage(soundName, toBeRemoved, "farthest voice stops");
 					break;
 				case VoiceRemovalRule.LowestPriority:
 					foreach (var v in _voices)
 					{
 						if (v.Priority < toBeRemoved.Priority) toBeRemoved = v;
 					}
-					DebugMessage(soundName, "voice with lowest priority stops");
+					DebugMessage(soundName, toBeRemoved, "voice with lowest priority stops");
 					break;
 			}
 			toBeRemoved.SoundClipInstance.Stop(FadeOutTime);
@@ -81,9 +91,9 @@ namespace AudioStudio.Configs
 			return true;
 		}
 
-		private void DebugMessage(string soundName, string rule)
+		private void DebugMessage(string soundName, AudioVoiceInstance toBeRemoved, string rule)
 		{
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, soundName, null, "Voice limit of " + MaxVoicesLimit + " reached, " + rule);
+			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, soundName, toBeRemoved.SoundClipInstance.Emitter, "Voice limit of " + MaxVoicesLimit + " reached, " + rule);
 		}
 	}
 }

@@ -162,19 +162,45 @@ namespace AudioStudio.Editor
         }
         
         protected void DrawHierarchy(SoundContainer sc)
-        {            
-            EditorGUILayout.LabelField("Hierarchy", EditorStyles.boldLabel); 
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Event Hierarchy", EditorStyles.boldLabel, GUILayout.Width(130));
+            EditorGUILayout.LabelField("Independent", GUILayout.Width(80));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("IndependentEvent"), GUIContent.none);
+            GUILayout.EndHorizontal();
+            
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
-                EditorGUILayout.BeginHorizontal();                
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("IndependentEvent"));
-                if (!sc.IndependentEvent)
-                {
-                    if (GUILayout.Button("Select Parent")) Selection.objects = new Object[] {sc.ParentContainer};	
-                }	
-                EditorGUILayout.EndHorizontal();                                         
+                if (Selection.objects.Length > 1)
+                    EditorGUILayout.HelpBox("Unavailable when selecting multiple events", MessageType.Info);
+                else
+                    DrawCascade(sc.GetParentContainer());
             }
             EditorGUILayout.Separator();
+        }
+
+        private static void DrawCascade(SoundContainer sc, int indentLevel = 0)
+        {
+            if (!sc) return;
+            var text = new string(' ', indentLevel * 3);
+            text += sc is SoundClip ? sc.name : sc.name + " (" + sc.PlayLogic + ")";
+            
+            if (GUILayout.Button(text, Selection.activeObject == sc ? EditorStyles.whiteLabel : EditorStyles.label))
+                Selection.activeObject = sc;
+            if (sc.PlayLogic == SoundPlayLogic.Switch)
+            {
+                foreach (var eventMapping in sc.SwitchEventMappings)
+                {
+                    DrawCascade((SoundContainer)eventMapping.AudioEvent, indentLevel + 1);
+                }
+            }
+            else
+            {
+                foreach (var childEvent in sc.ChildEvents)
+                {
+                    DrawCascade(childEvent, indentLevel + 1);
+                }
+            }
         }
         
         protected void Draw3DSetting(SoundContainer sc)

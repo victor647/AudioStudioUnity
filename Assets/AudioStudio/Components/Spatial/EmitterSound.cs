@@ -23,6 +23,7 @@ namespace AudioStudio.Components
         public float MaxInterval = 10;
         public EventPlayMode PlayMode = EventPlayMode.SingleLoop;
         private bool _isPlaying;
+        public bool PauseIfInvisible;
 
         protected override void HandleEnableEvent()
         {                                    
@@ -52,6 +53,25 @@ namespace AudioStudio.Components
             foreach (var evt in AudioEvents)
             {
                 evt.Cancel(gameObject, AudioTriggerSource.EmitterSound);
+            }
+        }
+        
+        
+        private void OnBecameVisible()
+        {
+            if (!PauseIfInvisible) return;
+            foreach (var evt in AudioEvents)
+            {
+                AudioManager.ResumeEvent(evt.Name, GetSoundSource(), 0.1f, AudioTriggerSource.EmitterSound);
+            }
+        }
+        
+        private void OnBecameInvisible()
+        {
+            if (!PauseIfInvisible) return;
+            foreach (var evt in AudioEvents)
+            {
+                AudioManager.PauseEvent(evt.Name, GetSoundSource(), 0.1f, AudioTriggerSource.EmitterSound);
             }
         }
         

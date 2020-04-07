@@ -1,6 +1,4 @@
-﻿using System;
-using AudioStudio.Configs;
-using AudioStudio.Tools;
+﻿using AudioStudio.Configs;
 using UnityEditor;
 using UnityEngine;
 
@@ -28,7 +26,7 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             if (Application.isPlaying && !AudioInitSettings.Initialized)
-                AudioInitSettings.Instance.InitializeWithoutLoading();
+                AudioInitSettings.Instance.Initialize(false);
 
             serializedObject.Update();
             AsGuiDrawer.DrawList(serializedObject.FindProperty("SoundBanks"), "Sound Banks:");

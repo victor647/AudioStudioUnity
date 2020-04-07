@@ -1,7 +1,6 @@
 ﻿using System;
 using UnityEditor;
 using System.Collections.Generic;
-using AudioStudio.Configs;
 using UnityEngine;
 
 namespace AudioStudio.Tools
@@ -41,7 +40,7 @@ namespace AudioStudio.Tools
 
         private void OnEnable()
         {
-            AsUnityHelper.ProfilerCallback += AddLog;
+            AsUnityHelper.ProfilerCallback = AddLog;
             RegisterComponents();
         }
 
@@ -91,33 +90,10 @@ namespace AudioStudio.Tools
             if (GUILayout.Button("Deselect All", GUILayout.Width(100))) SelectAll(false);
             GUILayout.EndHorizontal();
 
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Severity:", GUILayout.Width(80));
-            _includeNotification = GUILayout.Toggle(_includeNotification, "Notification", GUILayout.Width(100));
-            _includeWarning = GUILayout.Toggle(_includeWarning, "Warning", GUILayout.Width(100));
-            _includeError = GUILayout.Toggle(_includeError, "Error", GUILayout.Width(100));
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Trigger:", GUILayout.Width(80));
-            _includeCode = GUILayout.Toggle(_includeCode, "Code", GUILayout.Width(100));
-            _includeComponents = GUILayout.Toggle(_includeComponents, GUIContent.none, GUILayout.Width(10));
-            if (GUILayout.Button("Components", GUI.skin.label, GUILayout.Width(86)))
-                ProfilerComponentToggle.Init();
-            _includeAudition = GUILayout.Toggle(_includeAudition, "Inspector Audition");
-            GUILayout.EndHorizontal();
-
-            GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Type:", GUILayout.Width(80));
-            _includeSound = GUILayout.Toggle(_includeSound, "SFX (" + SoundClip.GlobalSoundCount + ")", GUILayout.Width(100));
-            _includeMusic = GUILayout.Toggle(_includeMusic, "Music (" + MusicTrack.GlobalMusicCount + ")", GUILayout.Width(100));
-            _includeVoice = GUILayout.Toggle(_includeVoice, "Voice (" + VoiceEvent.GlobalVoiceCount + ")", GUILayout.Width(100));
-            _includeBank = GUILayout.Toggle(_includeBank, "Bank (" + SoundBank.GlobalBankCount + ")", GUILayout.Width(100));
-            _includeSwitch = GUILayout.Toggle(_includeSwitch, "Switch", GUILayout.Width(100));
-            _includeParameter = GUILayout.Toggle(_includeParameter, "Parameter", GUILayout.Width(100));
-            _includePlayback = GUILayout.Toggle(_includePlayback, "Playback", GUILayout.Width(100));
-            GUILayout.EndHorizontal();
-
+            DrawSeverityOptions();
+            DrawTriggerOptions();
+            DrawTypeOptions();
+                
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Pause")) _paused = true;
             if (GUILayout.Button("Resume")) _paused = false;
@@ -169,6 +145,51 @@ namespace AudioStudio.Tools
 
                 GUILayout.EndScrollView();
             }
+        }
+
+        private void DrawSeverityOptions()
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Severity:", GUILayout.Width(80));
+            _includeNotification = GUILayout.Toggle(_includeNotification, "Notification", GUILayout.Width(100));
+            _includeWarning = GUILayout.Toggle(_includeWarning, "Warning", GUILayout.Width(100));
+            _includeError = GUILayout.Toggle(_includeError, "Error", GUILayout.Width(100));
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawTriggerOptions()
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Trigger:", GUILayout.Width(80));
+            _includeCode = GUILayout.Toggle(_includeCode, "Code", GUILayout.Width(100));
+            
+            _includeComponents = GUILayout.Toggle(_includeComponents, GUIContent.none, GUILayout.Width(10));
+            if (GUILayout.Button("Components", GUI.skin.label, GUILayout.Width(86)))
+                ProfilerComponentToggle.Init();
+            
+            _includeAudition = GUILayout.Toggle(_includeAudition, "Inspector Audition");
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawTypeOptions()
+        {
+            GUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Type:", GUILayout.Width(80));
+            DrawInstanceDropdown(ref _includeSound, "SFX", AudioManager.GlobalSoundInstances, 300);
+            DrawInstanceDropdown(ref _includeMusic, "Music", AudioManager.GlobalMusicInstances, 150);
+            DrawInstanceDropdown(ref _includeVoice, "Voice", AudioManager.GlobalVoiceInstances, 250);
+            DrawInstanceDropdown(ref _includeBank, "Bank", BankManager.LoadedBankList, 150, 80);
+            DrawInstanceDropdown(ref _includeSwitch, "Switch", AudioManager.GlobalSwitchInstances, 200, 80);
+            DrawInstanceDropdown(ref _includeParameter, "Parameter", AudioManager.GlobalParameterInstances, 200);
+            _includePlayback = GUILayout.Toggle(_includePlayback, "Playback", GUILayout.Width(100));
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawInstanceDropdown(ref bool inclusion, string label, List<string> instanceList, int dropdownWidth, int toggleWidth = 100)
+        {
+            inclusion = GUILayout.Toggle(inclusion, GUIContent.none, GUILayout.Width(10));
+            if (GUILayout.Button($"{label} ({instanceList.Count})", GUI.skin.label, GUILayout.Width(toggleWidth - 14)))
+                AudioInstanceList.Init(instanceList, dropdownWidth);
         }
 
         private bool FilterLog(ProfilerMessage ProfilerMessage)
@@ -352,6 +373,29 @@ namespace AudioStudio.Tools
         }
 
         #endregion
+        
+        private class AudioInstanceList : EditorWindow
+        {
+            private static List<string> _instances;
+            
+            public static void Init(List<string> instances, int width)
+            {
+                _instances = instances;
+                
+                var position = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
+                position.y += 10;
+                var window = CreateInstance<AudioInstanceList>();
+                window.ShowAsDropDown(new Rect(position, Vector2.zero), new Vector2(width, instances.Count * 20));
+            }
+
+            private void OnGUI()
+            {
+                foreach (var instance in _instances)
+                {
+                    EditorGUILayout.LabelField(instance);
+                }					
+            }
+        }
 
         private class ProfilerComponentToggle : EditorWindow
         {

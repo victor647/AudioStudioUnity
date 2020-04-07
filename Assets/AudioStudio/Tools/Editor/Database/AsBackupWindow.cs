@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AudioStudio.Tools
 {
-    public class AsBackupWindow : AsSearchers
+    internal class AsBackupWindow : AsSearchers
     {
         private void OnGUI()
         {
@@ -24,26 +24,33 @@ namespace AudioStudio.Tools
 
             ShowToggles();
 
-            EditorGUILayout.BeginHorizontal();                  
-            EditorGUILayout.LabelField("Search Inclusion", GUILayout.Width(150));
-            DrawToggle(ref AsComponentBackup.Instance.IncludeA, "Prefabs");
-            DrawToggle(ref AsComponentBackup.Instance.IncludeB, "Scenes");
-            DrawToggle(ref AsComponentBackup.Instance.IncludePrefabInScene, "Prefabs in Scenes");
-            EditorGUILayout.EndHorizontal();
-            DrawToggle(ref AsComponentBackup.Instance.SeparateXmlFiles, "Create one xml per component");
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Search Inclusion", GUILayout.Width(150));
+                DrawToggle(ref AsComponentBackup.Instance.IncludeA, "Prefabs");
+                DrawToggle(ref AsComponentBackup.Instance.IncludeB, "Scenes");
+                DrawToggle(ref AsComponentBackup.Instance.IncludePrefabInScene, "Prefabs in Scenes");
+                EditorGUILayout.EndHorizontal();
+                DrawToggle(ref AsComponentBackup.Instance.SeparateXmlFiles, "Create one xml per component");
 
-            EditorGUILayout.BeginHorizontal();
-            if (GUILayout.Button("Export", EditorStyles.toolbarButton))
-                AsComponentBackup.Instance.Export();
-            if (GUILayout.Button("Import", EditorStyles.toolbarButton)) 
-                AsComponentBackup.Instance.Import();
-            if (GUILayout.Button("Compare", EditorStyles.toolbarButton)) 
-                AsComponentBackup.Instance.Compare();
-            if (GUILayout.Button("Combine", EditorStyles.toolbarButton)) 
-                AsComponentBackup.Instance.Combine();
-            if (GUILayout.Button("Open", EditorStyles.toolbarButton)) 
-                AsComponentBackup.Instance.OpenXmlFile();
-            EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                if (GUILayout.Button("Export", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.Export();
+                if (GUILayout.Button("Import", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.Import();
+                if (GUILayout.Button("Compare", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.Compare();
+                if (GUILayout.Button("Remove Unsaved", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.RemoveUnsaved();
+                if (GUILayout.Button("Remove All", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.RemoveAll();
+                if (GUILayout.Button("Combine", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.Combine();
+                if (GUILayout.Button("Open", EditorStyles.toolbarButton))
+                    AsComponentBackup.Instance.OpenXmlFile();
+                EditorGUILayout.EndHorizontal();
+            }
         }
         
         private void ShowToggles()
@@ -127,6 +134,8 @@ namespace AudioStudio.Tools
                     AsAudioStateBackup.Instance.Import();
                 if (GUILayout.Button("Compare", EditorStyles.toolbarButton))
                     AsAudioStateBackup.Instance.Compare();
+                if (GUILayout.Button("Remove Unsaved", EditorStyles.toolbarButton))
+                    AsAudioStateBackup.Instance.RemoveUnsaved();
                 if (GUILayout.Button("Remove All", EditorStyles.toolbarButton))
                     AsAudioStateBackup.Instance.RemoveAll();
                 if (GUILayout.Button("Open", EditorStyles.toolbarButton))

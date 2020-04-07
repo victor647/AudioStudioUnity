@@ -18,9 +18,11 @@ namespace AudioStudio.Tools
 
         public static void WriteXml(string fileName, XElement xRoot)
         {
-            var settings = new XmlWriterSettings();
-            settings.Encoding = new UTF8Encoding(false);
-            settings.Indent = true;
+            var settings = new XmlWriterSettings
+            {
+                Encoding = new UTF8Encoding(false), 
+                Indent = true
+            };
             var xmlWriter = XmlWriter.Create(fileName, settings);
             xRoot.Save(xmlWriter);
             xmlWriter.Flush();
@@ -75,9 +77,7 @@ namespace AudioStudio.Tools
 
         public static bool StringToBool(string s)
         {
-            bool outValue;
-            bool.TryParse(s, out outValue);
-            return outValue;
+            return s == "true";
         }
 
         public static Vector3 StringToVector3(string s)

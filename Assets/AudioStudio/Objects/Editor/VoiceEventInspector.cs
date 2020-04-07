@@ -18,7 +18,6 @@ namespace AudioStudio.Editor
 		public override void OnInspectorGUI()
 		{
 			serializedObject.Update();
-			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Platform"));						
 			EditorGUILayout.Separator();			
 			DrawAudioClips();		
 			DrawAudioControls();
@@ -33,50 +32,38 @@ namespace AudioStudio.Editor
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))
             {				            
 	            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("PlayLogic"));
-	            if (_voiceEvent.Platform != Platform.Web)
-	            {
-		            switch (_voiceEvent.PlayLogic)
-		            {
-			            case VoicePlayLogic.Single:
-				            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip");
-				            if (_voiceEvent.Clip)
-					            EditorGUILayout.LabelField("Sample Rate:  " + _voiceEvent.Clip.frequency);
-				            break;
-			            case VoicePlayLogic.Random:
-				            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);  
-				            EditorGUILayout.LabelField("Audio Clips");
-				            AsGuiDrawer.DrawList(serializedObject.FindProperty("Clips"), "", AddChildClip);
-				            break;
-			            case VoicePlayLogic.SequenceStep:
-				            EditorGUILayout.LabelField("Audio Clips");
-				            AsGuiDrawer.DrawList(serializedObject.FindProperty("Clips"), "", AddChildClip);
-				            break;
-			            case VoicePlayLogic.Switch:
-				            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchName"), "Audio Switch");
-				            EditorGUILayout.LabelField("Switch Assignment");
-				            AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchClipMappings"));
-				            break;
-		            }
 
-		            if (GUILayout.Button("Rename By AudioClip"))
-		            {
-			            if (_voiceEvent.Clips.Count > 0)
-				            RenameAsset(_voiceEvent.Clips[0].name, _voiceEvent);
-			            else if (_voiceEvent.Clip != null)
-				            RenameAsset(_voiceEvent.Clip.name, _voiceEvent);
-			            else
-				            EditorUtility.DisplayDialog("Error", "No AudioClip found!", "OK");
-		            }
-	            }
-	            else
+	            switch (_voiceEvent.PlayLogic)
 	            {
-		            switch (_voiceEvent.PlayLogic)
-		            {
-			            case VoicePlayLogic.Random:
-			            case VoicePlayLogic.SequenceStep:
-				            EditorGUILayout.PropertyField(serializedObject.FindProperty("ClipCount"));
-				            break;
-		            }
+		            case VoicePlayLogic.Single:
+			            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Clip"), "Audio Clip");
+			            if (_voiceEvent.Clip)
+				            EditorGUILayout.LabelField("Sample Rate:  " + _voiceEvent.Clip.frequency);
+			            break;
+		            case VoicePlayLogic.Random:
+			            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);  
+			            EditorGUILayout.LabelField("Audio Clips");
+			            AsGuiDrawer.DrawList(serializedObject.FindProperty("Clips"), "", AddChildClip);
+			            break;
+		            case VoicePlayLogic.SequenceStep:
+			            EditorGUILayout.LabelField("Audio Clips");
+			            AsGuiDrawer.DrawList(serializedObject.FindProperty("Clips"), "", AddChildClip);
+			            break;
+		            case VoicePlayLogic.Switch:
+			            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchName"), "Audio Switch");
+			            EditorGUILayout.LabelField("Switch Assignment");
+			            AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchClipMappings"));
+			            break;
+	            }
+
+	            if (GUILayout.Button("Rename By AudioClip"))
+	            {
+		            if (_voiceEvent.Clips.Count > 0)
+			            RenameAsset(_voiceEvent.Clips[0].name, _voiceEvent);
+		            else if (_voiceEvent.Clip != null)
+			            RenameAsset(_voiceEvent.Clip.name, _voiceEvent);
+		            else
+			            EditorUtility.DisplayDialog("Error", "No AudioClip found!", "OK");
 	            }
             }
 			EditorGUILayout.Separator();
@@ -97,14 +84,11 @@ namespace AudioStudio.Editor
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
 			{
 				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Volume"));
-				if (_voiceEvent.Platform != Platform.Web)
-				{
-					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pitch"));
-					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));
-					DrawFilters(_voiceEvent);
-					DrawSubMixer(_voiceEvent);
-					DrawParameterMappings();
-				}
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pitch"));
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));
+				DrawFilters(_voiceEvent);
+				DrawSubMixer(_voiceEvent);
+				DrawParameterMappings();
 			}
 		}
 	}

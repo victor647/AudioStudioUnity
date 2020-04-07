@@ -10,7 +10,7 @@ using UnityEditor.SceneManagement;
 
 namespace AudioStudio.Tools
 {
-	public class RemoveMissingDuplicate : AsSearchers
+	internal class RemoveMissingDuplicate : AsSearchers
 	{
 		private bool _edited;
 		private MonoScript _script;				

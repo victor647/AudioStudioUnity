@@ -9,14 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8e9eddb18cf8b448bae5adcc107792e, type: 3}
-  m_Name: Login
+  m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
+  m_Name: Music_XiaoYinCun
   m_EditorClassIdentifier: 
   Platform: 0
-  IndependentEvent: 1
+  IndependentEvent: 0
   OverrideControls: 0
   OverrideSpatial: 0
-  Volume: 1
+  Volume: 0.6
   Pitch: 1
   Pan: 0
   LowPassFilter: 0
@@ -33,28 +33,39 @@ MonoBehaviour:
     Name: 
   SwitchEventMappings: []
   SwitchImmediately: 0
-  CrossFadeTime: 0.5
+  CrossFadeTime: 0
   Mappings: []
-  PlayLogic: 3
+  PlayLogic: 0
   LoopCount: 0
-  ChildEvents:
-  - {fileID: 11400000, guid: fd747904c6e4fe547be3f04046d695bb, type: 2}
-  - {fileID: 11400000, guid: 27431c6528d82584f8e85608b30276d5, type: 2}
+  ChildEvents: []
   OverrideTransition: 0
   TransitionEntryConditions:
   - Source:
       Name: 
     FadeInTime: 0
-    EntryOffset: 0
+    EntryOffset: 1
     TransitionSegment:
       Name: 
   TransitionExitConditions:
   - Target:
       Name: 
-    FadeOutTime: 0
+    FadeOutTime: 1
     ExitOffset: 0
     Interval: 0
     GridLength:
       Bar: 0
       Beat: 0
   SwitchToSamePosition: 0
+  LoopEntireSequence: 0
+  Markers:
+  - BarNumber: 0
+    Tempo: 0
+    BeatsPerBar: 0
+    BeatDuration: 0
+    KeyCenter: 0
+  PickupBeats: 0
+  ExitPosition:
+    Bar: 33
+    Beat: 0
+  UseDefaultLoopStyle: 0
+  Clip: {fileID: 8300000, guid: 065476488a66f954383c34823471a9da, type: 3}

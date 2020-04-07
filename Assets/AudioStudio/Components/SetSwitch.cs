@@ -11,43 +11,53 @@ namespace AudioStudio.Components
 		public SetSwitchReference[] OffSwitches = new SetSwitchReference[0];
 		public bool IsGlobal;
 		
-		protected override void HandleEnableEvent()
-		{			
-			if (SetOn != TriggerCondition.EnableDisable) return;
-			SetSwitchValue(OnSwitches);
+		public override void Activate(GameObject source = null)
+		{
+			SetSwitches(OnSwitches, source);
 		}
 
-		protected override void HandleDisableEvent()
-		{	
-			if (SetOn != TriggerCondition.EnableDisable) return;
-			SetSwitchValue(OffSwitches);
+		public override void Deactivate(GameObject source = null)
+		{
+			SetSwitches(OffSwitches, source);
 		}
 		
-		private void OnTriggerEnter(Collider other)
-        {
-            if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;
-            SetSwitchValue(OnSwitches);                        
-        }
-
-        private void OnTriggerExit(Collider other)
-        {
-            if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;
-            SetSwitchValue(OffSwitches);                
-        }      
+		protected override void HandleEnableEvent()
+		{            
+			if (SetOn != TriggerCondition.EnableDisable || OnSwitches.Length == 0) return;
+			Activate(gameObject);
+		}
         
-        private void OnCollisionEnter(Collision other)
-        {
-            if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;
-            SetSwitchValue(OnSwitches);                        
-        }
+		protected override void HandleDisableEvent()
+		{            
+			if (SetOn != TriggerCondition.EnableDisable) return;
+			Deactivate(gameObject);
+		}
 
-        private void OnCollisionExit(Collision other)
-        {
-            if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;
-            SetSwitchValue(OffSwitches);                          
-        }
+		private void OnTriggerEnter(Collider other)
+		{
+			if (SetOn != TriggerCondition.TriggerEnterExit || OnSwitches.Length == 0 || !CompareAudioTag(other)) return;
+			Activate(GetEmitter(other.gameObject));
+		}
 
-        private void SetSwitchValue(SetSwitchReference[] switches)
+		private void OnTriggerExit(Collider other)
+		{
+			if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;
+			Deactivate(GetEmitter(other.gameObject));                           
+		}      
+        
+		private void OnCollisionEnter(Collision other)
+		{
+			if (SetOn != TriggerCondition.CollisionEnterExit || OnSwitches.Length == 0 || !CompareAudioTag(other.collider)) return;
+			Activate(GetEmitter(other.gameObject));                           
+		}
+
+		private void OnCollisionExit(Collision other)
+		{
+			if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;
+			Deactivate(GetEmitter(other.gameObject));                           
+		} 
+
+        private void SetSwitches(SetSwitchReference[] switches, GameObject go)
         {
 	        if (IsGlobal)
 	        {
@@ -60,7 +70,7 @@ namespace AudioStudio.Components
 	        {
 		        foreach (var swc in switches)
 		        {
-			        swc.SetValue(gameObject, AudioTriggerSource.SetSwitch);  
+			        swc.SetValue(go, AudioTriggerSource.SetSwitch);  
 		        }
 	        }		        
         }

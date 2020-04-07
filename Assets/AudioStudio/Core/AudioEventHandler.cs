@@ -15,27 +15,41 @@ namespace AudioStudio.Components
         EnableDisable,
         TriggerEnterExit,
         CollisionEnterExit,        
+        ManuallyControl
     }
     
     public abstract class AudioOnOffHandler : AsComponent
     {
-        private bool _started; 
+        private bool _started;
+        private bool _enabled;
 
         private void OnEnable()
-        {                                  
-            if (_started) HandleEnableEvent();                                                                       
+        {
+            if (_started && !_enabled)
+            {
+                HandleEnableEvent();
+                _enabled = true;
+            }                                                                       
         }
 
         //make sure the first time it is played at Start instead of OnEnable
         private void Start()
         {
             _started = true;
-            HandleEnableEvent();  
+            if (!_enabled)
+            {
+                HandleEnableEvent();
+                _enabled = true;
+            }
         }
 
         private void OnDisable()
-        {                                  
-            if (_started) HandleDisableEvent();            
+        {
+            if (_started && _enabled)
+            {
+                HandleDisableEvent();
+                _enabled = false;
+            }            
         }
         
         protected virtual void HandleEnableEvent(){}
@@ -63,5 +77,13 @@ namespace AudioStudio.Components
         {
             return PostFrom == PostFrom.Self ? gameObject : other.gameObject;
         } 
+        
+        public virtual void Activate(GameObject source = null)
+        {
+        }
+
+        public virtual void Deactivate(GameObject source = null)
+        {
+        }
     }
 }

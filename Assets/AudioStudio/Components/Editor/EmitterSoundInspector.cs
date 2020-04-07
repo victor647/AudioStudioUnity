@@ -45,6 +45,7 @@ namespace AudioStudio.Editor
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("MaxInterval"), GUIContent.none, GUILayout.Width(30));
                     GUILayout.EndHorizontal();
                 }
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("PauseIfInvisible"));
             }
         }
 
@@ -53,7 +54,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.AudioEvents, new PostEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.AudioEvents, new PostEventReference(evt));
             }
         }
 

@@ -17,14 +17,56 @@ namespace AudioStudio.Editor
 	
 		public override void OnInspectorGUI() 
 		{
-			serializedObject.Update();		
-			AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Platform"));			
+			serializedObject.Update();
+			DrawHierarchy(_musicContainer);
 			DrawChildEvents();
 			DrawAudioControls(_musicContainer);			
 			DrawTransition(_musicContainer);
 			serializedObject.ApplyModifiedProperties();
 			DrawAuditionButtons(_musicContainer);
 			AsGuiDrawer.DrawSaveButton(_musicContainer);
+		}
+		
+		protected void DrawHierarchy(MusicContainer mc)
+		{
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Event Hierarchy", EditorStyles.boldLabel, GUILayout.Width(130));
+			EditorGUILayout.LabelField("Independent", GUILayout.Width(80));
+			EditorGUILayout.PropertyField(serializedObject.FindProperty("IndependentEvent"), GUIContent.none);
+			GUILayout.EndHorizontal();
+            
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				if (Selection.objects.Length > 1)
+					EditorGUILayout.HelpBox("Unavailable when selecting multiple events", MessageType.Info);
+				else
+					DrawCascade(mc.GetParentContainer());
+			}
+			EditorGUILayout.Separator();
+		}
+		
+		private static void DrawCascade(MusicContainer mc, int indentLevel = 0)
+		{
+			if (!mc) return;
+			var text = new string(' ', indentLevel * 3);
+			text += mc is MusicTrack ? mc.name : mc.name + " (" + mc.PlayLogic + ")";
+            
+			if (GUILayout.Button(text, Selection.activeObject == mc ? EditorStyles.whiteLabel : EditorStyles.label))
+				Selection.activeObject = mc;
+			if (mc.PlayLogic == MusicPlayLogic.Switch)
+			{
+				foreach (var eventMapping in mc.SwitchEventMappings)
+				{
+					DrawCascade((MusicContainer)eventMapping.AudioEvent, indentLevel + 1);
+				}
+			}
+			else
+			{
+				foreach (var childEvent in mc.ChildEvents)
+				{
+					DrawCascade(childEvent, indentLevel + 1);
+				}
+			}
 		}
 
 		protected void DrawAudioControls(MusicContainer mc)
@@ -41,14 +83,11 @@ namespace AudioStudio.Editor
 			using (new GUILayout.VerticalScope(GUI.skin.box))
 			{				
 				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Volume"));
-				if (mc.Platform != Platform.Web)
-				{
-					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pitch"));
-					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));
-					DrawFilters(mc);
-					DrawSubMixer(mc);
-					DrawParameterMappings();
-				}
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pitch"));
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("Pan"));
+				DrawFilters(mc);
+				DrawSubMixer(mc);
+				DrawParameterMappings();
 				GUI.enabled = true;
 			}
 			EditorGUILayout.Separator();

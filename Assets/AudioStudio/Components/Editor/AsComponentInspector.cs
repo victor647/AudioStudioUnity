@@ -9,9 +9,9 @@ namespace AudioStudio.Editor
 	{
 		protected bool BackedUp;
 		
-		protected static string OnLabel(AudioPhysicsHandler aph)
+		protected static string OnLabel(AudioPhysicsHandler component)
 		{
-			switch (aph.SetOn)
+			switch (component.SetOn)
 			{
 				case TriggerCondition.EnableDisable:
 					return "On Enable:";
@@ -19,14 +19,15 @@ namespace AudioStudio.Editor
 					return "On Trigger Enter:";
 				case TriggerCondition.CollisionEnterExit:
 					return "On Collision Enter:";
+				case TriggerCondition.ManuallyControl:
+					return "On Activate:";
 			}
-
 			return string.Empty;
 		}
 
-		protected static string OffLabel(AudioPhysicsHandler aph)
+		protected static string OffLabel(AudioPhysicsHandler component)
 		{
-			switch (aph.SetOn)
+			switch (component.SetOn)
 			{
 				case TriggerCondition.EnableDisable:
 					return "On Disable:";
@@ -34,8 +35,9 @@ namespace AudioStudio.Editor
 					return "On Trigger Exit:";
 				case TriggerCondition.CollisionEnterExit:
 					return "On Collision Exit:";
+				case TriggerCondition.ManuallyControl:
+					return "On Deactivate:";
 			}
-
 			return string.Empty;
 		}
 		
@@ -56,16 +58,20 @@ namespace AudioStudio.Editor
 			}
 		}
 
-		protected void ShowPhysicsSettings(AudioPhysicsHandler emitter, bool is3D)
+		protected void ShowPhysicalSettings(AudioPhysicsHandler component, bool is3D)
 		{
 			EditorGUILayout.LabelField("Trigger Settings", EditorStyles.boldLabel);
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
 			{
-				EditorGUILayout.PropertyField(serializedObject.FindProperty("SetOn"));
-				if (emitter.SetOn != TriggerCondition.EnableDisable)
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SetOn"), "Activate Upon");
+				switch (component.SetOn)
 				{
-					if (is3D) EditorGUILayout.PropertyField(serializedObject.FindProperty("PostFrom"));
-					EditorGUILayout.PropertyField(serializedObject.FindProperty("AudioTag"));
+					case TriggerCondition.TriggerEnterExit:
+					case TriggerCondition.CollisionEnterExit:	
+						if (is3D)
+							AsGuiDrawer.DrawProperty(serializedObject.FindProperty("PostFrom"), "Emitter");
+						AsGuiDrawer.DrawProperty(serializedObject.FindProperty("MatchTags"), "Match Audio Tags");
+						break;	
 				}
 			}
 		}
@@ -130,7 +136,7 @@ namespace AudioStudio.Editor
 			}
 			BackedUp = true;
 			if (edited)
-				AsComponentBackup.SaveComponentAsset(go);
+				AsComponentBackup.SaveComponentAsset(go, assetPath);
 		}
 	}
 }

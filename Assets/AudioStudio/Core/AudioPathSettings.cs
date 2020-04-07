@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using AudioStudio.Tools;
 using UnityEngine;
 
@@ -25,16 +23,15 @@ namespace AudioStudio
             set => _instance = value;
         }
         
-        public string OriginalResourcesPath = "Resources/Audio";
-        public string SoundFilesPath => Path.Combine(OriginalResourcesPath, "Originals");
-        public string SoundEventsPath => Path.Combine(OriginalResourcesPath, "Events/SFX");
+        public string AudioResourcesPath = "Resources/Audio";
+        public string EventsPath => Path.Combine(AudioResourcesPath, "Events");
+        public string OriginalsPath => Path.Combine(AudioResourcesPath, "Originals");
+        public string SoundEventsPath => Path.Combine(EventsPath, "SFX");
+        public string MusicEventsPath => Path.Combine(EventsPath, "Music");
+        public string VoiceEventsPath => Path.Combine(EventsPath, "Voice");
         public string BuildAssetsPath = "Resources/Audio";
-        public string MusicEventsPath => Path.Combine(BuildAssetsPath, "Events/Music");
-        public string VoiceEventsPath => Path.Combine(BuildAssetsPath, "Events/Voice");
         public string SoundBanksPath => Path.Combine(BuildAssetsPath, "SoundBanks");
         public string MusicInstrumentsPath => Path.Combine(BuildAssetsPath, "Instruments");
-        public string StreamingClipsPath => Path.Combine(BuildAssetsPath, "WebGL/StreamingClips");
-        public string WebEventsPath => Path.Combine(BuildAssetsPath, "WebGL/Events");
         public string StartScenePath;
         
         [Range(10, 100)]

@@ -21,7 +21,7 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            ShowPhysicsSettings(_component, true);
+            ShowPhysicalSettings(_component, true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("IsGlobal"));
 
             AsGuiDrawer.DrawList(serializedObject.FindProperty("OnSwitches"), OnLabel(_component), AddOnSwitch);

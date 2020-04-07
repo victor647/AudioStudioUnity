@@ -36,7 +36,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.ValueChangeEvents, new PostEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.ValueChangeEvents, new PostEventReference(evt));
             }
         }
 
@@ -45,7 +45,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.PopupEvents, new PostEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.PopupEvents, new PostEventReference(evt));
             }
         }
 
@@ -54,7 +54,7 @@ namespace AudioStudio.Editor
             var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
             foreach (var evt in events)
             {
-                AsScriptingHelper.AddToArray(ref _component.CloseEvents, new PostEventReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.CloseEvents, new PostEventReference(evt));
             }
         }
         

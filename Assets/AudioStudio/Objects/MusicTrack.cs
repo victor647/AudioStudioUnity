@@ -54,13 +54,10 @@ namespace AudioStudio.Configs
 		#region Editor
 		public override void CleanUp()
 		{
-			if (Platform == Platform.Web) 
-				Clip = null;
-			else if (!Clip)
-				Debug.LogError("AudioClip of MusicEvent " + name + " is missing!");
-
 			ChildEvents = null;
-			SwitchEventMappings = null;			
+			SwitchEventMappings = null;	
+			if (!Clip)
+				Debug.LogError("AudioClip of MusicEvent " + name + " is missing!");
 		}
 		
 		public override bool IsValid()
@@ -68,58 +65,71 @@ namespace AudioStudio.Configs
 			return Clip != null;
 		}
 		#endregion
+		
+		#region Initialize
+
+		internal override void Init()
+		{
+			Clip.LoadAudioData();									                   
+		}
+
+		internal override void Dispose()
+		{
+			Clip.UnloadAudioData();										            
+		}
+		
+		internal void AddInstance(MusicTrackInstance instance)
+		{
+			AudioManager.GlobalMusicInstances.Add(name);  
+		}
+
+		internal void RemoveInstance()
+		{
+			AudioManager.GlobalMusicInstances.Remove(name);  
+		}
+		#endregion
 
 		#region Settings
-		public static int GlobalMusicCount;
 		public MusicMarker[] Markers = new MusicMarker[1];
 		public float PickupBeats;
 		public BarAndBeat ExitPosition;
 		public bool UseDefaultLoopStyle;		
 		public AudioClip Clip;
-
-		public virtual void OnPlay(){}
+		public void OnPlay(){}
 		#endregion
 		
 		#region Calculation
-
-		public float LoopDurationRealTime()
+		public int LoopDurationSamples()
 		{
-			if (UseDefaultLoopStyle && Clip)
-				return Clip.length;
-			
+			if (UseDefaultLoopStyle)
+				return Clip.samples;
 			var duration = 0f;
 			for (var i = 0; i < Markers.Length - 1; i++)
 			{
 				duration += Markers[i].TotalDurationRealtime(Markers[i + 1].BarNumber);
 			}
 			duration += Markers[Markers.Length - 1].TotalDurationRealtime(ExitPosition.ToBars(Markers[Markers.Length - 1].BeatsPerBar));
-			return duration;
+			return Mathf.FloorToInt(duration * Clip.frequency);
 		}
-		
 		#endregion
 	}
 
 	public class MusicTrackInstance : AudioEventInstance
 	{        
 		#region Initialize
-		public MusicTrack MusicTrack;
+		internal MusicTrack MusicTrack;
 		private float _volume;
-
-		private void Awake()
-		{
-			AudioSource = _source1 = gameObject.AddComponent<AudioSource>();
-			Emitter = GlobalAudioEmitter.GameObject;
-			MusicTrack.GlobalMusicCount++;
-		}
 
 		public void Init(MusicTrack track)
 		{
+			AudioSource = _source1 = gameObject.AddComponent<AudioSource>();
+			Emitter = GlobalAudioEmitter.GameObject;
+			
 			MusicTrack = track;
 			_volume = track.Volume;
-			MusicTransport.Instance.PlayingTrackInstances.Add(this);
-			track.Clip.LoadAudioData();
-			_source1.clip = track.Clip;			
-			_source1.outputAudioMixerGroup = AudioManager.GetAudioMixer("Music", track.AudioMixer);
+			
+			MusicTrack.AddInstance(this);
+			InitAudioSource(_source1);
 
 			if (track.LoopCount != 1)
 			{
@@ -128,8 +138,8 @@ namespace AudioStudio.Configs
 				else
 				{
 					_source2 = gameObject.AddComponent<AudioSource>();
-					_source2.clip = track.Clip;
-					_source2.outputAudioMixerGroup = AudioManager.GetAudioMixer("Music", track.AudioMixer);
+					InitAudioSource(_source2);
+					_source2.playOnAwake = false;
 				}
 			}
 
@@ -151,8 +161,14 @@ namespace AudioStudio.Configs
 				mapping.Init(this, Emitter);									
 			}					
 		}
-        
-        private void OnDestroy()
+
+		private void InitAudioSource(AudioSource source)
+		{
+			source.clip = MusicTrack.Clip;
+			source.outputAudioMixerGroup = AudioManager.GetAudioMixer("Music", MusicTrack.AudioMixer);
+		}
+
+		private void OnDestroy()
         {
 	        foreach (var mapping in MusicTrack.Mappings)
 	        {
@@ -163,8 +179,7 @@ namespace AudioStudio.Configs
 	        if (_source2)
 				Destroy(_source2);
 	        OnAudioEnd?.Invoke(Emitter);
-	        MusicTrack.Dispose();
-	        MusicTrack.GlobalMusicCount--;
+	        MusicTrack.RemoveInstance();
         }
 		#endregion
 		
@@ -178,43 +193,46 @@ namespace AudioStudio.Configs
 			{				
 				if (AudioSource.isPlaying) return;											
 			}
-			else											
-				AudioSource = AudioSource == _source1 ? _source2 : _source1;		
-			
+			else
+			{
+				AudioSource.playOnAwake = false;
+				AudioSource = AudioSource == _source1 ? _source2 : _source1;
+				AudioSource.playOnAwake = true;
+			}
+
 			AudioSource.volume = _volume;
 			AudioSource.panStereo = MusicTrack.Pan;
 			AudioSource.pitch = MusicTrack.Pitch;
 			AudioSource.timeSamples = timeSamples > MusicTrack.Clip.samples? 0 : timeSamples;
-			StartCoroutine(AudioSource.Play(fadeInTime));
-		}
-
-		public override void Stop(float fadeOutTime)
-		{
-			StartCoroutine(AudioSource.Stop(fadeOutTime, OnAudioEndOrStop));
+			if (isActiveAndEnabled && fadeInTime > 0f)
+				StartCoroutine(AudioSource.Play(fadeInTime));
+			else
+				AudioSource.Play();
 		}
 		#endregion
 
 		#region Controls
-		public override void SetOutputBus(AudioMixerGroup amg)
+
+		internal override void SetOutputBus(AudioMixerGroup amg)
 		{
 			_source1.outputAudioMixerGroup = amg;
 			if (_source2)
 				_source2.outputAudioMixerGroup = amg;
 		}
-		
-		public override void SetVolume(float volume)
+
+		internal override void SetVolume(float volume)
 		{
 			AudioSource.volume = _volume = volume;				
 		}
-		
-		public override void SetPan(float pan)
+
+		internal override void SetPan(float pan)
 		{
 			_source1.panStereo = pan;
 			if (_source2)
 				_source2.panStereo = pan;	
 		}
-		
-		public override void SetPitch(float pitch)
+
+		internal override void SetPitch(float pitch)
 		{
 			_source1.pitch = pitch;
 			if (_source2)

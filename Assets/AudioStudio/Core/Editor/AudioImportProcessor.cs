@@ -19,7 +19,7 @@ namespace AudioStudio
 			{
 				compressionFormat = AudioCompressionFormat.Vorbis, sampleRateSetting = AudioSampleRateSetting.OptimizeSampleRate
 			};
-
+			
 			var audioName = Path.GetFileName(assetPath);
 			if (string.IsNullOrEmpty(audioName)) return;
 			

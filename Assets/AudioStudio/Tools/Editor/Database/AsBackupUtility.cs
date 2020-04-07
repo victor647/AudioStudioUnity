@@ -11,7 +11,7 @@ using UnityEngine.Timeline;
 
 namespace AudioStudio.Tools
 {
-	public partial class AsComponentBackup
+	internal partial class AsComponentBackup
 	{
         private void OnEnable()
         {                                    
@@ -34,79 +34,22 @@ namespace AudioStudio.Tools
             RegisterComponent<SetSwitch>(SetSwitchImporter, SetSwitchExporter);
         }
 
-        #region TypeCast
-        private static bool ImportFloat(ref float field, string s)
+        #region ImportAudioObjects    
+		private static AudioEventReference XmlToAudioEvent(XElement xEvent)
 		{
-			var value = AsScriptingHelper.StringToFloat(s);
-			if (field != value)
-			{
-				field = value;
-				return true;
-			}
-			return false;
-		}
-        
-        private static bool ImportInt(ref int field, string s)
-        {
-	        var value = AsScriptingHelper.StringToInt(s);
-	        if (field != value)
-	        {
-		        field = value;
-		        return true;
-	        }
-	        return false;
-        }
-
-		private static bool ImportBool(ref bool field, string s)
-		{
-			var value = AsScriptingHelper.StringToBool(s);
-			if (field != value)
-			{
-				field = value;
-				return true;
-			}
-			return false;
-		}
-
-		private static bool ImportVector3(ref Vector3 field, string s)
-		{
-			var value = AsScriptingHelper.StringToVector3(s);
-			if (Mathf.Abs(field.magnitude - value.magnitude) > 0.01f)
-			{
-				field = value;
-				return true;
-			}
-			return false;
+			var name = AsScriptingHelper.GetXmlAttribute(xEvent, "EventName");
+			var newEvent = new AudioEventReference (name);
+			ImportEnum(ref newEvent.Type, AsScriptingHelper.GetXmlAttribute(xEvent, "Type"));
+			return newEvent;
 		}
 		
-		private static bool ImportEnum<T>(ref T field, string xComponent) where T: struct, IComparable
+		private static PostEventReference XmlToPostEvent(XElement xEvent)
 		{
-			try
-			{
-				var value = (T) Enum.Parse(typeof(T), xComponent);
-				if (!field.Equals(value))
-				{
-					field = value;
-					return true;
-				}
-			}
-#pragma warning disable 168
-			catch (Exception e)
-#pragma warning restore 168
-			{
-				Debug.LogError("Import failed: Can't find option " + xComponent + " in enum " + typeof(T).Name);
-			}
-			return false;
-		}				
-		#endregion		
-		
-		#region ImportAudioObjects                               		
-		private static PostEventReference XmlToEvent(XElement xComponent)
-		{
-			var newEvent = new PostEventReference {Name = AsScriptingHelper.GetXmlAttribute(xComponent, "EventName")};
-			ImportEnum(ref newEvent.Type, AsScriptingHelper.GetXmlAttribute(xComponent, "Type"));
-			ImportEnum(ref newEvent.Action, AsScriptingHelper.GetXmlAttribute(xComponent, "Action"));
-			ImportFloat(ref newEvent.FadeTime, AsScriptingHelper.GetXmlAttribute(xComponent, "FadeTime"));
+			var name = AsScriptingHelper.GetXmlAttribute(xEvent, "EventName");
+			var newEvent = new PostEventReference (name);
+			ImportEnum(ref newEvent.Type, AsScriptingHelper.GetXmlAttribute(xEvent, "Type"));
+			ImportEnum(ref newEvent.Action, AsScriptingHelper.GetXmlAttribute(xEvent, "Action"));
+			ImportFloat(ref newEvent.FadeTime, AsScriptingHelper.GetXmlAttribute(xEvent, "FadeTime"));
 			return newEvent;
 		}
 
@@ -125,7 +68,7 @@ namespace AudioStudio.Tools
 		        audioEvent = new PostEventReference();
 		        return true;
 	        }
-	        var temp = XmlToEvent(x);                           
+	        var temp = XmlToPostEvent(x);                           
 	        if (!audioEvent.Equals(temp))
 	        {
 		        audioEvent = temp;
@@ -142,7 +85,7 @@ namespace AudioStudio.Tools
 	        {
 		        if (AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger)
 		        {
-			        temp = XmlToEvent(xEvent);
+			        temp = XmlToPostEvent(xEvent);
 			        break;
 		        }                                                                                                                                  
 	        }            
@@ -153,14 +96,23 @@ namespace AudioStudio.Tools
 	        }
 	        return false;
         }
+        
+        private static void ImportEvents(ref AudioEventReference[] events, XElement xComponent)
+        {            
+	        var xEvents = GetXmlAudioEvents(xComponent);
+	        if (xEvents == null) return;
+	        var audioEventsTemp = (from xEvent in xEvents select XmlToAudioEvent(xEvent)).ToList();
+	        if (!events.ToList().SequenceEqual(audioEventsTemp))
+		        events = audioEventsTemp.ToArray();
+        }
 
         private static bool ImportEvents(ref PostEventReference[] postEvents, XElement xComponent, string trigger = "")
         {            
             var xEvents = GetXmlAudioEvents(xComponent);
             if (xEvents == null) return false;
             var audioEventsTemp = string.IsNullOrEmpty(trigger) ? 
-	            (from xEvent in xEvents select XmlToEvent(xEvent)).ToList() : 
-	            (from xEvent in xEvents where AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger select XmlToEvent(xEvent)).ToList();
+	            (from xEvent in xEvents select XmlToPostEvent(xEvent)).ToList() : 
+	            (from xEvent in xEvents where AsScriptingHelper.GetXmlAttribute(xEvent, "Trigger") == trigger select XmlToPostEvent(xEvent)).ToList();
             if (!postEvents.ToList().SequenceEqual(audioEventsTemp))
             {
                 postEvents = audioEventsTemp.ToArray();
@@ -169,18 +121,43 @@ namespace AudioStudio.Tools
             return false;
         }
 
-        private static SoundBankReference XmlToBank(XElement xComponent)
+        private static LoadBankReference XmlToBankRef(XElement xBank)
         {
-	        var name = AsScriptingHelper.GetXmlAttribute(xComponent, "BankName");                    
-	        return !string.IsNullOrEmpty(name) ? new SoundBankReference(name) : null;
+	        var name = AsScriptingHelper.GetXmlAttribute(xBank, "BankName");
+	        var bank = new LoadBankReference(name);
+	        ImportBool(ref bank.UnloadOnDisable, AsScriptingHelper.GetXmlAttribute(xBank, "UnloadOnDisable"));
+	        ImportEvents(ref bank.LoadFinishEvents, xBank);
+	        return bank;
+        }
+        
+        private static SoundBank XmlToBank(XElement xBank)
+        {
+	        var bankName = AsScriptingHelper.GetXmlAttribute(xBank, "BankName");
+	        if (string.IsNullOrEmpty(bankName)) return null;
+	        var bankPath = AsScriptingHelper.CombinePath("Assets", AudioPathSettings.Instance.SoundBanksPath, bankName + ".asset");
+	        var bank = AssetDatabase.LoadAssetAtPath<SoundBank>(bankPath);
+	        return bank;
+        }
+        
+        private static bool ImportBank(ref SoundBank bank, XElement xComponent)
+        {
+	        var xBank = xComponent.Element("Bank");
+	        if (xBank == null) return false;
+	        var bankTemp = XmlToBank(xBank);
+	        if (bankTemp != bank)
+	        {
+		        bank = bankTemp;
+		        return true;
+	        }
+	        return false;
         }
 
-        private static bool ImportBanks(ref SoundBankReference[] banks, XElement xComponent)
+        private static bool ImportBankRefs(ref LoadBankReference[] banks, XElement xComponent)
         {
 	        var bs = xComponent.Element("Banks");
 	        if (bs == null) return false; 
 	        var xBanks = bs.Descendants("Bank");            
-	        var banksTemp = xBanks.Select(XmlToBank).ToList();
+	        var banksTemp = xBanks.Select(XmlToBankRef).ToList();
 	        if (!banks.ToList().SequenceEqual(banksTemp))
 	        {
 		        banks = banksTemp.ToArray();
@@ -189,14 +166,12 @@ namespace AudioStudio.Tools
 	        return false;
         }
         
-        private static SetSwitchReference XmlToSwitch(XElement xComponent)
+        private static SetSwitchReference XmlToSwitch(XElement xSwitch)
         {
-	        var fullName = AsScriptingHelper.GetXmlAttribute(xComponent, "SwitchName");
+	        var fullName = AsScriptingHelper.GetXmlAttribute(xSwitch, "SwitchName");
 	        var groupName = fullName.Split('/')[0].Trim();
-	        var switchName = fullName.Split('/')[1].Trim();	 
-	        if (!string.IsNullOrEmpty(groupName) && !string.IsNullOrEmpty(switchName))
-		        return new SetSwitchReference(groupName, switchName);	              
-	        return null;
+	        var switchName = fullName.Split('/')[1].Trim();
+	        return new SetSwitchReference(groupName, switchName);
         }
 
         private static bool ImportSwitches(ref SetSwitchReference[] switches, XElement xComponent, string trigger = "")
@@ -225,10 +200,10 @@ namespace AudioStudio.Tools
 	        return false;
         }
         
-        private static AudioParameterReference XmlToParameter(XElement xComponent)
+        private static AudioParameterReference XmlToParameter(XElement xParameter)
         {
-	        var name = AsScriptingHelper.GetXmlAttribute(xComponent, "ParameterName");                  	        
-	        return !string.IsNullOrEmpty(name) ? new AudioParameterReference{Name = name} : null;
+	        var name = AsScriptingHelper.GetXmlAttribute(xParameter, "ParameterName");
+	        return new AudioParameterReference(name);
         }
 
         private static bool ImportParameter(ref AudioParameterReference parameter, out float valueScale, XElement xComponent)
@@ -337,19 +312,40 @@ namespace AudioStudio.Tools
             xParam.SetAttributeValue("ParameterName", parameter);            
             xComponent.Add(xParam);
         }
-
-        private static void ExportBanks(SoundBankReference[] banks, XElement xComponent)
+        
+        private static void ExportBank(SoundBank bank, XElement xComponent)
         {
-            if (banks == null) return;
-            var xBanks = new XElement("Banks");
-            foreach (var bank in banks)
-            {
-	            if (!bank.IsValid()) continue;
-                var xBank = new XElement("Bank");                
-                xBank.SetAttributeValue("BankName", bank.Name);                   
-                xBanks.Add(xBank);  
-            }
-            xComponent.Add(xBanks);
+	        if (bank == null) return;
+	        var xBank = new XElement("Bank");
+			xBank.SetAttributeValue("BankName", bank.name);
+	        xComponent.Add(xBank);
+        }
+
+        private static void ExportBankRefs(LoadBankReference[] banks, XElement xComponent)
+        {
+	        if (banks == null) return;
+	        var xBanks = new XElement("Banks");
+	        foreach (var bank in banks)
+	        {
+		        if (!bank.IsValid()) continue;
+		        var xBank = new XElement("Bank");                
+		        xBank.SetAttributeValue("BankName", bank.Name);
+		        xBank.SetAttributeValue("UnloadOnDisable", bank.UnloadOnDisable);
+		        var xEvents = new XElement("AudioEvents");
+		        if (bank.LoadFinishEvents != null)
+		        {
+			        foreach (var evt in bank.LoadFinishEvents)
+			        {
+				        var xEvent = new XElement("AudioEvent");
+				        xEvent.SetAttributeValue("Type", evt.Type);
+				        xEvent.SetAttributeValue("EventName", evt.Name);
+				        xEvents.Add(xEvent);
+			        }
+		        }
+		        xBank.Add(xEvents);
+		        xBanks.Add(xBank);  
+	        }
+	        xComponent.Add(xBanks);
         }
 
         private static void ExportEvent(PostEventReference audioEvent, XElement xEvents, string trigger = "")
@@ -429,7 +425,7 @@ namespace AudioStudio.Tools
             var s = (EffectSound) component;
             ExportSpatialSettings(s, xComponent);
             var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("DelayTime", s.DelayTime);
+            xSettings.SetAttributeValue("DelayTime", s.DelayTime);            
             xComponent.Add(xSettings);
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.EnableEvents, xEvents, "Enable");
@@ -450,7 +446,10 @@ namespace AudioStudio.Tools
         
         private static void EmitterSoundExporter(Component component, XElement xComponent)
         {
-            var s = (EmitterSound) component;  
+            var s = (EmitterSound) component;
+            var xSettings = new XElement("Settings");
+            xSettings.SetAttributeValue("PauseIfInvisible", s.PauseIfInvisible);
+            xComponent.Add(xSettings);
             ExportSpatialSettings(s, xComponent);
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.AudioEvents, xEvents);                        
@@ -476,13 +475,12 @@ namespace AudioStudio.Tools
         private static void LoadBankExporter(Component component, XElement xComponent)
         {
             var s = (LoadBank) component;    
-            var xSettings = new XElement("Settings");
-            xSettings.SetAttributeValue("UnloadOnDisable", s.UnloadOnDisable);
-            xComponent.Add(xSettings);
-            ExportBanks(s.Banks, xComponent);
-            var xEvents = new XElement("AudioEvents");
-            ExportAudioEvents(s.LoadFinishEvents, xEvents);
-            xComponent.Add(xEvents);  
+            var xSettings = new XElement("Settings");      
+            xSettings.SetAttributeValue("AsyncMode", s.AsyncMode);
+            xComponent.Add(xSettings); 
+            ExportSpatialSettings(s, xComponent);
+            ExportBankRefs(s.Banks, xComponent);
+			ExportBank(s.Bank, xComponent);
         }    
         
         private static void MenuSoundExporter(Component component, XElement xComponent)
@@ -544,12 +542,15 @@ namespace AudioStudio.Tools
             xSettings.SetAttributeValue("AudioState", s.AnimationAudioState.ToString());						            
             xSettings.SetAttributeValue("ResetStateOnExit", s.ResetStateOnExit);
             xComponent.Add(xSettings);
+            
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.EnterEvents, xEvents, "Enter");
             ExportAudioEvents(s.ExitEvents, xEvents, "Exit");
             xComponent.Add(xEvents);
+            
             var xSwitches = new XElement("Switches");
-            ExportSwitches(s.EnterSwitches, xSwitches, "Enter");            
+            ExportSwitches(s.EnterSwitches, xSwitches, "Enter");
+            ExportSwitches(s.ExitSwitches, xSwitches, "Exit"); 
             xComponent.Add(xSwitches);
         }
 
@@ -652,8 +653,10 @@ namespace AudioStudio.Tools
         private static bool EmitterSoundImporter(Component component, XElement xComponent)
         {
             var s = (EmitterSound) component;
+            var xSettings = xComponent.Element("Settings");
             var modified = ImportEvents(ref s.AudioEvents, xComponent);
             modified |= ImportSpatialSettings(s, xComponent);
+            modified |= ImportBool(ref s.PauseIfInvisible, AsScriptingHelper.GetXmlAttribute(xSettings, "PauseIfInvisible"));
             return modified;
         }
 
@@ -686,11 +689,12 @@ namespace AudioStudio.Tools
                         
         private static bool LoadBankImporter(Component component, XElement xComponent)
         {
-            var s = (LoadBank) component;    
-            var xSettings = xComponent.Element("Settings");
-            var modified = ImportBool(ref s.UnloadOnDisable, AsScriptingHelper.GetXmlAttribute(xSettings, "UnloadOnDisable"));
-            modified |= ImportBanks(ref s.Banks, xComponent);
-            modified |= ImportEvents(ref s.LoadFinishEvents, xComponent);
+            var s = (LoadBank) component;
+            var xSettings = xComponent.Element("Settings");              
+            var modified = ImportBool(ref s.AsyncMode, AsScriptingHelper.GetXmlAttribute(xSettings, "AsyncMode"));
+            modified |= ImportSpatialSettings(s, xComponent);
+            modified |= ImportBankRefs(ref s.Banks, xComponent);
+            modified |= ImportBank(ref s.Bank, xComponent);
             return modified;
         }    
         
@@ -751,6 +755,7 @@ namespace AudioStudio.Tools
             modified |= ImportEvents(ref audioState.EnterEvents, xComponent, "Enter");
             modified |= ImportEvents(ref audioState.ExitEvents, xComponent, "Exit");
             modified |= ImportSwitches(ref audioState.EnterSwitches, xComponent, "Enter");
+            modified |= ImportSwitches(ref audioState.ExitSwitches, xComponent, "Exit");
             return modified;
         }
         

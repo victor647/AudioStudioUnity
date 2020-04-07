@@ -18,7 +18,7 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>UNITY_EDITOR;UNITY_2017_3_OR_NEWER</DefineConstants>
+        <DefineConstants>UNITY_EDITOR;UNITY_2017_3_OR_NEWER;UNITY_EDITOR_WIN</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
@@ -61,6 +61,9 @@
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AudioTagInspector.cs">
           <Link>Editor\AudioTagInspector.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AudioTimelineClipInspector.cs">
+          <Link>Editor\AudioTimelineClipInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\ButtonSoundInspector.cs">
           <Link>Editor\ButtonSoundInspector.cs</Link>
@@ -176,6 +179,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsSelectionCommands.cs">
           <Link>Editor\BatchProcessing\AsSelectionCommands.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\CharacterComponentSync.cs">
+          <Link>Editor\BatchProcessing\CharacterComponentSync.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\RegexReplacer.cs">
           <Link>Editor\BatchProcessing\RegexReplacer.cs</Link>
         </Compile>
@@ -224,16 +230,16 @@
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\AsGuiDrawer.cs">
           <Link>Editor\Scripting\AsGuiDrawer.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\AsMenus.cs">
-          <Link>Editor\Scripting\AsMenus.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\AsScriptingHelper.cs">
           <Link>Editor\Scripting\AsScriptingHelper.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\AsScriptMigration.cs">
           <Link>Editor\Scripting\AsScriptMigration.cs</Link>
         </Compile>
-        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\AsToolbarMenus.cs">
+          <Link>Editor\Scripting\AsToolbarMenus.cs</Link>
+        </Compile>
+        <Compile Include="AsToolbarMenusExt.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\AudioStudio\AudioStudio.csproj">
@@ -244,6 +250,9 @@
         <Project>{7451dbb3-62a4-4401-82ec-f6a84cfb0832}</Project>
         <Name>AudioStudio_Deployment</Name>
       </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Properties" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
