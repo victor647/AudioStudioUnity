@@ -4,4 +4,4 @@ Logs/
 obj/
 Packages/
 AudioStudioUnity_DLL/AudioStudioUnity_DLL.sln.DotSettings.user
-*/bin/
+AudioStudioUnity_DLL/*/bin/
