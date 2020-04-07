@@ -5,3 +5,6 @@ obj/
 Packages/
 AudioStudioUnity_DLL/AudioStudioUnity_DLL.sln.DotSettings.user
 AudioStudioUnity_DLL/*/bin/
+AudioStudioUnity.sln
+Assembly-CSharp.csproj
+Assembly-CSharp-Editor.csproj
