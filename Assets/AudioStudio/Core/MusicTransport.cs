@@ -146,6 +146,10 @@ namespace AudioStudio
 
         public string SetMusicQueue(MusicContainer newMusic, float fadeInTime = 0f)
         {
+            // prevent duplicate event calling
+            if (QueuedEvent == newMusic)
+                return QueuedTracks[0].name;
+            
             _currentTransitionExitData = GetTransitionExitCondition(newMusic);
             _currentTransitionEntryData = GetTransitionEntryCondition(newMusic);
 
@@ -418,8 +422,8 @@ namespace AudioStudio
             switch (TransitionInterval)
             {
                 case TransitionInterval.Immediate:
-                    TransitionEnterSample = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(EntryOffset * SampleRate));
-                    TransitionExitSample = PlayHeadAudioSource.timeSamples + Mathf.Max(0, Mathf.FloorToInt(ExitOffset * SampleRate));
+                    TransitionEnterSample = CurrentSample + Mathf.Max(0, Mathf.FloorToInt(EntryOffset * SampleRate));
+                    TransitionExitSample = CurrentSample + Mathf.Max(0, Mathf.FloorToInt(ExitOffset * SampleRate));
                     break;
                 case TransitionInterval.ExitCue:
                     TransitionEnterSample = ExitPositionSamples - QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
@@ -429,7 +433,7 @@ namespace AudioStudio
                     TransitionEnterSample = _transitionGridSample + GridLengthSamples - QueuedMusicData.PickUpLengthSamples + Mathf.FloorToInt(EntryOffset * SampleRate);
                     TransitionExitSample = _transitionGridSample + GridLengthSamples 
                                                                             + Mathf.FloorToInt(ExitOffset * SampleRate);                
-                    while (TransitionEnterSample < PlayHeadAudioSource.timeSamples)
+                    while (TransitionEnterSample < CurrentSample)
                     {
                         TransitionEnterSample += GridLengthSamples;
                         TransitionExitSample += GridLengthSamples;

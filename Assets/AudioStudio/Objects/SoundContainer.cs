@@ -287,7 +287,6 @@ namespace AudioStudio.Configs
                     else
                         evt.Play(soundSource, fadeInTime);
                 }
-
                 return null;
             }
             var soundContainer = GetChildByPlayLogic(soundSource);                

@@ -27,8 +27,7 @@ namespace AudioStudio.Editor
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Default Value", GUILayout.Width(100));
-            _audioParameter.DefaultValue = EditorGUILayout.Slider(_audioParameter.DefaultValue,
-                _audioParameter.MinValue, _audioParameter.MaxValue);
+            _audioParameter.DefaultValue = EditorGUILayout.Slider(_audioParameter.DefaultValue, _audioParameter.MinValue, _audioParameter.MaxValue);
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
@@ -64,7 +63,7 @@ namespace AudioStudio.Editor
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Mapping Target", GUILayout.Width(100));
-            EditorGUILayout.PropertyField(property.FindPropertyRelative("TargetType"), GUIContent.none, GUILayout.MinWidth(100));
+            EditorGUILayout.PropertyField(property.FindPropertyRelative("Target"), GUIContent.none, GUILayout.MinWidth(100));
             GUILayout.EndHorizontal();
 
             EditorGUILayout.LabelField("Target Value Map to Parameter Value:");
