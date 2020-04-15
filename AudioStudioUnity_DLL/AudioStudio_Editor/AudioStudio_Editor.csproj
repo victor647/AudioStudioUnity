@@ -176,6 +176,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsFieldUpgrade.cs">
           <Link>Editor\BatchProcessing\AsFieldUpgrade.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsScriptReferenceUpdate.cs">
+          <Link>Editor\BatchProcessing\AsScriptReferenceUpdate.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsSelectionCommands.cs">
           <Link>Editor\BatchProcessing\AsSelectionCommands.cs</Link>
         </Compile>

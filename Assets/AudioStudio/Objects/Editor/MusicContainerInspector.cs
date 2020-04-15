@@ -6,7 +6,7 @@ using UnityEditor;
 namespace AudioStudio.Editor
 {        
 	[CustomEditor(typeof(MusicContainer)), CanEditMultipleObjects]
-	public class MusicContainerInspector : AudioEventInspector 
+	public abstract class MusicContainerInspector : AudioEventInspector 
 	{
 		private MusicContainer _musicContainer;
 	
@@ -19,6 +19,7 @@ namespace AudioStudio.Editor
 		{
 			serializedObject.Update();
 			DrawHierarchy(_musicContainer);
+			DrawPlayLogic();
 			DrawChildEvents();
 			DrawAudioControls(_musicContainer);			
 			DrawTransition(_musicContainer);
@@ -45,27 +46,13 @@ namespace AudioStudio.Editor
 			EditorGUILayout.Separator();
 		}
 		
-		private static void DrawCascade(MusicContainer mc, int indentLevel = 0)
+		protected virtual void DrawCascade(MusicContainer mc, int indentLevel = 0)
 		{
 			if (!mc) return;
-			var text = new string(' ', indentLevel * 3);
-			text += mc is MusicTrack ? mc.name : mc.name + " (" + mc.PlayLogic + ")";
-            
-			if (GUILayout.Button(text, Selection.activeObject == mc ? EditorStyles.whiteLabel : EditorStyles.label))
-				Selection.activeObject = mc;
-			if (mc.PlayLogic == MusicPlayLogic.Switch)
+			DrawCascadeItem(mc, indentLevel);
+			foreach (var childEvent in mc.ChildEvents)
 			{
-				foreach (var eventMapping in mc.SwitchEventMappings)
-				{
-					DrawCascade((MusicContainer)eventMapping.AudioEvent, indentLevel + 1);
-				}
-			}
-			else
-			{
-				foreach (var childEvent in mc.ChildEvents)
-				{
-					DrawCascade(childEvent, indentLevel + 1);
-				}
+				DrawCascade(childEvent, indentLevel + 1);
 			}
 		}
 
@@ -92,40 +79,17 @@ namespace AudioStudio.Editor
 			}
 			EditorGUILayout.Separator();
 		}
+
+		protected virtual void DrawPlayLogic()
+		{
+		}
 		
-		private void DrawChildEvents()
-		{			
-			EditorGUILayout.LabelField("Child Events", EditorStyles.boldLabel);    
-            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-            {
-	            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("PlayLogic"));
-                switch (_musicContainer.PlayLogic)
-                {                                                                    
-                    case MusicPlayLogic.Random:
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);     
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RandomOnLoop"), "  Random On Loop", 120);
-	                    break;
-                    case MusicPlayLogic.SequenceContinuous:
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("LoopEntireSequence"), "  Loop Entire Sequence", 150);     
-                        break;
-                    case MusicPlayLogic.Switch:
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchToSamePosition"), "  To Same Position", 120);
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchImmediately"), "  Switch Immediately", 120);	                    
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "  Cross Fade Time", 120);
-	                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchReference"), "Audio Switch");
-                        EditorGUILayout.LabelField("Switch Assignment");
-                        AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"));
-                        break;
-                }
-                if (_musicContainer.PlayLogic != MusicPlayLogic.Switch)
-                {
-	                EditorGUILayout.LabelField("Music Containers/Clips");
-	                AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);
-                }
-            }
+		protected virtual void DrawChildEvents()
+		{
+			AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "Child Music Events", AddChildEvent);
 			EditorGUILayout.Separator();
-        }
-		
+		}
+
 		protected void DrawTransition(MusicContainer mc)
 		{			
 			GUILayout.BeginHorizontal();
@@ -148,7 +112,7 @@ namespace AudioStudio.Editor
 			}
 			EditorGUILayout.Separator();
 		}
-		
+
 		private void AddChildEvent(Object[] objects)
 		{
 			var events = objects.Select(obj => obj as MusicContainer).Where(a => a).ToArray();                   
@@ -157,8 +121,85 @@ namespace AudioStudio.Editor
 				_musicContainer.ChildEvents.Add(evt);
 			}								
 		}
-	}   
+	}
+
+	[CustomEditor(typeof(MusicLayerContainer)), CanEditMultipleObjects]
+	public class MusicLayerContainerInspector : MusicContainerInspector
+	{
+	}
 	
+	[CustomEditor(typeof(MusicRandomContainer)), CanEditMultipleObjects]
+	public class MusicRandomContainerInspector : MusicContainerInspector
+	{
+		protected override void DrawPlayLogic()
+		{
+			EditorGUILayout.LabelField("Random Logic", EditorStyles.boldLabel);
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "", 120);
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RandomOnLoop"), "", 120);
+			}
+			EditorGUILayout.Separator();
+		}
+	}
+	
+	[CustomEditor(typeof(MusicSwitchContainer)), CanEditMultipleObjects]
+	public class MusicSwitchContainerInspector : MusicContainerInspector
+	{
+		protected override void DrawCascade(MusicContainer mc, int indentLevel = 0)
+		{
+			if (!mc) return;
+			DrawCascadeItem(mc, indentLevel);
+			var switchContainer = mc as MusicSwitchContainer;
+			if (!switchContainer) return;
+			foreach (var eventMapping in switchContainer.SwitchEventMappings)
+			{
+				DrawCascade((MusicContainer)eventMapping.AudioEvent, indentLevel + 1);
+			}
+		}
+		
+		protected override void DrawPlayLogic()
+		{
+			EditorGUILayout.LabelField("Switch Logic", EditorStyles.boldLabel);
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchToSamePosition"), "  To Same Position", 120);
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchImmediately"), "  Switch Immediately", 120);	                    
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "  Cross Fade Time", 120);
+			}
+			EditorGUILayout.Separator();
+		}
+		
+		protected override void DrawChildEvents()
+		{
+			EditorGUILayout.LabelField("Child Music Events", EditorStyles.boldLabel);    
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchReference"), "Audio Switch");
+				EditorGUILayout.LabelField("Switch Assignment");
+				AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"));
+			}
+			EditorGUILayout.Separator();
+		}
+	}
+	
+	[CustomEditor(typeof(MusicSequenceContainer)), CanEditMultipleObjects]
+	public class MusicSequenceContainerInspector : MusicContainerInspector
+	{
+		protected override void DrawPlayLogic()
+		{
+			EditorGUILayout.LabelField("Sequence Logic", EditorStyles.boldLabel);
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				var sequenceByStep = serializedObject.FindProperty("SequenceByStep");
+				AsGuiDrawer.DrawProperty(sequenceByStep, "", 150);
+				if (!sequenceByStep.boolValue)
+					AsGuiDrawer.DrawProperty(serializedObject.FindProperty("LoopEntireSequence"), "", 150);  
+			}
+			EditorGUILayout.Separator();
+		}
+	}
+
 	[CustomPropertyDrawer(typeof(TransitionExitData))]
     public class TransitionExitDataDrawer : PropertyDrawer
     {

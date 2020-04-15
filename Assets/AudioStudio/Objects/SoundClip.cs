@@ -18,9 +18,8 @@ namespace AudioStudio.Configs
         
         #region Editor
         public override void CleanUp()
-        {            
-            ChildEvents = null;            
-            SwitchEventMappings = null;
+        {
+            ChildEvents.Clear();
             if (!Clip)
                 Debug.LogError("AudioClip of SoundClip " + name + " is missing!");
         }
@@ -68,9 +67,14 @@ namespace AudioStudio.Configs
             {
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
-            }  
-                                                
-            var sci = ParentContainer && ParentContainer.RandomOnLoop ? soundSource.AddComponent<RandomLoopClipsInstance>() : soundSource.AddComponent<SoundClipInstance>();
+            }
+
+            SoundClipInstance sci;
+            var randomContainer = ParentContainer as SoundRandomContainer;
+            if (randomContainer && randomContainer.RandomOnLoop)
+                sci = soundSource.AddComponent<RandomLoopClipsInstance>();
+            else
+                sci = soundSource.AddComponent<SoundClipInstance>();
             sci.Init(this, soundSource);            
             sci.Play(fadeInTime, endCallback);
             return Clip.name;
@@ -292,12 +296,12 @@ namespace AudioStudio.Configs
 
     public class RandomLoopClipsInstance : SoundClipInstance
     {
-        private SoundContainer _clipPool;
+        private SoundRandomContainer _clipPool;
         private SoundClip _originalClip;
         private AudioSource _source1;
         private AudioSource _source2;
         private float _volume;
-        private int CrossFadeStartSample => Mathf.CeilToInt(SoundClip.Clip.samples - SoundClip.CrossFadeTime * SoundClip.Clip.frequency * Mathf.Abs(SoundClip.Pitch));
+        private int CrossFadeStartSample => Mathf.CeilToInt(SoundClip.Clip.samples - _clipPool.CrossFadeTime * SoundClip.Clip.frequency * Mathf.Abs(SoundClip.Pitch));
         
         private void OnDestroy()
         {            
@@ -323,7 +327,7 @@ namespace AudioStudio.Configs
             SoundClip = _originalClip = clip;
             
             _originalClip.AddInstance(this);
-            _clipPool = clip.ParentContainer;
+            _clipPool = clip.ParentContainer as SoundRandomContainer;
             _volume = clip.Volume;
             InitAudioSource(_source1);
             InitAudioSource(_source2);
@@ -337,7 +341,7 @@ namespace AudioStudio.Configs
             //random to next loop
             if (TimeSamples >= CrossFadeStartSample)
             {                
-                SoundClip = _clipPool.GetRandomContainer() as SoundClip;
+                SoundClip = _clipPool.GetChildByPlayLogic(gameObject) as SoundClip;
                 PlayAgain();
             }
             TimeSamples = AudioSource.timeSamples;
@@ -345,8 +349,8 @@ namespace AudioStudio.Configs
 
         private void PlayAgain()
         {
-            if (isActiveAndEnabled && SoundClip.CrossFadeTime > 0f)
-                StartCoroutine(AudioSource.Stop(SoundClip.CrossFadeTime));
+            if (isActiveAndEnabled && _clipPool.CrossFadeTime > 0f)
+                StartCoroutine(AudioSource.Stop(_clipPool.CrossFadeTime));
             else
                 AudioSource.Stop();
             AudioSource = AudioSource == _source1 ? _source2 : _source1;
@@ -354,7 +358,7 @@ namespace AudioStudio.Configs
             AudioSource.clip = SoundClip.Clip;
             AudioSource.panStereo = SoundClip.Pan;
             AudioSource.pitch = SoundClip.Pitch;
-            SeekPositionAndPlay(SoundClip.CrossFadeTime);		
+            SeekPositionAndPlay(_clipPool.CrossFadeTime);		
             AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, Emitter);
         }
 

@@ -27,21 +27,9 @@ namespace AudioStudio.Configs
 		public bool HighPassFilter;	
 		public float HighPassResonance = 1f;
 		[Range(10f, 22000f)]
-		public float HighPassCutoff = 10f;			
-		
-		//Audio Mixer Settings
+		public float HighPassCutoff = 10f;
 		public bool SubMixer;
 		public string AudioMixer;
-		//For Random		
-		protected byte LastSelectedIndex = 255;
-		public bool AvoidRepeat = true;
-		public bool RandomOnLoop;
-		//For Switch			 
-		public AudioSwitchReference AudioSwitchReference = new AudioSwitchReference();		
-		public SwitchEventMapping[] SwitchEventMappings = new SwitchEventMapping[0];
-		public bool SwitchImmediately;
-		public float CrossFadeTime = 0.5f;
-		//For Parameter
 		public ParameterMapping[] Mappings = new ParameterMapping[0];						
 		#endregion								
 

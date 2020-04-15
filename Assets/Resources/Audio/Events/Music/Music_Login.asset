@@ -9,10 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a8e9eddb18cf8b448bae5adcc107792e, type: 3}
+  m_Script: {fileID: 11500000, guid: deef1568a659e7242914921ded9947b5, type: 3}
   m_Name: Music_Login
   m_EditorClassIdentifier: 
-  Platform: 0
   IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
@@ -27,15 +26,8 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  AvoidRepeat: 1
-  RandomOnLoop: 0
-  AudioSwitchReference:
-    Name: 
-  SwitchEventMappings: []
-  SwitchImmediately: 0
-  CrossFadeTime: 0.5
   Mappings: []
-  PlayLogic: 3
+  ParentContainer: {fileID: 0}
   LoopCount: 0
   ChildEvents:
   - {fileID: 11400000, guid: fd747904c6e4fe547be3f04046d695bb, type: 2}
@@ -45,17 +37,17 @@ MonoBehaviour:
   - Source:
       Name: 
     FadeInTime: 0
-    EntryOffset: 0
+    EntryOffset: 1
     TransitionSegment:
       Name: 
   TransitionExitConditions:
   - Target:
       Name: 
-    FadeOutTime: 0
+    FadeOutTime: 1
     ExitOffset: 0
     Interval: 0
     GridLength:
       Bar: 0
       Beat: 0
-  SwitchToSamePosition: 0
+  SequenceByStep: 0
   LoopEntireSequence: 0

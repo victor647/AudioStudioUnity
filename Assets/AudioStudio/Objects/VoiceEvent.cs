@@ -21,9 +21,13 @@ namespace AudioStudio.Configs
 	public class VoiceEvent : AudioEvent
 	{						
 		#region Fields
-		public VoicePlayLogic PlayLogic = VoicePlayLogic.Single;		
-		public SwitchClipMapping[] SwitchClipMappings;					
-		
+		public VoicePlayLogic PlayLogic = VoicePlayLogic.Single;
+		// random
+		public bool AvoidRepeat = true;
+		private byte _lastPlayedIndex = 255;
+		// switch
+		public AudioSwitchReference AudioSwitchReference = new AudioSwitchReference();	
+		public SwitchClipMapping[] SwitchClipMappings;
 		public AudioClip Clip;		
 		public List<AudioClip> Clips = new List<AudioClip>();
 		#endregion
@@ -32,7 +36,7 @@ namespace AudioStudio.Configs
 
 		internal override void Init()
 		{		
-			LastSelectedIndex = 255;
+			_lastPlayedIndex = 255;
 			_playingInstances = new List<AudioEventInstance>();
 			switch (PlayLogic)
 			{
@@ -102,11 +106,11 @@ namespace AudioStudio.Configs
 						return Clips[0];
 					var selectedIndex = Random.Range(0, Clips.Count);
 					if (!AvoidRepeat) return Clips[selectedIndex];
-					while (selectedIndex == LastSelectedIndex)
+					while (selectedIndex == _lastPlayedIndex)
 					{
 						selectedIndex = Random.Range(0, Clips.Count);
 					}
-					LastSelectedIndex = (byte)selectedIndex;
+					_lastPlayedIndex = (byte)selectedIndex;
 					return Clips[selectedIndex];					
 				case VoicePlayLogic.Switch:
 					var audioSwitch = AsAssetLoader.GetAudioSwitch(AudioSwitchReference.Name);
@@ -121,9 +125,9 @@ namespace AudioStudio.Configs
 					}
 					return SwitchClipMappings[0].Clip;
 				case VoicePlayLogic.SequenceStep:
-					LastSelectedIndex++;
-					if (LastSelectedIndex == Clips.Count) LastSelectedIndex = 0;
-					return Clips[LastSelectedIndex];		
+					_lastPlayedIndex++;
+					if (_lastPlayedIndex == Clips.Count) _lastPlayedIndex = 0;
+					return Clips[_lastPlayedIndex];		
 			}
 			return null;
 		}
@@ -219,12 +223,6 @@ namespace AudioStudio.Configs
 					if (SwitchClipMappings.Any( c=> !c.Clip))
 						Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
 					break;
-			}
-
-			if (PlayLogic != VoicePlayLogic.Switch)
-			{
-				SwitchEventMappings = null;
-				SwitchClipMappings = null;
 			}
 		}
 		

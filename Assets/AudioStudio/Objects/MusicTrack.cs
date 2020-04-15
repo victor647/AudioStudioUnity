@@ -54,8 +54,7 @@ namespace AudioStudio.Configs
 		#region Editor
 		public override void CleanUp()
 		{
-			ChildEvents = null;
-			SwitchEventMappings = null;	
+			ChildEvents.Clear();
 			if (!Clip)
 				Debug.LogError("AudioClip of MusicEvent " + name + " is missing!");
 		}

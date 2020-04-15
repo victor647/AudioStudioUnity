@@ -1,4 +1,5 @@
-﻿using AudioStudio.Components;
+﻿using System;
+using AudioStudio.Components;
 using UnityEditor;
 using UnityEngine;
 using AudioStudio.Configs;
@@ -68,6 +69,29 @@ namespace AudioStudio.Editor
                 ae.Stop(GlobalAudioEmitter.GameObject);
             EditorGUILayout.EndHorizontal();
             GUI.contentColor = Color.white;
+        }
+
+        protected void DrawCascadeItem(AudioEvent evt, int indentLevel)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("", GUILayout.Width(indentLevel * 10));
+            var icon = GetIcon(evt);
+            if (icon)
+                GUILayout.Label(GetIcon(evt), GUILayout.Width(16), GUILayout.Height(16));
+            if (GUILayout.Button(evt.name, Selection.activeObject == evt ? EditorStyles.whiteLabel : EditorStyles.label))
+                Selection.activeObject = evt;
+            EditorGUILayout.EndHorizontal();
+        }
+
+        private Texture2D GetIcon(AudioEvent evt)
+        {
+            var typeName = evt.GetType().Name;
+#if UNITY_2018_1_OR_NEWER            
+            var fullPath = "Assets/" + AudioPathSettings.AudioStudioLibraryPath + "/Objects/Editor/Icons/" + typeName + " Icon.png";
+#else
+            var fullPath = "Assets/Gizmos/" + typeName + " Icon.png";
+#endif
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(fullPath);
         }
     }
 }

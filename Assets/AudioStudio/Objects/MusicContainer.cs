@@ -2,21 +2,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
-using AudioStudio.Components;
 using AudioStudio.Tools;
-using Random = UnityEngine.Random;
 
 namespace AudioStudio.Configs
 {
-    public enum MusicPlayLogic
-    {
-        Layer, 
-        Random,		
-        Switch,
-        SequenceContinuous,
-        SequenceStep
-    }
-
     [Serializable]
     public class TransitionExitData
     {
@@ -36,11 +25,9 @@ namespace AudioStudio.Configs
         public MusicSegmentReference TransitionSegment = new MusicSegmentReference();
     }
     
-    [CreateAssetMenu(fileName = "New Music Container", menuName = "AudioStudio/Music/Container")]
-    public class MusicContainer : AudioEvent
+    public abstract class MusicContainer : AudioEvent
     {
         #region Fields
-        public MusicPlayLogic PlayLogic;
         public MusicContainer ParentContainer;
         public byte LoopCount;
         public List<MusicContainer> ChildEvents = new List<MusicContainer>();
@@ -48,33 +35,18 @@ namespace AudioStudio.Configs
         public bool OverrideTransition;
         public TransitionEntryData[] TransitionEntryConditions = new TransitionEntryData[1];
         public TransitionExitData[] TransitionExitConditions = new TransitionExitData[1];
-        public bool SwitchToSamePosition;
-        public bool LoopEntireSequence;
-
         #endregion
         
         #region Editor
         public override void OnValidate()
         {            
-            if (this is MusicTrack) return;
-            if (PlayLogic != MusicPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
-                    if (evt) CopySettings(evt);
-                }
-            }
-            else
-            {
-                foreach (var assignment in SwitchEventMappings)
-                {
-                    var mc = assignment.AudioEvent as MusicContainer;
-                    if (mc) CopySettings(mc);
-                }
+                if (evt) CopySettings(evt);
             }
         }
 
-        private void CopySettings(MusicContainer child)
+        protected void CopySettings(MusicContainer child)
         {
             child.ParentContainer = this;
             child.IndependentEvent = false;
@@ -111,29 +83,18 @@ namespace AudioStudio.Configs
             if (IndependentEvent) 
                 ParentContainer = null;
             
-            if (this is MusicTrack) return;
-            
-            if (PlayLogic != MusicPlayLogic.Switch)
-            {
-                SwitchEventMappings = new SwitchEventMapping[0];
-                if (ChildEvents.Any(c => !c)) 
-                    Debug.LogError("ChildEvent of MusicContainer " + name + " is missing!");
-            }
-            else 
-            {
-                ChildEvents.Clear();
-                if (SwitchEventMappings.Any(c => !c.AudioEvent))
-                    Debug.LogError("ChildEvent of MusicContainer " + name + " is missing!");
-            }
             foreach (var evt in ChildEvents)
             {
-                if (evt) evt.CleanUp();                    
+                if (evt) 
+                    evt.CleanUp();
+                else
+                    Debug.LogError("Child Event of Music Container " + name + " is missing!");
             }
         }
 
         public override bool IsValid()
         {
-            return PlayLogic != MusicPlayLogic.Switch ? ChildEvents.Any(c => c != null) : SwitchEventMappings.Any(m => m.AudioEvent != null);
+            return ChildEvents.Any(c => c != null);
         }
 
         internal override AudioObjectType GetEventType()
@@ -148,47 +109,24 @@ namespace AudioStudio.Configs
         #endregion
 
         #region Initialization
-
         internal override void Init()
         {
-            LastSelectedIndex = 255;
-            if (PlayLogic != MusicPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
-                    evt.Init();
-                }
-            }
-            else
-            {
-                foreach (var mapping in SwitchEventMappings)
-                {
-                    mapping.AudioEvent.Init();
-                } 
-            }          
+                evt.Init();
+            }    
         }
 
         internal override void Dispose()
         {            
-            if (PlayLogic != MusicPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
-                    evt.Dispose();
-                }
+                evt.Dispose();
             }
-            else
-            {
-                foreach (var mapping in SwitchEventMappings)
-                {
-                    mapping.AudioEvent.Dispose();
-                } 
-            }        
         }
         #endregion                
                
         #region Playback         
-
         public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {               
             return MusicTransport.Instance.SetMusicQueue(this);
@@ -225,61 +163,9 @@ namespace AudioStudio.Configs
             MusicTransport.Instance.Resume(fadeInTime);
         }
 
-        public MusicContainer GetEvent()
+        public virtual MusicContainer GetEvent()
         {
-            switch (PlayLogic)
-            {
-                case MusicPlayLogic.Random:
-                    if (ChildEvents.Count < 2)
-                        return ChildEvents[0];
-                    var selectedIndex = Random.Range(0, ChildEvents.Count);
-                    if (!AvoidRepeat) 
-                        return ChildEvents[selectedIndex];
-                    while (selectedIndex == LastSelectedIndex)
-                    {
-                        selectedIndex = Random.Range(0, ChildEvents.Count);
-                    }
-                    LastSelectedIndex = (byte)selectedIndex;
-                    return ChildEvents[selectedIndex];
-                case MusicPlayLogic.Switch:
-                    var audioSwitch = AsAssetLoader.GetAudioSwitch(AudioSwitchReference.Name);
-                    if (audioSwitch)
-                    {
-                        var asi = audioSwitch.GetOrAddSwitchInstance(GlobalAudioEmitter.GameObject);
-                        asi.OnSwitchChanged = OnSwitchChanged;
-                        foreach (var assignment in SwitchEventMappings)
-                        {
-                            if (assignment.SwitchName == asi.CurrentSwitch)
-                                return (MusicContainer) assignment.AudioEvent;
-                        }
-                    }
-                    return (MusicContainer) SwitchEventMappings[0].AudioEvent;
-                case MusicPlayLogic.SequenceStep:
-                    LastSelectedIndex++;
-                    if (LastSelectedIndex == ChildEvents.Count) 
-                        LastSelectedIndex = 0;
-                    return ChildEvents[LastSelectedIndex];
-                case MusicPlayLogic.SequenceContinuous:
-                    LastSelectedIndex = 0;
-                    return ChildEvents[0];                    
-            }
             return null;
-        }
-
-        public MusicContainer GetNextEvent()
-        {
-            LastSelectedIndex++;
-            if (LastSelectedIndex == ChildEvents.Count)
-            {
-                LastSelectedIndex = 0;
-                return LoopEntireSequence ? ChildEvents[0] : null;
-            }
-            return ChildEvents[LastSelectedIndex];
-        }
-        
-        private void OnSwitchChanged(GameObject soundSource)
-        {
-            MusicTransport.Instance.OnSwitchChanged(SwitchImmediately, SwitchToSamePosition, CrossFadeTime);
         }
         #endregion
     }

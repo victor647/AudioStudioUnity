@@ -187,8 +187,20 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicInstrument.cs">
           <Link>Objects\MusicInstrument.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicLayerContainer.cs">
+          <Link>Objects\MusicLayerContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicRandomContainer.cs">
+          <Link>Objects\MusicRandomContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicSequenceContainer.cs">
+          <Link>Objects\MusicSequenceContainer.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicStinger.cs">
           <Link>Objects\MusicStinger.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicSwitchContainer.cs">
+          <Link>Objects\MusicSwitchContainer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicTrack.cs">
           <Link>Objects\MusicTrack.cs</Link>
@@ -196,11 +208,23 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundBank.cs">
           <Link>Objects\SoundBank.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundBlendContainer.cs">
+          <Link>Objects\SoundBlendContainer.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundClip.cs">
           <Link>Objects\SoundClip.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundContainer.cs">
           <Link>Objects\SoundContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundRandomContainer.cs">
+          <Link>Objects\SoundRandomContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundSequenceContainer.cs">
+          <Link>Objects\SoundSequenceContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundSwitchContainer.cs">
+          <Link>Objects\SoundSwitchContainer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\VoiceEvent.cs">
           <Link>Objects\VoiceEvent.cs</Link>

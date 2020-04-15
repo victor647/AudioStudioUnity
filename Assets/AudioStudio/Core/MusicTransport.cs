@@ -193,7 +193,7 @@ namespace AudioStudio
                 return;
             }
             // play all layered tracks together
-            if (evt.PlayLogic == MusicPlayLogic.Layer) 
+            if (evt is MusicLayerContainer) 
             {
                 foreach (var childEvent in evt.ChildEvents)
                 {
@@ -262,8 +262,12 @@ namespace AudioStudio
             
             if (RemainingLoops != 1) //more loops to go
                 AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Loop, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
-            else if (CurrentEvent.PlayLogic == MusicPlayLogic.SequenceContinuous)            
-                SetSequence(CurrentEvent.GetNextEvent());            
+            else
+            {
+                var seqeunceContainer = CurrentEvent as MusicSequenceContainer;
+                if (seqeunceContainer && !seqeunceContainer.SequenceByStep)            
+                    SetSequence(seqeunceContainer.GetNextEvent());
+            }            
         }
 
         private void OnPreEntryAgainPosition()
@@ -700,30 +704,11 @@ namespace AudioStudio
         {
             // make sure music is playing
             if (PlayingStatus == PlayingStatus.Idle || PlayingStatus == PlayingStatus.Stopping) return;
-
             // sometimes music is delayed one frame, fix it
             var adjustedSamples = CurrentSample + (int)(Time.fixedDeltaTime * SampleRate);
-            // stinger queue time stamp is reached
-            if (_triggerStingerSample > 0 && adjustedSamples > _triggerStingerSample) 
-                PlayStinger();    
             // time of a beat has passed
             if (adjustedSamples > _beatSample + BeatDurationSamples) 
                 OnBeat();
-            // check if transition will happen
-            if (TransitioningStatus == TransitioningStatus.PendingTransition)
-            {
-                if (_exitFirst && adjustedSamples > TransitionExitSample)
-                    TransitionExit();
-                if (!_exitFirst && adjustedSamples > TransitionEnterSample)
-                    TransitionEnter();
-            }
-            // check if switch will happen
-            if (SwitchingStatus == SwitchingStatus.PendingSwitch && adjustedSamples > SwitchEnterSample)
-                SwitchCrossFadeStart();
-            // check if sequence will change
-            if (SequencingStatus == SequencingStatus.PendingSequence && adjustedSamples > SequenceEnterSample)
-                SequenceEnter();
-
             //checking for exit or loop point
             switch (PlayingStatus)
             {
@@ -734,6 +719,26 @@ namespace AudioStudio
                         OnTransitionGrid();
                     break;
             }
+            // stinger queue time stamp is reached
+            if (_triggerStingerSample > 0 && adjustedSamples > _triggerStingerSample) 
+                PlayStinger();  
+            // check if transition will happen
+            if (TransitioningStatus == TransitioningStatus.PendingTransition)
+            {
+                if (_exitFirst && adjustedSamples > TransitionExitSample)
+                    TransitionExit();
+                if (!_exitFirst && adjustedSamples > TransitionEnterSample)
+                    TransitionEnter();
+            }
+            // do not check other logic in a transition
+            if (TransitioningStatus == TransitioningStatus.Transitioning)
+                return;
+            // check if switch will happen
+            if (SwitchingStatus == SwitchingStatus.PendingSwitch && adjustedSamples > SwitchEnterSample)
+                SwitchCrossFadeStart();
+            // check if sequence will change
+            if (SequencingStatus == SequencingStatus.PendingSequence && adjustedSamples > SequenceEnterSample)
+                SequenceEnter();
 
             if (UseDefaultLoopStyle)
             {

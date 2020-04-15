@@ -20,6 +20,7 @@ namespace AudioStudio.Editor
             serializedObject.Update();		 
             DrawHierarchy(_soundContainer);
             Draw3DSetting(_soundContainer);		
+            DrawPlayLogic();
             DrawChildEvents();		
             DrawAudioControls(_soundContainer);
             DrawVoiceManagement(_soundContainer);
@@ -28,38 +29,14 @@ namespace AudioStudio.Editor
             AsGuiDrawer.DrawSaveButton(_soundContainer);
         }       	                
         
-        private void DrawChildEvents()
-		{			
-			EditorGUILayout.LabelField("Child Events", EditorStyles.boldLabel);    
-            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
-            {			
-	            EditorGUILayout.PropertyField(serializedObject.FindProperty("PlayLogic"));
-                switch (_soundContainer.PlayLogic)
-                {                                                                    
-                    case SoundPlayLogic.Random:
-                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "  Avoid Repeat", 120);     
-                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("RandomOnLoop"), "  Random On Loop", 120);
-                        if (_soundContainer.RandomOnLoop) 
-                            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "  Cross Fade Time", 120);
-                        EditorGUILayout.LabelField("Sound Containers/Clips");
-                        AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);		                    
-                        break;
-	                case SoundPlayLogic.Layer:
-                    case SoundPlayLogic.SequenceStep:                    
-                        EditorGUILayout.LabelField("Sound Containers/Clips");
-                        AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "", AddChildEvent);					
-                        break;
-                    case SoundPlayLogic.Switch:	                    	                    	                                            
-                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchImmediately"), "  Switch Immediately", 120);	                    
-	                    if (_soundContainer.SwitchImmediately) 
-                            AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "   Fade Time", 120);		                    	                    
-                        AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchReference"), "Audio Switch");			
-                        EditorGUILayout.LabelField("Switch Assignment");
-                        AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"), "", AddChildEvent);
-                        break;
-                }					
-            }
-			EditorGUILayout.Separator();
+        protected virtual void DrawPlayLogic()
+        {
+        }
+		
+        protected virtual void DrawChildEvents()
+        {
+            AsGuiDrawer.DrawList(serializedObject.FindProperty("ChildEvents"), "Child Sound Events", AddChildEvent);
+            EditorGUILayout.Separator();
         }
         
         private void AddChildEvent(Object[] objects)
@@ -179,27 +156,13 @@ namespace AudioStudio.Editor
             EditorGUILayout.Separator();
         }
 
-        private static void DrawCascade(SoundContainer sc, int indentLevel = 0)
+        protected virtual void DrawCascade(SoundContainer sc, int indentLevel = 0)
         {
             if (!sc) return;
-            var text = new string(' ', indentLevel * 3);
-            text += sc is SoundClip ? sc.name : sc.name + " (" + sc.PlayLogic + ")";
-            
-            if (GUILayout.Button(text, Selection.activeObject == sc ? EditorStyles.whiteLabel : EditorStyles.label))
-                Selection.activeObject = sc;
-            if (sc.PlayLogic == SoundPlayLogic.Switch)
+            DrawCascadeItem(sc, indentLevel);
+            foreach (var childEvent in sc.ChildEvents)
             {
-                foreach (var eventMapping in sc.SwitchEventMappings)
-                {
-                    DrawCascade((SoundContainer)eventMapping.AudioEvent, indentLevel + 1);
-                }
-            }
-            else
-            {
-                foreach (var childEvent in sc.ChildEvents)
-                {
-                    DrawCascade(childEvent, indentLevel + 1);
-                }
+                DrawCascade(childEvent, indentLevel + 1);
             }
         }
         
@@ -244,4 +207,81 @@ namespace AudioStudio.Editor
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("AttenuationCurve"), GUIContent.none);    
         }
     }
+    
+    [CustomEditor(typeof(SoundBlendContainer)), CanEditMultipleObjects]
+	public class SoundBlendContainerInspector : SoundContainerInspector
+	{
+	}
+	
+	[CustomEditor(typeof(SoundRandomContainer)), CanEditMultipleObjects]
+	public class SoundRandomContainerInspector : SoundContainerInspector
+	{
+		protected override void DrawPlayLogic()
+		{
+			EditorGUILayout.LabelField("Random Logic", EditorStyles.boldLabel);
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AvoidRepeat"), "", 120);
+                var randomOnLoop = serializedObject.FindProperty("RandomOnLoop");
+				AsGuiDrawer.DrawProperty(randomOnLoop, "", 120);
+                if (randomOnLoop.boolValue) 
+                    AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "", 120);
+			}
+			EditorGUILayout.Separator();
+		}
+	}
+	
+	[CustomEditor(typeof(SoundSwitchContainer)), CanEditMultipleObjects]
+	public class SoundSwitchContainerInspector : SoundContainerInspector
+	{
+		protected override void DrawCascade(SoundContainer sc, int indentLevel = 0)
+		{
+			if (!sc) return;
+			DrawCascadeItem(sc, indentLevel);
+			var switchContainer = sc as SoundSwitchContainer;
+			if (!switchContainer) return;
+			foreach (var eventMapping in switchContainer.SwitchEventMappings)
+			{
+				DrawCascade((SoundContainer)eventMapping.AudioEvent, indentLevel + 1);
+			}
+		}
+		
+		protected override void DrawPlayLogic()
+		{
+			EditorGUILayout.LabelField("Switch Logic", EditorStyles.boldLabel);
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SwitchImmediately"), "", 120);	                    
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("CrossFadeTime"), "", 120);
+			}
+			EditorGUILayout.Separator();
+		}
+		
+		protected override void DrawChildEvents()
+		{
+			EditorGUILayout.LabelField("Child Sound Events", EditorStyles.boldLabel);    
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("AudioSwitchReference"), "Audio Switch");
+				EditorGUILayout.LabelField("Switch Assignment");
+				AsGuiDrawer.DrawList(serializedObject.FindProperty("SwitchEventMappings"));
+			}
+			EditorGUILayout.Separator();
+		}
+	}
+	
+	[CustomEditor(typeof(SoundSequenceContainer)), CanEditMultipleObjects]
+	public class SoundSequenceContainerInspector : SoundContainerInspector
+	{
+		protected override void DrawPlayLogic()
+		{
+			EditorGUILayout.LabelField("Sequence Logic", EditorStyles.boldLabel);
+			using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+			{
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("SequenceByStep"), "", 150);
+				AsGuiDrawer.DrawProperty(serializedObject.FindProperty("LoopEntireSequence"), "", 150);  
+			}
+			EditorGUILayout.Separator();
+		}
+	}
 }

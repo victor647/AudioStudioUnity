@@ -4,23 +4,12 @@ using System.Linq;
 using AudioStudio.Components;
 using AudioStudio.Tools;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace AudioStudio.Configs
-{   
-    public enum SoundPlayLogic
-    {
-        Layer, 
-        Random,		
-        Switch,        
-        SequenceStep
-    }
-
-    [CreateAssetMenu(fileName = "New Sound Container", menuName = "AudioStudio/Sound/Container")]
-    public class SoundContainer : AudioEvent
+{
+    public abstract class SoundContainer : AudioEvent
     {
         #region Fields    
-        public SoundPlayLogic PlayLogic;                
         public List<SoundContainer> ChildEvents = new List<SoundContainer>();
         public SoundContainer ParentContainer;
         
@@ -54,26 +43,14 @@ namespace AudioStudio.Configs
         
         #region Editor
         public override void OnValidate()
-        {               
-            if (this is SoundClip) return;
-            if (PlayLogic != SoundPlayLogic.Switch)
+        {
+            foreach (var child in ChildEvents)
             {
-                foreach (var child in ChildEvents)
-                {
-                    if (child) CopySettings(child);
-                }
-            }
-            else
-            {
-                foreach (var assignment in SwitchEventMappings)
-                {
-                    var sc = assignment.AudioEvent as SoundContainer;
-                    if (sc) CopySettings(sc);
-                }
+                if (child) CopySettings(child);
             }
         }
 
-        private void CopySettings(SoundContainer child)
+        protected void CopySettings(SoundContainer child)
         {
             child.ParentContainer = this;
             child.IndependentEvent = false;
@@ -113,7 +90,6 @@ namespace AudioStudio.Configs
                 child.Pitch = Pitch;
                 child.RandomizePitch = RandomizePitch;
                 child.PitchRandomRange = PitchRandomRange;
-                child.CrossFadeTime = CrossFadeTime;
 
                 child.SubMixer = SubMixer;
                 child.AudioMixer = AudioMixer;
@@ -126,31 +102,19 @@ namespace AudioStudio.Configs
         {
             if (IndependentEvent) 
                 ParentContainer = null;
-
-            if (this is SoundClip) return;
-            
-            if (PlayLogic != SoundPlayLogic.Switch)
-            {
-                SwitchEventMappings = new SwitchEventMapping[0];
-                if (ChildEvents.Any(c => !c)) 
-                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
-            }
-            else 
-            {
-                ChildEvents.Clear();
-                if (SwitchEventMappings.Any(c => !c.AudioEvent))
-                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
-            }                        
             
             foreach (var evt in ChildEvents)
             {
-                if (evt) evt.CleanUp();                    
-            }            
+                if (evt) 
+                    evt.CleanUp();
+                else
+                    Debug.LogError("Child Event of Sound Container " + name + " is missing!");
+            }       
         }
         
         public override bool IsValid()
         {
-            return PlayLogic != SoundPlayLogic.Switch ? ChildEvents.Any(c => c != null) : SwitchEventMappings.Any(m => m.AudioEvent != null);
+            return ChildEvents.Any(c => c != null);
         }
         
         internal override AudioObjectType GetEventType()
@@ -167,38 +131,17 @@ namespace AudioStudio.Configs
         #region Initialize
         internal override void Init()
         {
-            LastSelectedIndex = 255;
-            if (PlayLogic != SoundPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
-                    evt.Init();
-                }
-            }
-            else
-            {
-                foreach (var mapping in SwitchEventMappings)
-                {
-                    mapping.AudioEvent.Init();
-                } 
+                evt.Init();
             }
         }
 
         internal override void Dispose()
         {
-            if (PlayLogic != SoundPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
-                    evt.Dispose();
-                }
-            }
-            else
-            {
-                foreach (var mapping in SwitchEventMappings)
-                {
-                    mapping.AudioEvent.Dispose();
-                } 
+                evt.Dispose();
             }
         }
         #endregion       
@@ -269,90 +212,21 @@ namespace AudioStudio.Configs
             }
         }
 
-        private void OnSwitchChanged(GameObject soundSource)
+        protected virtual SoundClip GetChild(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
         {
-            Stop(soundSource, CrossFadeTime);
-            Play(soundSource, CrossFadeTime);
-        }
-
-        private SoundClip GetChild(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
-        {
-            if (PlayLogic == SoundPlayLogic.Layer)
-            {
-                for (var i = 0; i < ChildEvents.Count; i++)
-                {
-                    var evt = ChildEvents[i];
-                    if (i == 0) //only the first clip will have the end callback
-                        evt.Play(soundSource, fadeInTime, endCallback);
-                    else
-                        evt.Play(soundSource, fadeInTime);
-                }
-                return null;
-            }
             var soundContainer = GetChildByPlayLogic(soundSource);                
             var clip = soundContainer as SoundClip;
             return clip ? clip : soundContainer.GetChild(soundSource, fadeInTime, endCallback);                       
         }
 
-        private SoundContainer GetChildByPlayLogic(GameObject soundSource)
+        internal virtual SoundContainer GetChildByPlayLogic(GameObject soundSource)
         {
-            switch (PlayLogic)
-            {
-                case SoundPlayLogic.Random:
-                    return GetRandomContainer();
-                case SoundPlayLogic.Switch:
-                    return GetSwitchContainer(soundSource);
-                case SoundPlayLogic.SequenceStep:
-                    return GetSequenceContainer();
-            }
             return null;
-        }
-
-        public SoundContainer GetRandomContainer()
-        {
-            if (ChildEvents.Count < 2)
-                return ChildEvents[0];
-            var selectedIndex = Random.Range(0, ChildEvents.Count);
-            if (!AvoidRepeat) 
-                return ChildEvents[selectedIndex];
-            while (selectedIndex == LastSelectedIndex)
-            {
-                selectedIndex = Random.Range(0, ChildEvents.Count);
-            }
-            LastSelectedIndex = (byte)selectedIndex;
-            return ChildEvents[selectedIndex];
-        }
-
-        private SoundContainer GetSwitchContainer(GameObject soundSource)
-        {
-            var audioSwitch = AsAssetLoader.GetAudioSwitch(AudioSwitchReference.Name);
-            if (audioSwitch)
-            {
-                var asi = audioSwitch.GetOrAddSwitchInstance(soundSource);
-                if (SwitchImmediately)
-                {
-                    asi.OnSwitchChanged = OnSwitchChanged;
-                }
-
-                foreach (var assignment in SwitchEventMappings)
-                {
-                    if (assignment.SwitchName == asi.CurrentSwitch)
-                        return (SoundContainer) assignment.AudioEvent;
-                }
-            }
-            return (SoundContainer) SwitchEventMappings[0].AudioEvent;
-        }
-
-        private SoundContainer GetSequenceContainer()
-        {
-            LastSelectedIndex++;
-            if (LastSelectedIndex == ChildEvents.Count) LastSelectedIndex = 0;
-            return ChildEvents[LastSelectedIndex];
         }
         #endregion
         
         #region VoiceManagement        
-        public void AddVoicing(GameObject soundSource)
+        protected void AddVoicing(GameObject soundSource)
         {
             if (_voiceCount.ContainsKey(soundSource))
                 _voiceCount[soundSource]++;
@@ -360,7 +234,7 @@ namespace AudioStudio.Configs
                 _voiceCount[soundSource] = 1;
         }
 
-        public void RemoveVoicing(GameObject soundSource)
+        protected void RemoveVoicing(GameObject soundSource)
         {
             if (_voiceCount.ContainsKey(soundSource))
             {
@@ -368,14 +242,6 @@ namespace AudioStudio.Configs
                 if (_voiceCount[soundSource] == 0)
                     _voiceCount.Remove(soundSource);
             }                     
-        }
-
-        public void ClearVoicing(GameObject soundSource)
-        {
-            if (_voiceCount.ContainsKey(soundSource))
-            {
-                _voiceCount.Remove(soundSource);
-            }   
         }
 
         private int CurrentVoicesGlobal()

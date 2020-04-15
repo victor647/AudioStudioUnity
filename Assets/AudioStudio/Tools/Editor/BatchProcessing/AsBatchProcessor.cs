@@ -177,7 +177,7 @@ namespace AudioStudio.Tools
                     var eventNameLong = soundClipPaths[i].Replace(result.Value, "");
                     if (File.Exists(eventNameLong + ".asset"))
                     {						                        
-                        var randomContainer =  AssetDatabase.LoadAssetAtPath<SoundContainer>(eventNameShort + ".asset");
+                        var randomContainer =  AssetDatabase.LoadAssetAtPath<SoundRandomContainer>(eventNameShort + ".asset");
                         if (!randomContainer) continue;
                         if (randomContainer.ChildEvents.Contains(clip)) continue;
                         EditorUtility.SetDirty(randomContainer);
@@ -189,8 +189,7 @@ namespace AudioStudio.Tools
                         var savePathLong = Path.GetDirectoryName(soundClipPaths[i]);	
                         AsScriptingHelper.CheckDirectoryExist(savePathLong);						
                         var eventName = Path.GetFileName(eventNameLong);                                                    
-                        var newRandomEvent = CreateInstance<SoundContainer>();                        
-                        newRandomEvent.PlayLogic = SoundPlayLogic.Random;
+                        var newRandomEvent = CreateInstance<SoundRandomContainer>();
                         newRandomEvent.name = eventName;				
                         newRandomEvent.ChildEvents.Add(clip);
                         AssetDatabase.CreateAsset(newRandomEvent, eventNameShort + ".asset");
@@ -222,7 +221,7 @@ namespace AudioStudio.Tools
                     if (File.Exists(eventPathLong + ".asset"))                    						                        
                         CheckExistingMusicContainer(eventPathShort, track);                    
                     else                    
-                        AddToMusicContainer(eventPathLong, eventPathShort, track, MusicPlayLogic.Random);                     
+                        AddToMusicContainer<MusicRandomContainer>(eventPathLong, eventPathShort, track);                     
                 }	 
                 
                 //for sequence
@@ -232,7 +231,7 @@ namespace AudioStudio.Tools
                     var eventPathShort = loadPathShort.Remove(indexIntro);
                     var eventPathLong = musicTrackPaths[i].Replace("_Intro", "");
                     if (!File.Exists(eventPathLong))                                     
-                        AddToMusicContainer(eventPathLong, eventPathShort, track, MusicPlayLogic.SequenceContinuous);                     
+                        AddToMusicContainer<MusicSequenceContainer>(eventPathLong, eventPathShort, track);                     
                 }
                 var indexLoop = loadPathShort.IndexOf("_Loop", StringComparison.Ordinal);
                 if (indexLoop > 0)
@@ -257,13 +256,12 @@ namespace AudioStudio.Tools
             EditorUtility.SetDirty(mc);
         }
 
-        private void AddToMusicContainer(string eventPathLong, string eventPathShort, MusicTrack track, MusicPlayLogic playLogic)
+        private void AddToMusicContainer<T>(string eventPathLong, string eventPathShort, MusicTrack track) where T: MusicContainer
         {
             var savePathLong = Path.GetDirectoryName(eventPathLong);	
             AsScriptingHelper.CheckDirectoryExist(savePathLong);						
             var eventName = Path.GetFileName(eventPathLong);                                                    
-            var newMusicContainer = CreateInstance<MusicContainer>();
-            newMusicContainer.PlayLogic = playLogic;
+            var newMusicContainer = CreateInstance<T>();
             newMusicContainer.name = eventName;				
             newMusicContainer.ChildEvents.Add(track);                                                                    
             AssetDatabase.CreateAsset(newMusicContainer, eventPathShort + ".asset");

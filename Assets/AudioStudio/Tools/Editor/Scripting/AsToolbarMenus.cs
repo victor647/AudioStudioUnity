@@ -145,6 +145,14 @@ namespace AudioStudio.Tools
             window.position = new Rect(500, 300, 300, 150);
             window.titleContent = new GUIContent("Filed Upgrade");
         }
+        
+        [MenuItem("AudioStudio/Tools/Script Reference Update")]
+        public static void ScriptReferenceUpdate()
+        {
+            var window = GetWindow<AsScriptReferenceUpdate>();
+            window.position = new Rect(500, 300, 400, 100);
+            window.titleContent = new GUIContent("Script Reference Update");
+        }
 
         [MenuItem("AudioStudio/Tools/Remove Missing and Duplicate Components")]
         public static void RemoveMissingDuplicate()
