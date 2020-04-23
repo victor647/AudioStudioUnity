@@ -9,7 +9,7 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/EffectSound")]
     [DisallowMultipleComponent]
-    public class EffectSound : AudioEmitterObject
+    public class EffectSound : AudioEmitter3D
     {
         public PostEventReference[] EnableEvents = new PostEventReference[0];
         public PostEventReference[] DisableEvents = new PostEventReference[0];

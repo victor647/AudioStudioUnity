@@ -151,7 +151,9 @@ namespace AudioStudio.Tools
                 AsScriptingHelper.CheckDirectoryExist(savePathLong);				
                 var newClip = CreateInstance<SoundClip>();	                
                 newClip.name = clip.name;				
-                newClip.Clip = clip;                
+                newClip.Clip = clip;
+                if (clip.name.EndsWith("Loop"))
+                    newClip.Loop = true;
                 AssetDatabase.CreateAsset(newClip, savePathShort);	
             }		
             if (saveAssets) 

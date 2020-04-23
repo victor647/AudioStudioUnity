@@ -7,7 +7,7 @@ namespace AudioStudio.Components
 {   
     [AddComponentMenu("AudioStudio/ColliderSound")]
     [DisallowMultipleComponent]
-    public class ColliderSound : AudioEmitterObject
+    public class ColliderSound : AudioEmitter3D
     {        
         public PostEventReference[] EnterEvents = new PostEventReference[0];
         public PostEventReference[] ExitEvents = new PostEventReference[0];                

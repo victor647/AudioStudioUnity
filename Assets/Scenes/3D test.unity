@@ -2092,7 +2092,6 @@ GameObject:
   - component: {fileID: 1496834122}
   - component: {fileID: 1496834121}
   - component: {fileID: 1496834125}
-  - component: {fileID: 1496834124}
   m_Layer: 0
   m_Name: AudioInit
   m_TagString: Untagged
@@ -2114,6 +2113,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   AudioInitSettings: {fileID: 11400000, guid: 2f029563c2efc5d42b299b130c9e70da, type: 2}
   InitOnAwake: 1
+  LoadAudioData: 1
 --- !u!4 &1496834122
 Transform:
   m_ObjectHideFlags: 0
@@ -2128,18 +2128,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 10
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1496834124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1496834120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24d5b8fac80f42f4487b3cb0a3718b3a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!111 &1496834125
 Animation:
   m_ObjectHideFlags: 0
@@ -2751,6 +2739,7 @@ MonoBehaviour:
   MinInterval: 1
   MaxInterval: 2
   PlayMode: 1
+  PauseIfInvisible: 0
 --- !u!114 &2121740371
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2775,7 +2764,6 @@ MonoBehaviour:
     FadeTime: 0
   DisableEvents: []
   DelayTime: 1
-  PauseIfInvisible: 1
 --- !u!1001 &8212853870678401619
 PrefabInstance:
   m_ObjectHideFlags: 0

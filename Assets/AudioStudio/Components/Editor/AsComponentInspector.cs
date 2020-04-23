@@ -9,7 +9,7 @@ namespace AudioStudio.Editor
 	{
 		protected bool BackedUp;
 		
-		protected static string OnLabel(AudioPhysicsHandler component)
+		protected static string OnLabel(AsPhysicsHandler component)
 		{
 			switch (component.SetOn)
 			{
@@ -25,7 +25,7 @@ namespace AudioStudio.Editor
 			return string.Empty;
 		}
 
-		protected static string OffLabel(AudioPhysicsHandler component)
+		protected static string OffLabel(AsPhysicsHandler component)
 		{
 			switch (component.SetOn)
 			{
@@ -58,7 +58,7 @@ namespace AudioStudio.Editor
 			}
 		}
 
-		protected void ShowPhysicalSettings(AudioPhysicsHandler component, bool is3D)
+		protected void ShowPhysicalSettings(AsPhysicsHandler component, bool is3D)
 		{
 			EditorGUILayout.LabelField("Trigger Settings", EditorStyles.boldLabel);
 			using (new EditorGUILayout.VerticalScope(GUI.skin.box))

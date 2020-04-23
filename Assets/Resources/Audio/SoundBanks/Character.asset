@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e3b0809df6c65945a0234679d4ace5b, type: 3}
   m_Name: Character
   m_EditorClassIdentifier: 
+  UseLoadCounter: 0
   AudioEvents:
   - {fileID: 11400000, guid: f2b3d5a2718eb2544972f7e3b89210a1, type: 2}
   AudioControllers:

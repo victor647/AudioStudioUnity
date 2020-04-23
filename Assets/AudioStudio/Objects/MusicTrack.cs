@@ -79,12 +79,12 @@ namespace AudioStudio.Configs
 		
 		internal void AddInstance(MusicTrackInstance instance)
 		{
-			AudioManager.GlobalMusicInstances.Add(name);  
+			EmitterManager.AddMusicInstance(instance);
 		}
 
-		internal void RemoveInstance()
+		internal void RemoveInstance(MusicTrackInstance instance)
 		{
-			AudioManager.GlobalMusicInstances.Remove(name);  
+			EmitterManager.RemoveMusicInstance(instance);
 		}
 		#endregion
 
@@ -178,7 +178,7 @@ namespace AudioStudio.Configs
 	        if (_source2)
 				Destroy(_source2);
 	        OnAudioEnd?.Invoke(Emitter);
-	        MusicTrack.RemoveInstance();
+	        MusicTrack.RemoveInstance(this);
         }
 		#endregion
 		

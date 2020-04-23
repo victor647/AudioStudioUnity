@@ -47,13 +47,13 @@ namespace AudioStudio.Configs
         internal void AddInstance(SoundClipInstance instance)
         {
             _playingInstances.Add(instance);
-            AudioManager.GlobalSoundInstances.Add(name +  " @ " + instance.gameObject.name);  
+            EmitterManager.AddSoundInstance(instance);
         }
 
         internal void RemoveInstance(SoundClipInstance instance)
         {
             _playingInstances.Remove(instance);
-            AudioManager.GlobalSoundInstances.Remove(name +  " @ " + instance.gameObject.name);  
+            EmitterManager.RemoveSoundInstance(instance);
         }
         #endregion
 
@@ -61,10 +61,14 @@ namespace AudioStudio.Configs
 
         public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
-            if (!soundSource)
+            // without a valid sound source or chance failed
+            if (!soundSource || !WillPlayByProbability())
                 return string.Empty;
+            // check voice limit
             if (EnableVoiceLimit)
             {
+                if (ReachVoiceLimit(soundSource)) 
+                    return string.Empty;
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
             }
@@ -78,7 +82,6 @@ namespace AudioStudio.Configs
             sci.Init(this, soundSource);            
             sci.Play(fadeInTime, endCallback);
             return Clip.name;
-
         }
 
         public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
@@ -232,6 +235,32 @@ namespace AudioStudio.Configs
             return baseValue + Random.Range(-randomRange, randomRange);
         }
         #endregion
+        
+        #region Editor
+        private void OnDrawGizmosSelected()
+        {
+            if (!SoundClip.Is3D) return;
+            
+            switch (AudioPathSettings.Instance.GizmosSphereColor)
+            {
+                case GizmosColor.Disabled:
+                    return;
+                case GizmosColor.Red:
+                    Gizmos.color = new Color(1, 0, 0, 0.2f);
+                    break;
+                case GizmosColor.Yellow:
+                    Gizmos.color = new Color(1, 1, 0, 0.2f);
+                    break;
+                case GizmosColor.Green:
+                    Gizmos.color = new Color(0, 1, 0, 0.2f);
+                    break;
+                case GizmosColor.Blue:
+                    Gizmos.color = new Color(0, 0, 1, 0.2f);
+                    break;
+            }
+            Gizmos.DrawSphere(transform.position, SoundClip.MaxDistance);
+        }
+        #endregion
 
         #region Playback        
         protected AudioVoiceInstance AudioVoiceInstance;
@@ -269,7 +298,7 @@ namespace AudioStudio.Configs
                 AudioSource.Play();
         }
 
-        private void FixedUpdate()
+        internal override void UpdatePlayingStatus()
         {
             if (PlayingStatus != PlayingStatus.Playing) return;                
             
@@ -334,7 +363,7 @@ namespace AudioStudio.Configs
             InitFilters();
         }
 
-        private void FixedUpdate()
+        internal override void UpdatePlayingStatus()
         {
             if (PlayingStatus != PlayingStatus.Playing) return;    
             

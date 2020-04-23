@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {
-    public class AudioEmitterObject : AudioPhysicsHandler
+    public class AudioEmitter3D : AsPhysicsHandler
     {
         public bool IsUpdatePosition = true;
         public bool StopOnDestroy = true;

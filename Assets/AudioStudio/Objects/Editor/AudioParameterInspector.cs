@@ -66,19 +66,19 @@ namespace AudioStudio.Editor
             EditorGUILayout.PropertyField(property.FindPropertyRelative("Target"), GUIContent.none, GUILayout.MinWidth(100));
             GUILayout.EndHorizontal();
 
-            EditorGUILayout.LabelField("Target Value Map to Parameter Value:");
+            EditorGUILayout.LabelField("Parameter Value Map to Target Value:");
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Min", GUILayout.Width(30));
-            EditorGUILayout.PropertyField(property.FindPropertyRelative("MinTargetValue"), GUIContent.none, GUILayout.MinWidth(40));
-            EditorGUILayout.LabelField("map to", GUILayout.Width(50));
             EditorGUILayout.PropertyField(property.FindPropertyRelative("MinParameterValue"), GUIContent.none, GUILayout.MinWidth(40));
+            EditorGUILayout.LabelField("map to", GUILayout.Width(50));
+            EditorGUILayout.PropertyField(property.FindPropertyRelative("MinTargetValue"), GUIContent.none, GUILayout.MinWidth(40));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Max", GUILayout.Width(30));
-            EditorGUILayout.PropertyField(property.FindPropertyRelative("MaxTargetValue"), GUIContent.none, GUILayout.MinWidth(40));
-            EditorGUILayout.LabelField("map to", GUILayout.Width(50));
             EditorGUILayout.PropertyField(property.FindPropertyRelative("MaxParameterValue"), GUIContent.none, GUILayout.MinWidth(40));
+            EditorGUILayout.LabelField("map to", GUILayout.Width(50));
+            EditorGUILayout.PropertyField(property.FindPropertyRelative("MaxTargetValue"), GUIContent.none, GUILayout.MinWidth(40));
             GUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(property.FindPropertyRelative("CurveExponent"));
             GUILayout.BeginHorizontal();

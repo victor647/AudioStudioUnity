@@ -51,118 +51,121 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AnimationSoundInspector.cs">
-          <Link>Editor\AnimationSoundInspector.cs</Link>
+          <Link>Editor\Editor\AnimationSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AsComponentInspector.cs">
-          <Link>Editor\AsComponentInspector.cs</Link>
+          <Link>Editor\Editor\AsComponentInspector.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AudioListener3DInspector.cs">
+          <Link>Editor\Editor\AudioListener3DInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AudioStateInspector.cs">
-          <Link>Editor\AudioStateInspector.cs</Link>
+          <Link>Editor\Editor\AudioStateInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AudioTagInspector.cs">
-          <Link>Editor\AudioTagInspector.cs</Link>
+          <Link>Editor\Editor\AudioTagInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\AudioTimelineClipInspector.cs">
-          <Link>Editor\AudioTimelineClipInspector.cs</Link>
+          <Link>Editor\Editor\AudioTimelineClipInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\ButtonSoundInspector.cs">
-          <Link>Editor\ButtonSoundInspector.cs</Link>
+          <Link>Editor\Editor\ButtonSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\ColliderSoundInspector.cs">
-          <Link>Editor\ColliderSoundInspector.cs</Link>
+          <Link>Editor\Editor\ColliderSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\DropdownSoundInspector.cs">
-          <Link>Editor\DropdownSoundInspector.cs</Link>
+          <Link>Editor\Editor\DropdownSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\EffectSoundInspector.cs">
-          <Link>Editor\EffectSoundInspector.cs</Link>
+          <Link>Editor\Editor\EffectSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\EmitterSoundInspector.cs">
-          <Link>Editor\EmitterSoundInspector.cs</Link>
+          <Link>Editor\Editor\EmitterSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\LegacyAnimationSoundInspector.cs">
-          <Link>Editor\LegacyAnimationSoundInspector.cs</Link>
+          <Link>Editor\Editor\LegacyAnimationSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\LoadBankInspector.cs">
-          <Link>Editor\LoadBankInspector.cs</Link>
+          <Link>Editor\Editor\LoadBankInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\MenuSoundInspector.cs">
-          <Link>Editor\MenuSoundInspector.cs</Link>
+          <Link>Editor\Editor\MenuSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\ScrollSoundInspector.cs">
-          <Link>Editor\ScrollSoundInspector.cs</Link>
+          <Link>Editor\Editor\ScrollSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\SetSwitchInspector.cs">
-          <Link>Editor\SetSwitchInspector.cs</Link>
+          <Link>Editor\Editor\SetSwitchInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\SliderSoundInspector.cs">
-          <Link>Editor\SliderSoundInspector.cs</Link>
+          <Link>Editor\Editor\SliderSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\TimelineSoundInspector.cs">
-          <Link>Editor\TimelineSoundInspector.cs</Link>
+          <Link>Editor\Editor\TimelineSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Editor\ToggleSoundInspector.cs">
-          <Link>Editor\ToggleSoundInspector.cs</Link>
+          <Link>Editor\Editor\ToggleSoundInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioImportProcessor.cs">
-          <Link>Editor\AudioImportProcessor.cs</Link>
+          <Link>Editor\Editor\AudioImportProcessor.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioPathSettingsInspector.cs">
-          <Link>Editor\AudioPathSettingsInspector.cs</Link>
+          <Link>Editor\Editor\AudioPathSettingsInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\BarAndBeatDrawer.cs">
-          <Link>Editor\BarAndBeatDrawer.cs</Link>
+          <Link>Editor\Editor\BarAndBeatDrawer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\BarAndBeatInspector.cs">
-          <Link>Editor\BarAndBeatInspector.cs</Link>
+          <Link>Editor\Editor\BarAndBeatInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\MusicTransportInspector.cs">
-          <Link>Editor\MusicTransportInspector.cs</Link>
+          <Link>Editor\Editor\MusicTransportInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\AudioEventInspector.cs">
-          <Link>Editor\AudioEventInspector.cs</Link>
+          <Link>Editor\Editor\AudioEventInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\AudioInitSettingsInspector.cs">
-          <Link>Editor\AudioInitSettingsInspector.cs</Link>
+          <Link>Editor\Editor\AudioInitSettingsInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\AudioObjectReferenceDrawer.cs">
-          <Link>Editor\AudioObjectReferenceDrawer.cs</Link>
+          <Link>Editor\Editor\AudioObjectReferenceDrawer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\AudioParameterInspector.cs">
-          <Link>Editor\AudioParameterInspector.cs</Link>
+          <Link>Editor\Editor\AudioParameterInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\AudioSwitchInspector.cs">
-          <Link>Editor\AudioSwitchInspector.cs</Link>
+          <Link>Editor\Editor\AudioSwitchInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicContainerInspector.cs">
-          <Link>Editor\MusicContainerInspector.cs</Link>
+          <Link>Editor\Editor\MusicContainerInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicInstrumentInspector.cs">
-          <Link>Editor\MusicInstrumentInspector.cs</Link>
+          <Link>Editor\Editor\MusicInstrumentInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicStingerInspector.cs">
-          <Link>Editor\MusicStingerInspector.cs</Link>
+          <Link>Editor\Editor\MusicStingerInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicTrackInspector.cs">
-          <Link>Editor\MusicTrackInspector.cs</Link>
+          <Link>Editor\Editor\MusicTrackInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\SoundBankInspector.cs">
-          <Link>Editor\SoundBankInspector.cs</Link>
+          <Link>Editor\Editor\SoundBankInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\SoundCaster.cs">
-          <Link>Editor\SoundCaster.cs</Link>
+          <Link>Editor\Editor\SoundCaster.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\SoundClipInspector.cs">
-          <Link>Editor\SoundClipInspector.cs</Link>
+          <Link>Editor\Editor\SoundClipInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\SoundContainerInspector.cs">
-          <Link>Editor\SoundContainerInspector.cs</Link>
+          <Link>Editor\Editor\SoundContainerInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\VoiceEventInspector.cs">
-          <Link>Editor\VoiceEventInspector.cs</Link>
+          <Link>Editor\Editor\VoiceEventInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\VoiceLimiterInspector.cs">
-          <Link>Editor\VoiceLimiterInspector.cs</Link>
+          <Link>Editor\Editor\VoiceLimiterInspector.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\BatchProcessing\AsAssetBatchRenamer.cs">
           <Link>Editor\BatchProcessing\AsAssetBatchRenamer.cs</Link>
@@ -256,6 +259,8 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Properties" />
+    </ItemGroup>
+    <ItemGroup>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

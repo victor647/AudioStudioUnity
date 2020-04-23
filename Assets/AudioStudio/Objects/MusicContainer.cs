@@ -40,13 +40,16 @@ namespace AudioStudio.Configs
         #region Editor
         public override void OnValidate()
         {            
-            foreach (var evt in ChildEvents)
+            for (var i = 0; i < ChildEvents.Count; i++)
             {
-                if (evt) CopySettings(evt);
+                if (ChildEvents[i] == this)
+                    ChildEvents[i] = null;
+                else if (ChildEvents[i])
+                    CopySettings(ChildEvents[i]);
             }
         }
 
-        protected void CopySettings(MusicContainer child)
+        private void CopySettings(MusicContainer child)
         {
             child.ParentContainer = this;
             child.IndependentEvent = false;
@@ -74,7 +77,6 @@ namespace AudioStudio.Configs
                 child.AudioMixer = AudioMixer;
                 child.Mappings = Mappings;
             }
-
             child.OnValidate();
         }
 

@@ -8,11 +8,11 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/ScrollSound")]    
     [DisallowMultipleComponent]
-    public class ScrollSound : AsComponent
+    public class ScrollSound : AsUIHandler
     {        
         public PostEventReference ScrollEvent = new PostEventReference();
 
-        private void Start()
+        public override void AddListener()
         {
             var s = GetComponent<ScrollRect>();
             if (s != null)

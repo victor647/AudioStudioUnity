@@ -5,7 +5,7 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/AnimationSound")]
     [DisallowMultipleComponent]
-    public class AnimationSound : AudioEmitterObject
+    public class AnimationSound : AudioEmitter3D
     {
         private AnimationAudioState _animationAudioState;
 

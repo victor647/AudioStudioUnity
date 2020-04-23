@@ -33,13 +33,13 @@ namespace AudioStudio.Configs
 		internal void AddInstance(AudioSwitchInstance instance)
 		{
 			_activeInstances.Add(instance);
-			AudioManager.GlobalSwitchInstances.Add(name +  " @ " + instance.gameObject.name);  
+			EmitterManager.AddSwitchInstance(instance);
 		}
 
 		internal void RemoveInstance(AudioSwitchInstance instance)
 		{
 			_activeInstances.Remove(instance);
-			AudioManager.GlobalSwitchInstances.Remove(name +  " @ " + instance.gameObject.name);  
+			EmitterManager.RemoveSwitchInstance(instance);  
 		}
 		#endregion
 
@@ -145,7 +145,7 @@ namespace AudioStudio.Configs
 			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject);
 		}
 
-		private void Update()
+		internal void CheckPendingSwitch()
 		{
 			if (AudioSwitch.CooldownTime > 0f && _pendingSwitch != CurrentSwitch && Time.time - _lastSetTimeStamp >= AudioSwitch.CooldownTime)
 			{

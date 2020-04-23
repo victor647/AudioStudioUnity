@@ -20,12 +20,12 @@ namespace AudioStudio.Timeline
             _endTime = component.EndTime;
             if (emitter)
             {
-                var ago = emitter.GetComponent<AudioEmitterObject>();
+                var ago = emitter.GetComponent<AudioEmitter3D>();
                 _emitter = ago ? ago.GetSoundSource() : emitter.gameObject;
             }
             else
             {
-                var ago = director.GetComponent<AudioEmitterObject>();
+                var ago = director.GetComponent<AudioEmitter3D>();
                 _emitter = ago ? ago.GetSoundSource() : GlobalAudioEmitter.GameObject;
             }
         }

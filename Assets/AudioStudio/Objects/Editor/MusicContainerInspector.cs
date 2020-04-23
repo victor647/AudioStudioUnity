@@ -45,8 +45,8 @@ namespace AudioStudio.Editor
 			}
 			EditorGUILayout.Separator();
 		}
-		
-		protected virtual void DrawCascade(MusicContainer mc, int indentLevel = 0)
+
+		private void DrawCascade(MusicContainer mc, int indentLevel = 0)
 		{
 			if (!mc) return;
 			DrawCascadeItem(mc, indentLevel);
@@ -146,18 +146,6 @@ namespace AudioStudio.Editor
 	[CustomEditor(typeof(MusicSwitchContainer)), CanEditMultipleObjects]
 	public class MusicSwitchContainerInspector : MusicContainerInspector
 	{
-		protected override void DrawCascade(MusicContainer mc, int indentLevel = 0)
-		{
-			if (!mc) return;
-			DrawCascadeItem(mc, indentLevel);
-			var switchContainer = mc as MusicSwitchContainer;
-			if (!switchContainer) return;
-			foreach (var eventMapping in switchContainer.SwitchEventMappings)
-			{
-				DrawCascade((MusicContainer)eventMapping.AudioEvent, indentLevel + 1);
-			}
-		}
-		
 		protected override void DrawPlayLogic()
 		{
 			EditorGUILayout.LabelField("Switch Logic", EditorStyles.boldLabel);

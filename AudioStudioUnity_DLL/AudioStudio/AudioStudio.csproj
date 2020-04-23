@@ -64,8 +64,8 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\AsComponent.cs">
           <Link>Components\Common\AsComponent.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioEmitterObject.cs">
-          <Link>Components\Common\AudioEmitterObject.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioEmitter3D.cs">
+          <Link>Components\Common\AudioEmitter3D.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioInit.cs">
           <Link>Components\Common\AudioInit.cs</Link>
@@ -130,9 +130,6 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\UI\ToggleSound.cs">
           <Link>Components\UI\ToggleSound.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\AudioEventHandler.cs">
-          <Link>Core\AudioEventHandler.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\AudioInitSettings.cs">
           <Link>Core\AudioInitSettings.cs</Link>
         </Compile>
@@ -150,6 +147,9 @@
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\BarAndBeat.cs">
           <Link>Core\BarAndBeat.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\EmitterManager.cs">
+          <Link>Core\EmitterManager.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\ListenerManager.cs">
           <Link>Core\ListenerManager.cs</Link>

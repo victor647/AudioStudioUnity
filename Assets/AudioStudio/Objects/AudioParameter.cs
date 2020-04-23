@@ -54,13 +54,13 @@ namespace AudioStudio.Configs
 		internal void AddInstance(AudioParameterInstance instance)
 		{
 			_activeInstances.Add(instance);
-			AudioManager.GlobalParameterInstances.Add(name +  " @ " + instance.gameObject.name);  
+			EmitterManager.AddParameterInstance(instance);
 		}
 
 		internal void RemoveInstance(AudioParameterInstance instance)
 		{
 			_activeInstances.Remove(instance);
-			AudioManager.GlobalParameterInstances.Remove(name +  " @ " + instance.gameObject.name);  
+			EmitterManager.RemoveParameterInstance(instance);  
 		}
 		
 		private AudioParameterInstance GetOrAddParameterInstance(GameObject gameObject)
@@ -163,7 +163,7 @@ namespace AudioStudio.Configs
 		}
 		
 		//continue to slew using the current parameter as input
-		private void FixedUpdate()
+		internal void UpdateSlewValues()
 		{				
 			if (_isSlewing)				
 				SlewValue(CurrentValue); 				
@@ -174,7 +174,7 @@ namespace AudioStudio.Configs
 		{
 			foreach (var mapping in ParameterMappings)
 			{
-				mapping.ConvertParameterToTarget(CurrentValue, gameObject); 
+				mapping.ApplyParameterChange(CurrentValue, gameObject); 
 			}	
 		}
 	}
@@ -238,7 +238,7 @@ namespace AudioStudio.Configs
 				    _modifyTarget = SetHighPassCutoff;
 				    break;
 		    }
-		    ConvertParameterToTarget(_parameter.GetValue(go), go);
+		    ApplyParameterChange(_parameter.GetValue(go), go);
 	    }
 
 	    internal void Dispose(GameObject go)
@@ -273,14 +273,18 @@ namespace AudioStudio.Configs
 		    _affectedEventInstance.SetLowPassCutoff(cutoff);
 	    }
 
-	    internal void ConvertParameterToTarget(float value, GameObject go)
+	    internal void ApplyParameterChange(float value, GameObject go)
 	    {
-		    value = Mathf.Clamp(value, MaxParameterValue, MinParameterValue);
-            var parameterPercentage = MinParameterValue <= MaxParameterValue ? 
-	            (value - MinParameterValue) / (MaxParameterValue - MinParameterValue) :
-	            1f - (value - MaxParameterValue) / (MinParameterValue - MaxParameterValue);
-            var targetValue = Mathf.Lerp(MinTargetValue, MaxTargetValue, Mathf.Pow(parameterPercentage, CurveExponent));            
+		    var targetValue = ConvertParameterToTarget(value, MinParameterValue, MaxParameterValue, MinTargetValue, MaxTargetValue, CurveExponent);      
             _modifyTarget?.Invoke(targetValue, go);                     
         }
+
+	    internal static float ConvertParameterToTarget(float parameterValue, float minParameterValue, float maxParameterValue, float minTargetValue, float maxTargetValue, float curveExponent = 1f)
+	    {
+		    parameterValue = Mathf.Clamp(parameterValue, minParameterValue, maxParameterValue);
+		    var parameterPercentage = (parameterValue - minParameterValue) / (maxParameterValue - minParameterValue);
+		    var targetValue = Mathf.Lerp(minTargetValue, maxTargetValue, Mathf.Pow(parameterPercentage, curveExponent));
+		    return targetValue;
+	    }
     }
 }

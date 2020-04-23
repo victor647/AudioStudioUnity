@@ -10,23 +10,22 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/DropdownSound")]
     [DisallowMultipleComponent]
-    public class DropdownSound : AsComponent
+    public class DropdownSound : AsUIHandler
     {
         public PostEventReference[] ValueChangeEvents = new PostEventReference[0];
         public PostEventReference[] PopupEvents = new PostEventReference[0];
         public PostEventReference[] CloseEvents = new PostEventReference[0];
         
         private bool _isPoppedUp;
-        private Dropdown _dropDown;
 
-        private void Start()
+        public override void AddListener()
         {
-            _dropDown = gameObject.GetComponent<Dropdown>();
-            if (_dropDown == null) return;
-            _dropDown.onValueChanged.AddListener(x => PostEvents(ValueChangeEvents, AudioTriggerSource.DropdownSound, gameObject));
+            var dropDown = gameObject.GetComponent<Dropdown>();
+            if (dropDown == null) return;
+            dropDown.onValueChanged.AddListener(x => PostEvents(ValueChangeEvents, AudioTriggerSource.DropdownSound, gameObject));
 
             var trigger = AsUnityHelper.GetOrAddComponent<EventTrigger>(gameObject);
-            var entry = new EventTrigger.Entry {eventID = EventTriggerType.PointerClick}; 
+            var entry = new EventTrigger.Entry {eventID = EventTriggerType.PointerClick};
 
             entry.callback.AddListener((x) => { PlayPopupSound(); });
             trigger.triggers.Add(entry);

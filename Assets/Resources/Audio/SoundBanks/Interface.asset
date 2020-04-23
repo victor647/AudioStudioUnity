@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8e3b0809df6c65945a0234679d4ace5b, type: 3}
   m_Name: Interface
   m_EditorClassIdentifier: 
+  UseLoadCounter: 0
   AudioEvents:
   - {fileID: 11400000, guid: 61ce3e263faa9ef409a043910f374e97, type: 2}
   - {fileID: 11400000, guid: 9be463698dccfff4197e991c443e1c97, type: 2}

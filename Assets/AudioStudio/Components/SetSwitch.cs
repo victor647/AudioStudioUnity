@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {
-	public class SetSwitch : AudioPhysicsHandler
+	public class SetSwitch : AsPhysicsHandler
 	{		
 		public SetSwitchReference[] OnSwitches = new SetSwitchReference[0];
 		public SetSwitchReference[] OffSwitches = new SetSwitchReference[0];

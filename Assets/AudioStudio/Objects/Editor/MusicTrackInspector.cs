@@ -26,8 +26,8 @@ namespace AudioStudio.Editor
 			DrawAuditionButtons(_musicTrack);
 			AsGuiDrawer.DrawSaveButton(_musicTrack);
 		}
-		
-		protected void DrawRhythm()
+
+		private void DrawRhythm()
 		{
 			EditorGUILayout.LabelField("Music Settings", EditorStyles.boldLabel);  
 			using (new GUILayout.VerticalScope(GUI.skin.box))

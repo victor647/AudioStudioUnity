@@ -40,6 +40,7 @@ namespace AudioStudio.Components
         {
             _audioUpdate?.Invoke();
             ListenerManager.UpdateListenerPositions();
+            EmitterManager.UpdateAudioInstances();
         }
 
         internal void SetAudioMixerParameter(string parameterName, float currentValue, float targetValue, float fadeTime)
@@ -61,6 +62,11 @@ namespace AudioStudio.Components
                 AudioManager.AudioMixer.SetFloat(parameterName, currentValue);
                 yield return new WaitForFixedUpdate();
             }
+        }
+        
+        private void OnDrawGizmos()
+        {
+            Gizmos.DrawIcon(transform.position, "AudioListener.png", AudioPathSettings.Instance.GizmosIconScaling);
         }
     }
 }

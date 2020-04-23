@@ -8,7 +8,7 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/MenuSound")]
     [DisallowMultipleComponent]
-    public class MenuSound : AudioOnOffHandler
+    public class MenuSound : AsUIHandler
     {
         public PostEventReference[] OpenEvents = new PostEventReference[0];
         public PostEventReference[] CloseEvents = new PostEventReference[0];

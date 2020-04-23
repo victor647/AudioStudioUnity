@@ -9,13 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: Music_XuanGuGuo
+  m_Script: {fileID: 11500000, guid: 5fa27de38d72e0e4288bf43c02b79e6d, type: 3}
+  m_Name: New Music Switch Container
   m_EditorClassIdentifier: 
-  IndependentEvent: 0
+  IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
-  Volume: 0.6
+  Volume: 1
   Pitch: 1
   Pan: 0
   LowPassFilter: 0
@@ -29,7 +29,8 @@ MonoBehaviour:
   Mappings: []
   ParentContainer: {fileID: 0}
   LoopCount: 0
-  ChildEvents: []
+  ChildEvents:
+  - {fileID: 11400000, guid: bb59d060ed90453419da52dfa99fd076, type: 2}
   OverrideTransition: 0
   TransitionEntryConditions:
   - Source:
@@ -47,15 +48,11 @@ MonoBehaviour:
     GridLength:
       Bar: 0
       Beat: 0
-  Markers:
-  - BarNumber: 0
-    Tempo: 0
-    BeatsPerBar: 0
-    BeatDuration: 0
-    KeyCenter: 0
-  PickupBeats: 0
-  ExitPosition:
-    Bar: 41
-    Beat: 2
-  UseDefaultLoopStyle: 0
-  Clip: {fileID: 8300000, guid: bfcb8f2a1e2f1bf4d8f0e2cbe2afb75a, type: 3}
+  AudioSwitchReference:
+    Name: Music
+  SwitchEventMappings:
+  - SwitchName: 
+    AudioEvent: {fileID: 11400000, guid: bb59d060ed90453419da52dfa99fd076, type: 2}
+  SwitchImmediately: 0
+  SwitchToSamePosition: 0
+  CrossFadeTime: 0.5

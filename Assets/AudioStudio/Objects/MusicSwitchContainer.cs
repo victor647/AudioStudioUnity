@@ -17,54 +17,12 @@ namespace AudioStudio.Configs
         
         #region Editor
         public override void OnValidate()
-        {            
-            foreach (var assignment in SwitchEventMappings)
-            {
-                var mc = assignment.AudioEvent as MusicContainer;
-                if (mc) CopySettings(mc);
-            }
-        }
-
-        public override void CleanUp()
         {
-            if (IndependentEvent) 
-                ParentContainer = null;
-            
-            ChildEvents.Clear();
-            foreach (var mapping in SwitchEventMappings)
-            {
-                if (mapping.AudioEvent)
-                    mapping.AudioEvent.CleanUp();
-                else
-                    Debug.LogError("Child Event of Music Switch Container " + name + " is missing!");              
-            }
-        }
-
-        public override bool IsValid()
-        {
-            return SwitchEventMappings.Any(m => m.AudioEvent != null);
+            ChildEvents = SwitchEventMappings.Select(mapping => mapping.AudioEvent as MusicContainer).ToList();
+            base.OnValidate();
         }
         #endregion
 
-        #region Initialization
-
-        internal override void Init()
-        {
-            foreach (var mapping in SwitchEventMappings)
-            {
-                mapping.AudioEvent.Init();
-            }          
-        }
-
-        internal override void Dispose()
-        {            
-            foreach (var mapping in SwitchEventMappings)
-            {
-                mapping.AudioEvent.Dispose();
-            }       
-        }
-        #endregion                
-               
         #region Playback         
         public override MusicContainer GetEvent()
         {

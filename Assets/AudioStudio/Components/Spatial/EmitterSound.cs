@@ -15,7 +15,7 @@ namespace AudioStudio.Components
     
     [AddComponentMenu("AudioStudio/EmitterSound")]
     [DisallowMultipleComponent]
-    public class EmitterSound : AudioEmitterObject
+    public class EmitterSound : AudioEmitter3D
     {        
         public PostEventReference[] AudioEvents = new PostEventReference[0];
         public float InitialDelay;

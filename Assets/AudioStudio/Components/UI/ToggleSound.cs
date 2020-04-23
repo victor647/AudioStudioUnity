@@ -9,21 +9,21 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/ToggleSound")]
     [DisallowMultipleComponent]
-    public class ToggleSound : AsComponent
+    public class ToggleSound : AsUIHandler
     {
         public PostEventReference[] ToggleOnEvents = new PostEventReference[0];
         public PostEventReference[] ToggleOffEvents = new PostEventReference[0];
 
-        private void Start()
+        public override void AddListener()
         {
             var toggle = GetComponent<Toggle>();
-            if (toggle != null)
-            {
-                toggle.onValueChanged.AddListener(delegate
-                {
-                    PostEvents(toggle.isOn ? ToggleOnEvents : ToggleOffEvents, AudioTriggerSource.ToggleSound, gameObject);
-                });
-            }
+            if (toggle)
+                toggle.onValueChanged.AddListener(PlaySound);
+        }
+
+        private void PlaySound(bool isOn)
+        {
+            PostEvents(isOn ? ToggleOnEvents : ToggleOffEvents, AudioTriggerSource.ToggleSound, gameObject);
         }
 
         public override bool IsValid()

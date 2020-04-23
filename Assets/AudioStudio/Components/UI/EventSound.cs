@@ -27,11 +27,11 @@ namespace AudioStudio.Components
     }
     
     [AddComponentMenu("AudioStudio/EventSound")]
-    public class EventSound : AsComponent
+    public class EventSound : AsUIHandler
     {
         public UIAudioEvent[] AudioEvents = new UIAudioEvent[0];
 
-        private void Start()
+        public override void AddListener()
         {
             var et = AsUnityHelper.GetOrAddComponent<EventTrigger>(gameObject);
             foreach (var evt in AudioEvents)

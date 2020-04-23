@@ -8,22 +8,24 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/SliderSound")]
     [DisallowMultipleComponent]
-    public class SliderSound : AsComponent
+    public class SliderSound : AsUIHandler
     {        
         public PostEventReference DragEvent = new PostEventReference();
         public PostEventReference PressEvent = new PostEventReference();
         public AudioParameterReference ConnectedParameter = new AudioParameterReference();
         public float ValueScale = 1f; 
 
-        private void Start()
+        public override void AddListener()
         {
-            var s = GetComponent<Slider>();
-            if (s == null) return;
-            s.onValueChanged.AddListener(x =>
-            {
-                ConnectedParameter.SetValue(s.value * ValueScale, gameObject, AudioTriggerSource.SliderSound);                    
-                DragEvent.Post(gameObject, AudioTriggerSource.SliderSound);                        
-            });
+            var slider = GetComponent<Slider>();
+            if (slider)
+                slider.onValueChanged.AddListener(OnSliderChanged);
+        }
+
+        private void OnSliderChanged(float value)
+        {
+            ConnectedParameter.SetValue(value * ValueScale, gameObject, AudioTriggerSource.SliderSound);
+            DragEvent.Post(gameObject, AudioTriggerSource.SliderSound);
         }
 
         public override bool IsValid()

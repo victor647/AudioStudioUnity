@@ -79,6 +79,10 @@ namespace AudioStudio.Configs
 				Destroy(this);
 		}
 
+		internal virtual void UpdatePlayingStatus()
+		{
+		}
+
 		internal void Stop(float fadeOutTime)
 		{
 			PlayingStatus = PlayingStatus.Stopping;

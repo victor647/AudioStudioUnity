@@ -9,10 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a82c6e5ea08b0043880c80978d5d3c9, type: 3}
-  m_Name: ffffFootstep_S_Rush_Dirt_01
+  m_Script: {fileID: 11500000, guid: cddce0c572f2a414f94b9e57ea36d671, type: 3}
+  m_Name: New Sound Sequence Container
   m_EditorClassIdentifier: 
-  Platform: 0
   IndependentEvent: 1
   OverrideControls: 0
   OverrideSpatial: 0
@@ -27,19 +26,11 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  DefaultFadeInTime: 0
-  DefaultFadeOutTime: 0
-  AvoidRepeat: 1
-  RandomOnLoop: 0
-  AudioSwitchReference:
-    Name: 
-  SwitchEventMappings: []
-  SwitchImmediately: 0
-  CrossFadeTime: 0.5
   Mappings: []
-  PlayLogic: 0
-  ChildEvents: []
+  ChildEvents:
+  - {fileID: 0}
   ParentContainer: {fileID: 0}
+  Probability: 100
   Is3D: 0
   MinDistance: 1
   MaxDistance: 50
@@ -57,11 +48,7 @@ MonoBehaviour:
   RandomizePitch: 0
   PitchRandomRange: 0.1
   EnableVoiceLimit: 0
-  OverrideVoicing: 0
   VoiceLimiter: {fileID: 0}
   VoiceLimitGlobal: 8
   VoiceLimitGameObject: 2
   Priority: 127
-  Clip: {fileID: 8300000, guid: ec66f7cd0feff9945ac1e831cc0842cb, type: 3}
-  Loop: 0
-  SeekRandomPosition: 0

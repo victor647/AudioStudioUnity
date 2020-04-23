@@ -5,19 +5,12 @@ using AudioStudio.Components;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine.Audio;
+using Random = UnityEngine.Random;
 
 namespace AudioStudio
 {		
     public static class AudioManager
     {
-        #region Debug
-        public static readonly List<string> GlobalMusicInstances = new List<string>();
-        public static readonly List<string> GlobalSoundInstances = new List<string>();
-        public static readonly List<string> GlobalVoiceInstances = new List<string>();
-        public static readonly List<string> GlobalSwitchInstances = new List<string>();
-        public static readonly List<string> GlobalParameterInstances = new List<string>();
-        #endregion    
-
         #region Sound           
         public static string PlaySound(string eventName, GameObject soundSource = null, float fadeInTime = 0f, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {            
@@ -29,10 +22,9 @@ namespace AudioStudio
                 return string.Empty;
             }
             var emitter = ValidateSoundSource(soundSource, trigger);
-            if (sound.ReachVoiceLimit(emitter, trigger)) 
-                return string.Empty;
             var clipName = sound.Play(emitter, fadeInTime, endCallback);
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Play, trigger, eventName, soundSource);
+            if (!string.IsNullOrEmpty(clipName))
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Play, trigger, eventName, soundSource);
             return clipName;
         }
 
@@ -360,6 +352,7 @@ namespace AudioStudio
         #endregion
                 
         #region PreferenceSetting
+        public static bool DisableAudio;
         internal static AudioMixer AudioMixer;
 
         public static void LoadPreferenceSettings()

@@ -7,7 +7,7 @@ namespace AudioStudio.Components
 {    
     [AddComponentMenu("AudioStudio/LoadBank")]
     [DisallowMultipleComponent]
-    public class LoadBank : AudioEmitterObject
+    public class LoadBank : AudioEmitter3D
     {
         public bool AsyncMode = true;
         public SoundBank Bank;
@@ -22,7 +22,7 @@ namespace AudioStudio.Components
                     bank.Load(source, AudioTriggerSource.LoadBank);
                 }
             }
-            else if (Bank.IsValid())
+            else if (Bank && Bank.IsValid())
                 AsAssetLoader.DoLoadBank(Bank);
         }
 

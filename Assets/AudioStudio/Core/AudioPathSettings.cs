@@ -4,6 +4,15 @@ using UnityEngine;
 
 namespace AudioStudio
 {
+    public enum GizmosColor
+    {
+        Disabled,
+        Red,
+        Yellow,
+        Green,
+        Blue
+    }
+    
     [CreateAssetMenu(fileName = "AudioPathSettings", menuName = "AudioStudio/Path Settings")]
     public partial class AudioPathSettings : ScriptableObject
     {
@@ -33,6 +42,8 @@ namespace AudioStudio
         public string SoundBanksPath => Path.Combine(BuildAssetsPath, "SoundBanks");
         public string MusicInstrumentsPath => Path.Combine(BuildAssetsPath, "Instruments");
         public string StartScenePath;
+        public GizmosColor GizmosSphereColor = GizmosColor.Red;
+        public bool GizmosIconScaling = true;
         
         [Range(10, 100)]
         public int MusicQuality = 50;

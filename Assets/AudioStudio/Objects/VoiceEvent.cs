@@ -86,13 +86,13 @@ namespace AudioStudio.Configs
 		internal void AddInstance(VoiceEventInstance instance)
 		{
 			_playingInstances.Add(instance);
-			AudioManager.GlobalVoiceInstances.Add(Clip.name +  " @ " + instance.gameObject.name);  
+			EmitterManager.AddVoiceInstance(instance);  
 		}
 
 		internal void RemoveInstance(VoiceEventInstance instance)
 		{
 			_playingInstances.Remove(instance);
-			AudioManager.GlobalVoiceInstances.Remove(Clip.name +  " @ " + instance.gameObject.name);  
+			EmitterManager.RemoveVoiceInstance(instance);  
 		}
 		#endregion
 		
@@ -241,15 +241,15 @@ namespace AudioStudio.Configs
 	public class VoiceEventInstance : AudioEventInstance
 	{	
 		#region Initialize
-		private VoiceEvent _voiceEvent;
+		internal VoiceEvent VoiceEvent;
 		
 		public void Init(VoiceEvent evt, GameObject emitter)
 		{			
 			AudioSource = gameObject.AddComponent<AudioSource>();
-			_voiceEvent = evt;
+			VoiceEvent = evt;
 			Emitter = emitter;
 			
-			_voiceEvent.AddInstance(this);
+			VoiceEvent.AddInstance(this);
 			AudioSource.clip = evt.Clip;			
 			AudioSource.pitch = evt.Pitch;
 			AudioSource.panStereo = evt.Pan;
@@ -285,12 +285,11 @@ namespace AudioStudio.Configs
 		{
 			OnAudioEnd?.Invoke(Emitter);
 			Destroy(AudioSource);
-			_voiceEvent.RemoveInstance(this);
+			VoiceEvent.RemoveInstance(this);
 		}
 		#endregion
 		
 		#region Playback				
-		
 		public void Play(float fadeInTime, Action<GameObject> endCallback = null)
 		{
 			OnAudioEnd = endCallback;
@@ -300,7 +299,7 @@ namespace AudioStudio.Configs
 				AudioSource.Play();
 		}
 
-		private void FixedUpdate()
+		internal override void UpdatePlayingStatus()
 		{
 			if (AudioSource.timeSamples < TimeSamples && !AudioSource.loop)
 			{
@@ -309,7 +308,6 @@ namespace AudioStudio.Configs
 			}
 			TimeSamples = AudioSource.timeSamples;
 		}
-		
 		#endregion
 	}
 }

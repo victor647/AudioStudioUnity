@@ -700,14 +700,12 @@ namespace AudioStudio
             }
         }
 
-        private void FixedUpdate()
+        internal void UpdateMusicPlayback()
         {
             // make sure music is playing
             if (PlayingStatus == PlayingStatus.Idle || PlayingStatus == PlayingStatus.Stopping) return;
-            // sometimes music is delayed one frame, fix it
-            var adjustedSamples = CurrentSample + (int)(Time.fixedDeltaTime * SampleRate);
             // time of a beat has passed
-            if (adjustedSamples > _beatSample + BeatDurationSamples) 
+            if (CurrentSample > _beatSample + BeatDurationSamples) 
                 OnBeat();
             //checking for exit or loop point
             switch (PlayingStatus)
@@ -715,35 +713,35 @@ namespace AudioStudio
                 case PlayingStatus.Playing:
                 case PlayingStatus.PreEntryAgain:
                 case PlayingStatus.PendingPostExit:
-                    if (adjustedSamples > _transitionGridSample + GridLengthSamples)
+                    if (CurrentSample > _transitionGridSample + GridLengthSamples)
                         OnTransitionGrid();
                     break;
             }
             // stinger queue time stamp is reached
-            if (_triggerStingerSample > 0 && adjustedSamples > _triggerStingerSample) 
+            if (_triggerStingerSample > 0 && CurrentSample > _triggerStingerSample) 
                 PlayStinger();  
             // check if transition will happen
             if (TransitioningStatus == TransitioningStatus.PendingTransition)
             {
-                if (_exitFirst && adjustedSamples > TransitionExitSample)
+                if (_exitFirst && CurrentSample > TransitionExitSample)
                     TransitionExit();
-                if (!_exitFirst && adjustedSamples > TransitionEnterSample)
+                if (!_exitFirst && CurrentSample > TransitionEnterSample)
                     TransitionEnter();
             }
             // do not check other logic in a transition
             if (TransitioningStatus == TransitioningStatus.Transitioning)
                 return;
             // check if switch will happen
-            if (SwitchingStatus == SwitchingStatus.PendingSwitch && adjustedSamples > SwitchEnterSample)
+            if (SwitchingStatus == SwitchingStatus.PendingSwitch && CurrentSample > SwitchEnterSample)
                 SwitchCrossFadeStart();
             // check if sequence will change
-            if (SequencingStatus == SequencingStatus.PendingSequence && adjustedSamples > SequenceEnterSample)
+            if (SequencingStatus == SequencingStatus.PendingSequence && CurrentSample > SequenceEnterSample)
                 SequenceEnter();
 
             if (UseDefaultLoopStyle)
             {
                 //current sample is reset to 0, so it loops again
-                if (PlayingStatus == PlayingStatus.Playing && adjustedSamples < _beatSample)
+                if (PlayingStatus == PlayingStatus.Playing && CurrentSample < _beatSample)
                     OnDefaultLoopStyleEndPosition();
             }
             else
@@ -752,18 +750,18 @@ namespace AudioStudio
                 {
                     //prepare to entry again
                     case PlayingStatus.Playing:
-                        if (adjustedSamples > ExitPositionSamples - PickUpLengthSamples)
+                        if (CurrentSample > ExitPositionSamples - PickUpLengthSamples)
                             OnPreEntryAgainPosition();
                         break;
                     //enter loop body
                     case PlayingStatus.PreEntry: 
                     case PlayingStatus.PreEntryAgain:
-                        if (adjustedSamples > PickUpLengthSamples)
+                        if (CurrentSample > PickUpLengthSamples)
                             OnLoopStartPosition();
                         break;
                     //finish loop body          
                     case PlayingStatus.PendingPostExit:               
-                        if (adjustedSamples > ExitPositionSamples)
+                        if (CurrentSample > ExitPositionSamples)
                             OnPostExitPosition();
                         break;
                 }

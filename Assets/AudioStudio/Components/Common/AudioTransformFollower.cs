@@ -6,7 +6,7 @@ namespace AudioStudio.Components
 {
     public class AudioTransformFollower : MonoBehaviour
     {
-        public AudioEmitterObject Master;
+        public AudioEmitter3D Master;
         public int VoiceCount = 1;
 
         private void Start()

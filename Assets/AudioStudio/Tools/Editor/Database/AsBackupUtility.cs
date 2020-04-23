@@ -226,7 +226,7 @@ namespace AudioStudio.Tools
 	        return false;
         }
 
-        private static bool ImportPhysicsSettings(AudioPhysicsHandler aph, XElement xComponent)
+        private static bool ImportPhysicsSettings(AsPhysicsHandler aph, XElement xComponent)
         {
 	        var xSettings = xComponent.Element("PhysicsSettings");
 	        var modified = ImportEnum(ref aph.MatchTags, AsScriptingHelper.GetXmlAttribute(xSettings, "MatchTags"));
@@ -237,7 +237,7 @@ namespace AudioStudio.Tools
         
         private static bool ImportSpatialSettings(Component component, XElement xComponent)
         {
-	        var emitter = (AudioEmitterObject) component;
+	        var emitter = (AudioEmitter3D) component;
 	        var xSettings = xComponent.Element("SpatialSettings");
 	        var modified = ImportBool(ref emitter.IsUpdatePosition, AsScriptingHelper.GetXmlAttribute(xSettings, "IsUpdatePosition"));
 	        modified |= ImportBool(ref emitter.StopOnDestroy, AsScriptingHelper.GetXmlAttribute(xSettings, "StopOnDestroy"));
@@ -276,14 +276,14 @@ namespace AudioStudio.Tools
         
         private static void ExportSpatialSettings(Component component, XElement xComponent)
         {
-	        var emitter = (AudioEmitterObject) component;
+	        var emitter = (AudioEmitter3D) component;
 	        var xSettings = new XElement("SpatialSettings");
 	        xSettings.SetAttributeValue("IsUpdatePosition", emitter.IsUpdatePosition);
 	        xSettings.SetAttributeValue("StopOnDestroy", emitter.StopOnDestroy);
 	        xComponent.Add(xSettings);
         }
         
-        private static void ExportPhysicsSettings(AudioPhysicsHandler component, XElement xComponent)
+        private static void ExportPhysicsSettings(AsPhysicsHandler component, XElement xComponent)
         {
 	        var xSettings = new XElement("PhysicsSettings");
 	        xSettings.SetAttributeValue("SetOn", component.SetOn);
@@ -385,6 +385,11 @@ namespace AudioStudio.Tools
 	        var s = (AudioListener3D) component;
 	        var xSettings = new XElement("Settings");
 	        xSettings.SetAttributeValue("PositionOffset", ExportVector3(s.PositionOffset));
+	        xSettings.SetAttributeValue("MoveZAxisByCameraFOV", s.MoveZAxisByCameraFOV);
+	        xSettings.SetAttributeValue("MinFOV", s.MinFOV);
+	        xSettings.SetAttributeValue("MaxFOV", s.MaxFOV);
+	        xSettings.SetAttributeValue("MinOffset", s.MinOffset);
+	        xSettings.SetAttributeValue("MaxOffset", s.MaxOffset);
 	        xComponent.Add(xSettings);
         }
 
@@ -585,7 +590,13 @@ namespace AudioStudio.Tools
         {
 	        var s = (AudioListener3D) component;
 	        var xSettings = xComponent.Element("Settings");
-	        return ImportVector3(ref s.PositionOffset, AsScriptingHelper.GetXmlAttribute(xSettings, "PositionOffset"));
+	        var modified = ImportVector3(ref s.PositionOffset, AsScriptingHelper.GetXmlAttribute(xSettings, "PositionOffset"));
+	        modified |= ImportBool(ref s.MoveZAxisByCameraFOV, AsScriptingHelper.GetXmlAttribute(xSettings, "MoveZAxisByCameraFOV"));
+	        modified |= ImportFloat(ref s.MinFOV, AsScriptingHelper.GetXmlAttribute(xSettings, "MinFOV"));
+	        modified |= ImportFloat(ref s.MaxFOV, AsScriptingHelper.GetXmlAttribute(xSettings, "MaxFOV"));
+	        modified |= ImportFloat(ref s.MinOffset, AsScriptingHelper.GetXmlAttribute(xSettings, "MinOffset"));
+	        modified |= ImportFloat(ref s.MaxOffset, AsScriptingHelper.GetXmlAttribute(xSettings, "MaxOffset"));
+	        return modified;
         }
         
         private static bool ButtonSoundImporter(Component component, XElement xComponent)
