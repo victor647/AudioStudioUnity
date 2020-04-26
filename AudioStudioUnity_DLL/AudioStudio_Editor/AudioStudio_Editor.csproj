@@ -119,6 +119,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\BarAndBeatInspector.cs">
           <Link>Editor\Editor\BarAndBeatInspector.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Editor\GlobalAudioEmitterInspector.cs">
+          <Link>Editor\Editor\GlobalAudioEmitterInspector.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\MusicTransportInspector.cs">
           <Link>Editor\Editor\MusicTransportInspector.cs</Link>
         </Compile>

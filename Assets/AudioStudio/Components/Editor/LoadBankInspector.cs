@@ -26,26 +26,35 @@ namespace AudioStudio.Editor
             {
                 ShowSpatialSettings();
                 ShowPhysicalSettings(_component, false);
-                AsGuiDrawer.DrawList(serializedObject.FindProperty("Banks"), "SoundBanks:", AddBank);
+                AsGuiDrawer.DrawList(serializedObject.FindProperty("AsyncBanks"), "SoundBanks:", AddAsyncBank);
             }
             else
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("Bank"));
+                AsGuiDrawer.DrawList(serializedObject.FindProperty("SyncBanks"), "SoundBanks:", AddSyncBank);
             serializedObject.ApplyModifiedProperties();
             ShowButtons(_component);
         }
 
-        private void AddBank(Object[] objects)
+        private void AddAsyncBank(Object[] objects)
         {
             var banks = objects.Select(obj => obj as SoundBank).Where(a => a).ToArray();
-            foreach (var evt in banks)
+            foreach (var bank in banks)
             {
-                AsScriptingHelper.AddToArray(ref _component.Banks, new LoadBankReference(evt.name));
+                AsScriptingHelper.AddToArray(ref _component.AsyncBanks, new LoadBankReference(bank.name));
+            }
+        }
+        
+        private void AddSyncBank(Object[] objects)
+        {
+            var banks = objects.Select(obj => obj as SoundBank).Where(a => a).ToArray();
+            foreach (var bank in banks)
+            {
+                AsScriptingHelper.AddToArray(ref _component.SyncBanks, bank);
             }
         }
 
         protected override void Refresh()
         {
-            foreach (var bank in _component.Banks)
+            foreach (var bank in _component.AsyncBanks)
             {
                 AsComponentBackup.RefreshBank(bank);
             }

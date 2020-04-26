@@ -2,6 +2,7 @@ using System.Linq;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace AudioStudio.Components
 {    
@@ -10,34 +11,46 @@ namespace AudioStudio.Components
     public class LoadBank : AudioEmitter3D
     {
         public bool AsyncMode = true;
-        public SoundBank Bank;
-        public LoadBankReference[] Banks = new LoadBankReference[0];
+        public SoundBank[] SyncBanks = new SoundBank[0];
+        [FormerlySerializedAs("Banks")] public LoadBankReference[] AsyncBanks = new LoadBankReference[0];
 
         public override void Activate(GameObject source = null)
         {
             if (AsyncMode)
             {
-                foreach (var bank in Banks)
+                foreach (var bank in AsyncBanks)
                 {
                     bank.Load(source, AudioTriggerSource.LoadBank);
                 }
             }
-            else if (Bank && Bank.IsValid())
-                AsAssetLoader.DoLoadBank(Bank);
+            else
+            {
+                foreach (var bank in SyncBanks)
+                {
+                    if (bank.IsValid())
+                        AsAssetLoader.DoLoadBank(bank);
+                }
+            }
         }
 
         public override void Deactivate(GameObject source = null)
         {
             if (AsyncMode)
             {
-                foreach (var bank in Banks)
+                foreach (var bank in AsyncBanks)
                 {
                     if (bank.UnloadOnDisable)
                         bank.Unload(source, AudioTriggerSource.LoadBank);
                 }
             }
-            else if (Bank.IsValid())
-                AsAssetLoader.UnloadBank(Bank);
+            else
+            {
+                foreach (var bank in SyncBanks)
+                {
+                    if (bank.IsValid())
+                        AsAssetLoader.UnloadBank(bank);
+                }
+            }
         }
         
         protected override void HandleEnableEvent()
@@ -52,7 +65,13 @@ namespace AudioStudio.Components
 
         public override bool IsValid()
         {            
-            return Banks.Any(s => s.IsValid()) || Bank.IsValid();
+            return AsyncBanks.Any(s => s.IsValid()) || SyncBanks.Any(s => s.IsValid());
+        }
+        
+        public void OnValidate()
+        {
+            if (AsyncMode)
+                SyncBanks = new SoundBank[0];
         }
     }
 }

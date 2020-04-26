@@ -139,24 +139,25 @@ namespace AudioStudio.Tools
 	        return bank;
         }
         
-        private static bool ImportBank(ref SoundBank bank, XElement xComponent)
+        private static bool ImportSyncBanks(ref SoundBank[] banks, XElement xComponent)
         {
-	        var xBank = xComponent.Element("Bank");
-	        if (xBank == null) return false;
-	        var bankTemp = XmlToBank(xBank);
-	        if (bankTemp != bank)
+	        var bs = xComponent.Element("AsyncBanks");
+	        if (bs == null) return false; 
+	        var xBanks = bs.Descendants("SoundBank");            
+	        var banksTemp = xBanks.Select(XmlToBank).ToList();
+	        if (!banks.ToList().SequenceEqual(banksTemp))
 	        {
-		        bank = bankTemp;
+		        banks = banksTemp.ToArray();
 		        return true;
 	        }
 	        return false;
         }
 
-        private static bool ImportBankRefs(ref LoadBankReference[] banks, XElement xComponent)
+        private static bool ImportAsyncBankRefs(ref LoadBankReference[] banks, XElement xComponent)
         {
-	        var bs = xComponent.Element("Banks");
+	        var bs = xComponent.Element("AsyncBanks");
 	        if (bs == null) return false; 
-	        var xBanks = bs.Descendants("Bank");            
+	        var xBanks = bs.Descendants("SoundBank");            
 	        var banksTemp = xBanks.Select(XmlToBankRef).ToList();
 	        if (!banks.ToList().SequenceEqual(banksTemp))
 	        {
@@ -313,22 +314,27 @@ namespace AudioStudio.Tools
             xComponent.Add(xParam);
         }
         
-        private static void ExportBank(SoundBank bank, XElement xComponent)
-        {
-	        if (bank == null) return;
-	        var xBank = new XElement("Bank");
-			xBank.SetAttributeValue("BankName", bank.name);
-	        xComponent.Add(xBank);
-        }
-
-        private static void ExportBankRefs(LoadBankReference[] banks, XElement xComponent)
+        private static void ExportSyncBanks(SoundBank[] banks, XElement xComponent)
         {
 	        if (banks == null) return;
-	        var xBanks = new XElement("Banks");
+	        var xBanks = new XElement("SyncBanks");
+	        foreach (var bank in banks)
+	        {
+		        var xBank = new XElement("SoundBank");
+		        xBank.SetAttributeValue("BankName", bank.name);
+		        xBanks.Add(xBank);
+	        }
+	        xComponent.Add(xBanks);
+        }
+
+        private static void ExportAsyncBankRefs(LoadBankReference[] banks, XElement xComponent)
+        {
+	        if (banks == null) return;
+	        var xBanks = new XElement("AsyncBanks");
 	        foreach (var bank in banks)
 	        {
 		        if (!bank.IsValid()) continue;
-		        var xBank = new XElement("Bank");                
+		        var xBank = new XElement("SoundBank");                
 		        xBank.SetAttributeValue("BankName", bank.Name);
 		        xBank.SetAttributeValue("UnloadOnDisable", bank.UnloadOnDisable);
 		        var xEvents = new XElement("AudioEvents");
@@ -484,8 +490,8 @@ namespace AudioStudio.Tools
             xSettings.SetAttributeValue("AsyncMode", s.AsyncMode);
             xComponent.Add(xSettings); 
             ExportSpatialSettings(s, xComponent);
-            ExportBankRefs(s.Banks, xComponent);
-			ExportBank(s.Bank, xComponent);
+            ExportAsyncBankRefs(s.AsyncBanks, xComponent);
+            ExportSyncBanks(s.SyncBanks, xComponent);
         }    
         
         private static void MenuSoundExporter(Component component, XElement xComponent)
@@ -704,8 +710,8 @@ namespace AudioStudio.Tools
             var xSettings = xComponent.Element("Settings");              
             var modified = ImportBool(ref s.AsyncMode, AsScriptingHelper.GetXmlAttribute(xSettings, "AsyncMode"));
             modified |= ImportSpatialSettings(s, xComponent);
-            modified |= ImportBankRefs(ref s.Banks, xComponent);
-            modified |= ImportBank(ref s.Bank, xComponent);
+            modified |= ImportAsyncBankRefs(ref s.AsyncBanks, xComponent);
+            modified |= ImportSyncBanks(ref s.SyncBanks, xComponent);
             return modified;
         }    
         
