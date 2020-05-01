@@ -379,6 +379,7 @@ namespace AudioStudio
             }
             set
             {
+                if (SoundEnabled == value) return;
                 var volume = value ? SoundVolume : 0f;
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("SoundVolume", decibel);
@@ -397,6 +398,7 @@ namespace AudioStudio
             }
             set
             {
+                if (VoiceEnabled == value) return;
                 var volume = value ? VoiceVolume : 0f;
                 var decibel = LinearToDecibel(volume);
                 AudioMixer.SetFloat("VoiceVolume", decibel);
@@ -415,6 +417,7 @@ namespace AudioStudio
             }
             set
             {
+                if (MusicEnabled == value) return;
                 var currentStatus = MusicEnabled;
                 var volume = value ? MusicVolume : 0f;
                 var decibel = LinearToDecibel(volume);

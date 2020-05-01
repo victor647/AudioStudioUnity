@@ -32,8 +32,8 @@ namespace AudioStudio.Configs
 		public byte BeatsPerBar = 4;     
 		public BeatDuration BeatDuration = BeatDuration._4;
 		public MusicKey KeyCenter = MusicKey.C;
-		
-		public float BeatDurationRealtime()
+
+		public float BeatDurationInSeconds()
 		{
 			if (BeatDuration == BeatDuration._4)
 				return 60f / Tempo;
@@ -41,10 +41,12 @@ namespace AudioStudio.Configs
 				return 30f / Tempo;
 			return 15f / Tempo;
 		}
+		
+		public float BarDurationInSeconds => BeatDurationInSeconds() * BeatsPerBar;
 
-		public float TotalDurationRealtime(float endBarNumber)
+		public float TotalDurationInSeconds(float endBarNumber)
 		{
-			return BeatDurationRealtime() * BeatsPerBar * (endBarNumber - BarNumber);
+			return BeatDurationInSeconds() * BeatsPerBar * (endBarNumber - BarNumber);
 		}
 	}
 	
@@ -105,9 +107,9 @@ namespace AudioStudio.Configs
 			var duration = 0f;
 			for (var i = 0; i < Markers.Length - 1; i++)
 			{
-				duration += Markers[i].TotalDurationRealtime(Markers[i + 1].BarNumber);
+				duration += Markers[i].TotalDurationInSeconds(Markers[i + 1].BarNumber);
 			}
-			duration += Markers[Markers.Length - 1].TotalDurationRealtime(ExitPosition.ToBars(Markers[Markers.Length - 1].BeatsPerBar));
+			duration += Markers[Markers.Length - 1].TotalDurationInSeconds(ExitPosition.ToBars(Markers[Markers.Length - 1].BeatsPerBar));
 			return Mathf.FloorToInt(duration * Clip.frequency);
 		}
 		#endregion

@@ -15,6 +15,7 @@ namespace AudioStudio.Configs
         [Range(0, 100)]
 
         // spatial Setting
+        public bool OverrideSpatial;
         public bool Is3D;
         public float MinDistance = 1f;
         public float MaxDistance = 50f;

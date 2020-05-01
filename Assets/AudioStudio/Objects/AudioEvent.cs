@@ -11,9 +11,8 @@ namespace AudioStudio.Configs
 	{							
 		#region Fields				
 		public bool IndependentEvent = true;
-		public bool OverrideControls;
-		public bool OverrideSpatial;
 		//Audio Control Settings
+		public bool OverrideControls;
 		[Range(0f, 1f)]
 		public float Volume = 1f;
 		[Range(-4f, 4f)]
@@ -34,7 +33,6 @@ namespace AudioStudio.Configs
 		#endregion								
 
 		#region Initialize
-		protected List<AudioEventInstance> _playingInstances = new List<AudioEventInstance>(); 
 		//When an event is loaded, before playing
 		internal abstract void Init();
 		//When an event is unloaded

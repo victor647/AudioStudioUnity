@@ -32,7 +32,16 @@ namespace AudioStudio.Editor
 			EditorGUILayout.LabelField("Music Settings", EditorStyles.boldLabel);  
 			using (new GUILayout.VerticalScope(GUI.skin.box))
 			{
-				EditorGUILayout.LabelField("Rhythm & Key Markers"); 
+				EditorGUILayout.BeginHorizontal();
+				EditorGUILayout.LabelField("Rhythm & Key Markers", GUILayout.Width(180));
+				if (_musicTrack.Clip && GUILayout.Button("Preview", GUILayout.Width(60)))
+				{
+					var window = EditorWindow.GetWindow<MusicMarkerPreview>();
+					window.position = new Rect(500, 300, 500, 300);
+					window.titleContent = new GUIContent("Music Marker");
+					window.Init(_musicTrack);
+				}
+				EditorGUILayout.EndHorizontal();
 				AsGuiDrawer.DrawList(serializedObject.FindProperty("Markers"));
 
 				if (!_musicTrack.UseDefaultLoopStyle)

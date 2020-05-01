@@ -28,7 +28,7 @@ namespace AudioStudio.Components
                 foreach (var bank in SyncBanks)
                 {
                     if (bank.IsValid())
-                        AsAssetLoader.DoLoadBank(bank);
+                        BankManager.LoadBank(bank, gameObject);
                 }
             }
         }
@@ -48,7 +48,7 @@ namespace AudioStudio.Components
                 foreach (var bank in SyncBanks)
                 {
                     if (bank.IsValid())
-                        AsAssetLoader.UnloadBank(bank);
+                        BankManager.UnloadBank(bank, gameObject);
                 }
             }
         }

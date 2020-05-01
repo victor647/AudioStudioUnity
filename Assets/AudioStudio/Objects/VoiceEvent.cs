@@ -30,6 +30,7 @@ namespace AudioStudio.Configs
 		public SwitchClipMapping[] SwitchClipMappings;
 		public AudioClip Clip;		
 		public List<AudioClip> Clips = new List<AudioClip>();
+		private List<VoiceEventInstance> _playingInstances = new List<VoiceEventInstance>(); 
 		#endregion
 		
 		#region Initialize					
@@ -37,7 +38,7 @@ namespace AudioStudio.Configs
 		internal override void Init()
 		{		
 			_lastPlayedIndex = 255;
-			_playingInstances = new List<AudioEventInstance>();
+			_playingInstances.Clear();
 			switch (PlayLogic)
 			{
 				case VoicePlayLogic.Single:

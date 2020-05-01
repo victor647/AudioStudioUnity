@@ -15,11 +15,11 @@ namespace AudioStudio.Configs
 		#endregion
 		
 		#region Initialize
-		private List<AudioSwitchInstance> _activeInstances;
+		private readonly List<AudioSwitchInstance> _activeInstances = new List<AudioSwitchInstance>();
 
 		internal override void Init()
 		{
-			_activeInstances = new List<AudioSwitchInstance>();
+			_activeInstances.Clear();
 		}
 
 		internal override void Dispose()

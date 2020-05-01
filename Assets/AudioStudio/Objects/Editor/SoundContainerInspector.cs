@@ -171,19 +171,20 @@ namespace AudioStudio.Editor
         }
         
         protected void Draw3DSetting(SoundContainer sc)
-        {			
-	        if (!sc.IndependentEvent && !sc.Is3D)
-		        return;
-	        
-            GUILayout.BeginHorizontal();
+        {
+	        GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("3D Settings", EditorStyles.boldLabel, GUILayout.Width(100)); 
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("Is3D"), GUIContent.none);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("Is3D"), GUIContent.none, GUILayout.Width(20));
+            
             if (!sc.IndependentEvent)
             {                    
                 EditorGUILayout.LabelField("Override", GUILayout.Width(60));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("OverrideSpatial"), GUIContent.none);
             }
             GUILayout.EndHorizontal();
+            
+            if (!sc.IndependentEvent && !sc.Is3D)
+	            return;
             
             if (!sc.IndependentEvent && !sc.OverrideSpatial) 
 	            GUI.enabled = false;

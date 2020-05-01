@@ -14,6 +14,7 @@ namespace AudioStudio.Configs
         public AudioClip Clip;        
         public bool Loop;
         public bool SeekRandomPosition;
+        private List<SoundClipInstance> _playingInstances = new List<SoundClipInstance>(); 
         #endregion
         
         #region Editor
@@ -34,7 +35,7 @@ namespace AudioStudio.Configs
 
         internal override void Init()
         {            
-            _playingInstances = new List<AudioEventInstance>();
+            _playingInstances.Clear();
             Clip.LoadAudioData();									                   
         }
 

@@ -17,11 +17,11 @@ namespace AudioStudio.Configs
 		#endregion
 
 		#region Initialize
-		private List<AudioParameterInstance> _activeInstances;
+		private readonly List<AudioParameterInstance> _activeInstances = new List<AudioParameterInstance>();
 
 		internal override void Init()
 		{			
-			_activeInstances = new List<AudioParameterInstance>();
+			_activeInstances.Clear();
 		}
 
 		internal override void Dispose()
@@ -34,12 +34,8 @@ namespace AudioStudio.Configs
 		
 		internal void RegisterMapping(ParameterMapping mapping, GameObject gameObject)
 		{
-			GetOrAddParameterInstance(gameObject);
-			foreach (var api in _activeInstances)
-			{
-				if (api.gameObject == gameObject)
-					api.ParameterMappings.Add(mapping);
-			}															
+			var api = GetOrAddParameterInstance(gameObject);
+			api.ParameterMappings.Add(mapping);														
 		}
 
 		internal void UnRegisterMapping(ParameterMapping mapping, GameObject gameObject)

@@ -72,7 +72,7 @@ namespace AudioStudio
         private int _currentMarkerIndex;
         public MusicMarker CurrentMarker => Markers[_currentMarkerIndex];
         public int NextMarkerPosition => _currentMarkerIndex + 1 >= Markers.Length ? MusicTrack.ExitPosition.Bar : Markers[_currentMarkerIndex + 1].BarNumber;
-        public int PickUpLengthSamples => MusicTrack.UseDefaultLoopStyle ? 0 : Mathf.FloorToInt(MusicTrack.PickupBeats * Markers[0].BeatDurationRealtime() * SampleRate);
+        public int PickUpLengthSamples => MusicTrack.UseDefaultLoopStyle ? 0 : Mathf.FloorToInt(MusicTrack.PickupBeats * Markers[0].BeatDurationInSeconds() * SampleRate);
         public int SampleRate => MusicTrack.Clip.frequency;
         public byte RemainingLoops;
 
@@ -130,7 +130,7 @@ namespace AudioStudio
         public MusicMarker CurrentMarker => ActiveMusicData.CurrentMarker;
         public BarAndBeat ExitPosition => ActiveMusicData.MusicTrack.ExitPosition;
         private int BeatsPerBar => ActiveMusicData.CurrentMarker.BeatsPerBar;
-        private int BeatDurationSamples => Mathf.FloorToInt(CurrentMarker.BeatDurationRealtime() * SampleRate);
+        private int BeatDurationSamples => Mathf.FloorToInt(CurrentMarker.BeatDurationInSeconds() * SampleRate);
         private int PickUpLengthSamples => ActiveMusicData.PickUpLengthSamples;
         private int ExitPositionSamples => ActiveMusicData.MusicTrack.LoopDurationSamples() + PickUpLengthSamples;
         private int TrackLengthSamples => ActiveMusicData.MusicTrack.Clip.samples;

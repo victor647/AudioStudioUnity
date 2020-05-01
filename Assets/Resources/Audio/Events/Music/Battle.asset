@@ -10,11 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
-  m_Name: New Music Track
+  m_Name: Battle
   m_EditorClassIdentifier: 
-  IndependentEvent: 1
-  OverrideControls: 0
-  OverrideSpatial: 0
+  IndependentEvent: 0
+  OverrideControls: 1
   Volume: 1
   Pitch: 1
   Pan: 0
@@ -26,8 +25,16 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  Mappings: []
-  ParentContainer: {fileID: 0}
+  Mappings:
+  - AudioParameterReference:
+      Name: Enemy_Count
+    Target: 0
+    CurveExponent: 1
+    MinTargetValue: 0
+    MaxTargetValue: 1
+    MinParameterValue: 0
+    MaxParameterValue: 3
+  ParentContainer: {fileID: 11400000, guid: 9a3664f7b46373142a47a08a11eff3c1, type: 2}
   LoopCount: 0
   ChildEvents: []
   OverrideTransition: 0
@@ -58,4 +65,4 @@ MonoBehaviour:
     Bar: 0
     Beat: 0
   UseDefaultLoopStyle: 0
-  Clip: {fileID: 8300000, guid: e324a0cf5ec594d47aa2c5ea6c1c50d1, type: 3}
+  Clip: {fileID: 0}

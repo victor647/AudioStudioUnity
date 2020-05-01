@@ -146,6 +146,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicInstrumentInspector.cs">
           <Link>Editor\Editor\MusicInstrumentInspector.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicMarkerPreview.cs">
+          <Link>Editor\Editor\MusicMarkerPreview.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\Editor\MusicStingerInspector.cs">
           <Link>Editor\Editor\MusicStingerInspector.cs</Link>
         </Compile>

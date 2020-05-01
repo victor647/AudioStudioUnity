@@ -48,6 +48,32 @@ namespace AudioStudio
         public static readonly List<string> LoadedBankList = new List<string>();
 
         #region Load
+        internal static void LoadBank(SoundBank bank, GameObject source)
+        {
+            if (!_banks.ContainsKey(bank.name))
+                _banks[bank.name] = new BankLoadData();
+            var bankLoadData = _banks[bank.name];
+            switch (bankLoadData.LoadStatus)
+            {
+                case BankLoadStatus.NotLoaded:
+                    bankLoadData.LoadStatus = BankLoadStatus.Loading;
+                    AsAssetLoader.DoLoadBank(bank);
+                    bankLoadData.DoLoad(bank);
+                    bankLoadData.LoadStatus = BankLoadStatus.Loaded;
+                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.LoadBank, bank.name, source);
+                    break;
+                case BankLoadStatus.Loaded:
+                    if (bankLoadData.UseCounter)
+                    {
+                        bankLoadData.LoadCount++;
+                        AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.LoadBank, bank.name, source, "Load counter: " + bankLoadData.LoadCount);
+                    }
+                    else
+                        AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.LoadBank, bank.name, source, "Bank already loaded");
+                    break;
+            }
+        }
+        
         internal static void LoadBank(string bankName, Action onLoadFinished = null, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!_banks.ContainsKey(bankName))
@@ -103,6 +129,31 @@ namespace AudioStudio
         #endregion
         
         #region Unload
+        internal static void UnloadBank(SoundBank bank, GameObject source)
+        {
+            if (!_banks.ContainsKey(bank.name))
+                _banks[bank.name] = new BankLoadData();
+            var bankLoadData = _banks[bank.name];
+            switch (bankLoadData.LoadStatus)
+            {
+                case BankLoadStatus.NotLoaded:
+                    AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.LoadBank, bank.name, source, "Bank already unloaded");
+                    break;
+                case BankLoadStatus.Loaded:
+                    if (bankLoadData.UseCounter && bankLoadData.LoadCount > 1) //if still more than one counter
+                    {
+                        bankLoadData.LoadCount--;
+                        AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.LoadBank, bank.name, source, "Remaining counter: " + bankLoadData.LoadCount);
+                    }
+                    else
+                    {
+                        bankLoadData.DoUnload();
+                        AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.LoadBank, bank.name, source);
+                    }
+                    break;
+            }
+        }
+        
         internal static void UnloadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!_banks.ContainsKey(bankName))
