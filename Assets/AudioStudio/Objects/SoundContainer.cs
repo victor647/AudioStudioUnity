@@ -143,7 +143,10 @@ namespace AudioStudio.Configs
         {
             foreach (var evt in ChildEvents)
             {
-                evt.Init();
+                if (evt)
+                    evt.Init();
+                else
+                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
             }
         }
 
@@ -151,7 +154,8 @@ namespace AudioStudio.Configs
         {
             foreach (var evt in ChildEvents)
             {
-                evt.Dispose();
+                if (evt)
+                    evt.Dispose();
             }
         }
         #endregion       

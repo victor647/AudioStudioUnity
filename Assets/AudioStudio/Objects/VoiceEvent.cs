@@ -39,25 +39,22 @@ namespace AudioStudio.Configs
 		{		
 			_lastPlayedIndex = 255;
 			_playingInstances.Clear();
-			switch (PlayLogic)
+			if (PlayLogic == VoicePlayLogic.Single)
 			{
-				case VoicePlayLogic.Single:
+				if (Clip)
 					Clip.LoadAudioData();
-					break;
-				case VoicePlayLogic.Switch:
-					Clip = null;
-					foreach (var mapping in SwitchClipMappings)
-					{
-						mapping.Clip.LoadAudioData();
-					}
-					break;
-				default:
-					Clip = null;
-					foreach (var clip in Clips)
-					{
+				else
+					Debug.LogError("AudioClip of VoiceEvent " + name + " is missing!");
+			}
+			else
+			{
+				foreach (var clip in Clips)
+				{
+					if (clip)
 						clip.LoadAudioData();
-					}
-					break;
+					else
+						Debug.LogError("AudioClip of VoiceEvent " + name + " is missing!");
+				}
 			}
 		}
 
@@ -72,13 +69,15 @@ namespace AudioStudio.Configs
 				case VoicePlayLogic.Switch:
 					foreach (var mapping in SwitchClipMappings)
 					{
-						mapping.Clip.UnloadAudioData();
+						if (mapping.Clip)
+							mapping.Clip.UnloadAudioData();
 					}
 					break;
 				default:
 					foreach (var clip in Clips)
 					{
-						clip.UnloadAudioData();
+						if (clip)
+							clip.UnloadAudioData();
 					}
 					break;
 			}
@@ -220,16 +219,21 @@ namespace AudioStudio.Configs
 					break;
 				case VoicePlayLogic.Switch:
 					Clip = null;
-					Clips.Clear();
 					if (SwitchClipMappings.Any( c=> !c.Clip))
 						Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
 					break;
 			}
 		}
 		
+		public override void OnValidate()
+		{
+			if (PlayLogic == VoicePlayLogic.Switch)
+				Clips = SwitchClipMappings.Select(mapping => mapping.Clip).ToList();
+		}
+		
 		public override bool IsValid()
 		{
-			return Clip != null || Clips.Any(c => c != null) || SwitchClipMappings.Any(m => m.Clip != null);
+			return Clip != null || Clips.Any(c => c != null);
 		}
 		
 		internal override AudioObjectType GetEventType()

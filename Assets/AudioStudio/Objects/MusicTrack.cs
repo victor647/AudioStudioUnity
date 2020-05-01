@@ -58,7 +58,7 @@ namespace AudioStudio.Configs
 		{
 			ChildEvents.Clear();
 			if (!Clip)
-				Debug.LogError("AudioClip of MusicEvent " + name + " is missing!");
+				Debug.LogError("AudioClip of MusicTrack " + name + " is missing!");
 		}
 		
 		public override bool IsValid()
@@ -71,12 +71,17 @@ namespace AudioStudio.Configs
 
 		internal override void Init()
 		{
-			Clip.LoadAudioData();									                   
+			if (Clip)
+				Clip.LoadAudioData();
+			else
+				Debug.LogError("AudioClip of MusicTrack " + name + " is missing!");
+			
 		}
 
 		internal override void Dispose()
 		{
-			Clip.UnloadAudioData();										            
+			if (Clip)
+				Clip.UnloadAudioData();										            
 		}
 		
 		internal void AddInstance(MusicTrackInstance instance)

@@ -36,13 +36,17 @@ namespace AudioStudio.Configs
         internal override void Init()
         {            
             _playingInstances.Clear();
-            Clip.LoadAudioData();									                   
+            if (Clip)
+                Clip.LoadAudioData();
+            else
+                Debug.LogError("AudioClip of SoundClip " + name + " is missing!");
         }
 
         internal override void Dispose()
         {             
             _playingInstances.Clear();
-            Clip.UnloadAudioData();										            
+            if (Clip)
+                Clip.UnloadAudioData();										            
         }
 
         internal void AddInstance(SoundClipInstance instance)
