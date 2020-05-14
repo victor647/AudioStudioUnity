@@ -4,15 +4,13 @@ using UnityEngine;
 
 namespace AudioStudio
 {
+	/// <summary>
+	/// Manage listener assignments and positions.
+	/// </summary>
 	internal static class ListenerManager
 	{
-		private static List<AudioListener3D> _listeners = new List<AudioListener3D>();
-		
-		internal static void Init()
-		{
-			GlobalAudioEmitter.GameObject.AddComponent<AudioListener>();
-		}
-		
+		private static readonly List<AudioListener3D> _listeners = new List<AudioListener3D>();
+
 		internal static void AssignAudioListener(AudioListener3D listener)
 		{
 			if (!_listeners.Contains(listener))

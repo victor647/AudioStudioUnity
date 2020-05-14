@@ -3,6 +3,9 @@ using AudioStudio.Configs;
 
 namespace AudioStudio
 {
+    /// <summary>
+    /// Manage instances of all AudioEvents and AudioControllers.
+    /// </summary>
     public static class EmitterManager
     {
         private static readonly List<SoundClipInstance> _globalSoundInstances = new List<SoundClipInstance>();
@@ -36,7 +39,7 @@ namespace AudioStudio
             var list = new List<string>();
             foreach (var instance in _globalVoiceInstances)
             {
-                list.Add(instance.VoiceEvent.name +  " @ " + instance.gameObject.name);
+                list.Add(instance.VoiceEvent.Clip.name +  " @ " + instance.gameObject.name);
             }
             return list;
         }

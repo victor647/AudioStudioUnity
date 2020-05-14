@@ -43,9 +43,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="..\..\Assets\AudioStudio\Core\EnumFlagAttribute.cs">
-          <Link>EnumFlagAttribute.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\AsUnityHelper.cs">
           <Link>Tools\AsUnityHelper.cs</Link>
         </Compile>

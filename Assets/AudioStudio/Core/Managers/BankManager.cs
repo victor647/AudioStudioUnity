@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine;
@@ -10,7 +11,6 @@ namespace AudioStudio
     {
         NotLoaded,
         Loading,
-        Interrupted,
         Loaded,
         Unloading,
         NotFound
@@ -18,6 +18,9 @@ namespace AudioStudio
 
     public static class BankManager
     {
+        /// <summary>
+        /// Store the bank load status and counters.
+        /// </summary>
         private class BankLoadData
         {
             internal SoundBank Bank;
@@ -35,32 +38,39 @@ namespace AudioStudio
 
             internal void DoUnload()
             {
+                _mutex.WaitOne();
                 LoadStatus = BankLoadStatus.Unloading;
                 LoadCount = 0;
                 LoadedBankList.Remove(Bank.name);
                 AsAssetLoader.UnloadBank(Bank);
                 Bank = null;
                 LoadStatus = BankLoadStatus.NotLoaded;
+                _mutex.ReleaseMutex();
             }
         }
         
         private static readonly Dictionary<string, BankLoadData> _banks = new Dictionary<string, BankLoadData>();
         public static readonly List<string> LoadedBankList = new List<string>();
+        private static readonly Mutex _mutex = new Mutex();
 
         #region Load
-        internal static void LoadBank(SoundBank bank, GameObject source)
+        internal static void LoadBank(SoundBank bank, GameObject source = null)
         {
+            // create new BankLoadData if this bank has never been loaded
             if (!_banks.ContainsKey(bank.name))
                 _banks[bank.name] = new BankLoadData();
             var bankLoadData = _banks[bank.name];
+            
             switch (bankLoadData.LoadStatus)
             {
                 case BankLoadStatus.NotLoaded:
+                    _mutex.WaitOne();
                     bankLoadData.LoadStatus = BankLoadStatus.Loading;
                     AsAssetLoader.DoLoadBank(bank);
                     bankLoadData.DoLoad(bank);
                     bankLoadData.LoadStatus = BankLoadStatus.Loaded;
                     AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SoundBank, AudioAction.Load, AudioTriggerSource.LoadBank, bank.name, source);
+                    _mutex.ReleaseMutex();
                     break;
                 case BankLoadStatus.Loaded:
                     if (bankLoadData.UseCounter)
@@ -79,6 +89,7 @@ namespace AudioStudio
             if (!_banks.ContainsKey(bankName))
                 _banks[bankName] = new BankLoadData();
             var bankLoadData = _banks[bankName];
+            
             switch (bankLoadData.LoadStatus)
             {
                 case BankLoadStatus.NotFound:
@@ -87,19 +98,11 @@ namespace AudioStudio
                 case BankLoadStatus.Loading:
                     AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank already loading");
                     break;
-                case BankLoadStatus.Interrupted:
-                    bankLoadData.LoadStatus = BankLoadStatus.Loading;
-                    AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank resumes loading");
-                    break;
                 case BankLoadStatus.NotLoaded:
+                    _mutex.WaitOne();
                     bankLoadData.LoadStatus = BankLoadStatus.Loading;
                     AsAssetLoader.LoadBank(bankName, (bank, status) =>
                     {
-                        if (bank && bankLoadData.LoadStatus == BankLoadStatus.Interrupted) //unload request received while loading
-                        {
-                            UnloadBank(bank.name, source, trigger); 
-                            return;
-                        }
                         bankLoadData.LoadStatus = status;
                         switch (status)
                         {
@@ -112,10 +115,12 @@ namespace AudioStudio
                                 AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, source, "Bank not found");
                                 break;
                         }
+                        _mutex.ReleaseMutex();
                     });
                     break;
                 case BankLoadStatus.Loaded:
-                    if (bankLoadData.UseCounter) //if more load requests are received
+                    // increment counter if already loaded
+                    if (bankLoadData.UseCounter) 
                     {
                         bankLoadData.LoadCount++;
                         AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Load, trigger, bankName, source, "Load counter: " + bankLoadData.LoadCount);
@@ -129,18 +134,20 @@ namespace AudioStudio
         #endregion
         
         #region Unload
-        internal static void UnloadBank(SoundBank bank, GameObject source)
+        internal static void UnloadBank(SoundBank bank, GameObject source = null)
         {
             if (!_banks.ContainsKey(bank.name))
                 _banks[bank.name] = new BankLoadData();
             var bankLoadData = _banks[bank.name];
+            
             switch (bankLoadData.LoadStatus)
             {
                 case BankLoadStatus.NotLoaded:
                     AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.LoadBank, bank.name, source, "Bank already unloaded");
                     break;
                 case BankLoadStatus.Loaded:
-                    if (bankLoadData.UseCounter && bankLoadData.LoadCount > 1) //if still more than one counter
+                    // decrement counter if still more than one
+                    if (bankLoadData.UseCounter && bankLoadData.LoadCount > 1) 
                     {
                         bankLoadData.LoadCount--;
                         AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, AudioTriggerSource.LoadBank, bank.name, source, "Remaining counter: " + bankLoadData.LoadCount);
@@ -164,18 +171,15 @@ namespace AudioStudio
                 case BankLoadStatus.NotFound:
                     AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank not found");
                     break;
-                case BankLoadStatus.Loading:  
-                    AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank loading interrupted");
-                    bankLoadData.LoadStatus = BankLoadStatus.Interrupted;
-                    break;
                 case BankLoadStatus.Unloading:
                     AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank already unloading");
                     break;
                 case BankLoadStatus.NotLoaded:
                     AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Bank already unloaded");
                     break;
+                case BankLoadStatus.Loading:
                 case BankLoadStatus.Loaded:
-                    if (bankLoadData.UseCounter && bankLoadData.LoadCount > 1) //if still more than one counter
+                    if (bankLoadData.UseCounter && bankLoadData.LoadCount > 1)
                     {
                         bankLoadData.LoadCount--;
                         AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SoundBank, AudioAction.Unload, trigger, bankName, source, "Remaining counter: " + bankLoadData.LoadCount);
@@ -207,6 +211,18 @@ namespace AudioStudio
             {
                 AsAssetLoader.UnloadBank(bank.Value.Bank);
                 LoadBank(bank.Key);
+            }
+        }
+        
+        public static void RefreshVoiceBanks()
+        {
+            foreach (var bank in _banks)
+            {
+                if (bank.Key.StartsWith("Voice_"))
+                {
+                    AsAssetLoader.UnloadBank(bank.Value.Bank);
+                    LoadBank(bank.Key);
+                }
             }
         }
         #endregion

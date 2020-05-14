@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace AudioStudio
 {
+	/// <summary>
+	/// Apply conversion settings when import original audio files.
+	/// </summary>
 	public class AudioImportProcessor : AssetPostprocessor
 	{
 		private void OnPreprocessAudio()
@@ -11,7 +14,7 @@ namespace AudioStudio
 			var audio = assetImporter as AudioImporter;
 			if (!audio) return;
 			audio.forceToMono = false;
-			audio.loadInBackground = true;
+			audio.loadInBackground = false;
 			audio.ambisonic = false;
 			audio.preloadAudioData = false;
 

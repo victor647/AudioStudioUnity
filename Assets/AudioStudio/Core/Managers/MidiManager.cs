@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace AudioStudio.Midi
 {
+    /// <summary>
+    /// Manage MIDI inputs.
+    /// </summary>
     public class MidiManager
     {
         private static MidiManager _instance;

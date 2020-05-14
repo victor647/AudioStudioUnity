@@ -11,7 +11,10 @@ namespace AudioStudio
 {		
     public static class AudioManager
     {
-        #region Sound           
+        #region Sound
+        /// <summary>
+        /// Post a simple sound effect event with optional fade in and end callback.
+        /// </summary>
         public static string PlaySound(string eventName, GameObject soundSource = null, float fadeInTime = 0f, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {            
             if (string.IsNullOrEmpty(eventName) || !SoundEnabled) return string.Empty;
@@ -28,7 +31,10 @@ namespace AudioStudio
             return clipName;
         }
 
-        public static void StopSound(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        /// <summary>
+        /// Stop a sound currently playing with fade out.
+        /// </summary>
+        public static void StopSound(string eventName, GameObject soundSource = null, float fadeOutTime = 0.2f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
             var sound = AsAssetLoader.GetAudioEvent(eventName) as SoundContainer;
@@ -47,11 +53,17 @@ namespace AudioStudio
         private static string _lastPlayedMusic;
         private static string _currentPlayingMusic;
 
+        /// <summary>
+        /// Switch back to the last music played.
+        /// </summary>
         public static string PlayLastMusic()
         {
             return PlayMusic(_lastPlayedMusic);
         }
 
+        /// <summary>
+        /// Post a background music event, ignore if same event is already playing.
+        /// </summary>
         public static string PlayMusic(string eventName, float fadeInTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return string.Empty;
@@ -71,13 +83,10 @@ namespace AudioStudio
             UpdateLastMusic(eventName);
             return clipName;
         }
-
-        private static void UpdateLastMusic(string musicName)
-        {
-            _lastPlayedMusic = string.IsNullOrEmpty(_currentPlayingMusic) ? musicName : _currentPlayingMusic;
-            _currentPlayingMusic = musicName;
-        }
-
+        
+        /// <summary>
+        /// Stop the background music currently playing.
+        /// </summary>
         public static void StopMusic(float fadeOutTime = 0f, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             MusicTransport.Instance.Stop(fadeOutTime);       
@@ -85,12 +94,22 @@ namespace AudioStudio
             ResetMusic();
         }
 
+        private static void UpdateLastMusic(string musicName)
+        {
+            _lastPlayedMusic = string.IsNullOrEmpty(_currentPlayingMusic) ? musicName : _currentPlayingMusic;
+            _currentPlayingMusic = musicName;
+        }
+
+        // reset music playback history when music stops
         internal static void ResetMusic()
         {
             _lastPlayedMusic = _currentPlayingMusic;
             _currentPlayingMusic = string.Empty;
         }
 
+        /// <summary>
+        /// Play a stinger on top of current playing background music.
+        /// </summary>
         public static void PlayStinger(string stingerName)
         {
             if (string.IsNullOrEmpty(stingerName)) return;            
@@ -99,6 +118,9 @@ namespace AudioStudio
                 MusicTransport.Instance.QueueStinger(stinger);
         }
 
+        /// <summary>
+        /// Activate a MIDI instrument.
+        /// </summary>
         public static void ActivateInstrument(string instrumentName, byte channel = 1)
         {
             if (string.IsNullOrEmpty(instrumentName))
@@ -106,6 +128,9 @@ namespace AudioStudio
             AsAssetLoader.LoadInstrument(instrumentName, channel);
         }
         
+        /// <summary>
+        /// Deactivate a MIDI instrument.
+        /// </summary>
         public static void DeactivateInstrument(string instrumentName)
         {
             AsAssetLoader.UnloadInstrument(instrumentName);
@@ -114,6 +139,10 @@ namespace AudioStudio
 
         #region Voice        
         private static string _currentPlayingVoice;
+        
+        /// <summary>
+        /// Post a voice dialog event with optional fade in and end callback.
+        /// </summary>
         public static string PlayVoice(string eventName, GameObject soundSource = null, float fadeInTime = 0f, Action<GameObject> endCallback = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!VoiceEnabled || string.IsNullOrEmpty(eventName)) return string.Empty;
@@ -130,7 +159,10 @@ namespace AudioStudio
             return clipName;
         }
 
-        public static void StopVoice(string eventName = null, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        /// <summary>
+        /// Stop a voice dialog event from playing with fade out. Leave event name empty if stopping the current playing event.
+        /// </summary>
+        public static void StopVoice(string eventName = null, GameObject soundSource = null, float fadeOutTime = 0.2f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName))
             {
@@ -155,6 +187,9 @@ namespace AudioStudio
         #endregion       
         
         #region Controls
+        /// <summary>
+        /// Set an exposed parameter from the audio mixer.
+        /// </summary>
         public static void SetAudioMixerParameter(string parameterName, float targetValue, float fadeTime = 0f)
         {
             if (AudioMixer.GetFloat(parameterName, out var currentValue))
@@ -164,7 +199,10 @@ namespace AudioStudio
             }
         }
         
-        public static void StopAll(GameObject soundSource = null, float fadeOutTime = 0f)
+        /// <summary>
+        /// Stop all sounds/music/voices from playing on a game object with fade out.
+        /// </summary>
+        public static void StopAll(GameObject soundSource = null, float fadeOutTime = 0.2f)
         {
             if (!soundSource) soundSource = GlobalAudioEmitter.GameObject;
             var instances = soundSource.GetComponentsInChildren<AudioEventInstance>();
@@ -180,7 +218,10 @@ namespace AudioStudio
                 AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.SFX, AudioAction.Stop, AudioTriggerSource.Code, "Stop All", soundSource, "No playing instance found");
         }
         
-        public static void StopAll(string eventName, float fadeOutTime = 0f)
+        /// <summary>
+        /// Stop all instances of an AudioEvent with fade out.
+        /// </summary>
+        public static void StopAll(string eventName, float fadeOutTime = 0.2f)
         {
             if (string.IsNullOrEmpty(eventName)) return;
             var audioEvent = AsAssetLoader.GetAudioEvent(eventName);
@@ -189,6 +230,9 @@ namespace AudioStudio
             AsUnityHelper.DebugToProfiler(Severity.Notification, audioEvent.GetEventType(), AudioAction.Stop, AudioTriggerSource.Code, eventName, null, "Stop All");
         }
         
+        /// <summary>
+        /// Mute an AudioEvent on a game object with optional fade out.
+        /// </summary>
         public static void MuteEvent(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
@@ -203,6 +247,9 @@ namespace AudioStudio
             }
         }
         
+        /// <summary>
+        /// Unmute an AudioEvent on a game object with optional fade in.
+        /// </summary>
         public static void UnMuteEvent(string eventName, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
@@ -217,6 +264,9 @@ namespace AudioStudio
             }
         }
         
+        /// <summary>
+        /// Pause an AudioEvent on a game object with optional fade out.
+        /// </summary>
         public static void PauseEvent(string eventName, GameObject soundSource = null, float fadeOutTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
@@ -231,6 +281,9 @@ namespace AudioStudio
             }
         }
         
+        /// <summary>
+        /// Resume an AudioEvent on a game object with optional fade in.
+        /// </summary>
         public static void ResumeEvent(string eventName, GameObject soundSource = null, float fadeInTime = 0f, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(eventName)) return;
@@ -245,6 +298,7 @@ namespace AudioStudio
             }
         }
         
+        // check if the sound should be played by GlobalAudioEmitter or its trigger source
         private static GameObject ValidateSoundSource(GameObject soundSource, AudioTriggerSource trigger)
         {
             switch (trigger)
@@ -265,6 +319,9 @@ namespace AudioStudio
         #endregion
 		
         #region Switch		
+        /// <summary>
+        /// Set an AudioSwitch value for all instances.
+        /// </summary>
         public static void SetSwitchGlobal(string switchGroupName, string switchName, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(switchGroupName) || string.IsNullOrEmpty(switchName)) return;
@@ -275,6 +332,9 @@ namespace AudioStudio
                 AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Switch, AudioAction.SetValue, trigger, switchGroupName, null, "Switch not found");                                    
         }
 
+        /// <summary>
+        /// Set an AudioSwitch value on a game object.
+        /// </summary>
         public static void SetSwitch(string switchGroupName, string switchName, GameObject affectedGameObject = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(switchGroupName) || string.IsNullOrEmpty(switchName)) return;  
@@ -286,6 +346,9 @@ namespace AudioStudio
                 AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Switch, AudioAction.SetValue, trigger, switchGroupName, affectedGameObject, "Switch not found");                                                               
         }
 
+        /// <summary>
+        /// Get an AudioSwitch value from a game object.
+        /// </summary>
         public static string GetSwitch(string switchGroupName, GameObject affectedGameObject = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(switchGroupName)) return null;      
@@ -299,6 +362,9 @@ namespace AudioStudio
         #endregion
 	
         #region Parameter				
+        /// <summary>
+        /// Set an AudioParameter value for all instances.
+        /// </summary>
         public static void SetParameterValueGlobal(string parameterName, float parameterValue, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (string.IsNullOrEmpty(parameterName)) return;
@@ -309,6 +375,9 @@ namespace AudioStudio
                 AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Parameter, AudioAction.SetValue, trigger, parameterName, null, "Parameter not found");                                    
         }
 
+        /// <summary>
+        /// Set an AudioParameter value on a game object.
+        /// </summary>
         public static void SetParameterValue(string parameterName, float parameterValue, GameObject affectedGameObject = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {                        
             if (string.IsNullOrEmpty(parameterName)) return;
@@ -320,6 +389,9 @@ namespace AudioStudio
                 AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Parameter, AudioAction.SetValue, trigger, parameterName, affectedGameObject, "Parameter not loaded");            
         }
 
+        /// <summary>
+        /// Get an AudioParameter value from a game object.
+        /// </summary>
         public static float GetParameterValue(string parameterName, GameObject affectedGameObject = null)
         {
             if (string.IsNullOrEmpty(parameterName)) return 0f;
@@ -333,18 +405,28 @@ namespace AudioStudio
         #endregion
 		
         #region SoundBank
+        /// <summary>
+        /// Load a SoundBank by name with optional finish callback.
+        /// </summary>
         public static void LoadBank(string bankName, Action onLoadFinished = null, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!string.IsNullOrEmpty(bankName)) 
                 BankManager.LoadBank(bankName, onLoadFinished, source, trigger);
         }
 
+        /// <summary>
+        /// Unload a SoundBank by name.
+        /// </summary>
         public static void UnloadBank(string bankName, GameObject source = null, AudioTriggerSource trigger = AudioTriggerSource.Code)
         {
             if (!string.IsNullOrEmpty(bankName)) 
                 BankManager.UnloadBank(bankName, source, trigger);
         }  
         
+        /// <summary>
+        /// Unload all SoundBanks whose name contains a string.
+        /// </summary>
+        /// <param name="nameFilter"></param>
         public static void UnloadBanks(string nameFilter)
         {
             BankManager.UnloadBanks(nameFilter);                                                   
@@ -352,24 +434,48 @@ namespace AudioStudio
         #endregion
                 
         #region PreferenceSetting
+        /// <summary>
+        /// Completely disable audio and all audio components to test performance without audio.
+        /// </summary>
         public static bool DisableAudio;
         internal static AudioMixer AudioMixer;
-
-        public static void LoadPreferenceSettings()
-        {
-            SoundEnabled = SoundEnabled;
-            MusicEnabled = MusicEnabled;
-            VoiceEnabled = VoiceEnabled;
-            SoundVolume = SoundVolume;
-            MusicVolume = MusicVolume;
-            VoiceVolume = VoiceVolume;
-        }
 
         internal static AudioMixerGroup GetAudioMixer(string type, string subMixer = "")
         {
             return !AudioMixer ? null : AudioMixer.FindMatchingGroups("Master/" + type + (string.IsNullOrEmpty(subMixer) ? "" : "/" + subMixer))[0];
         }
+        
+        /// <summary>
+        /// Turn off audio temporarily for purposes like playing video.
+        /// </summary>
+        public static void MuteAudio()
+        {
+            if (!AudioInitSettings.Initialized) return;
+            if (SoundEnabled) 
+                AudioMixer.SetFloat("SoundVolume", LinearToDecibel(0));
+            if (VoiceEnabled) 
+                AudioMixer.SetFloat("VoiceVolume", LinearToDecibel(0));
+            if (MusicEnabled) 
+                AudioMixer.SetFloat("MusicVolume", LinearToDecibel(0));
+        }
+        
+        /// <summary>
+        /// Put audio back for conditions like video finishes.
+        /// </summary>
+        public static void UnmuteAudio()
+        {
+            if (!AudioInitSettings.Initialized) return;
+            if (SoundEnabled) 
+                AudioMixer.SetFloat("SoundVolume", LinearToDecibel(SoundVolume));
+            if (VoiceEnabled) 
+                AudioMixer.SetFloat("VoiceVolume", LinearToDecibel(VoiceVolume));
+            if (MusicEnabled) 
+                AudioMixer.SetFloat("MusicVolume", LinearToDecibel(MusicVolume));
+        }
 
+        /// <summary>
+        /// Turn on or off sound effects.
+        /// </summary>
         public static bool SoundEnabled
         {
             get
@@ -389,6 +495,9 @@ namespace AudioStudio
             }
         }
         
+        /// <summary>
+        /// Turn on or off voice dialogs.
+        /// </summary>
         public static bool VoiceEnabled
         {
             get
@@ -408,6 +517,9 @@ namespace AudioStudio
             }
         }
         
+        /// <summary>
+        /// Turn on or off background music.
+        /// </summary>
         public static bool MusicEnabled
         {
             get
@@ -432,6 +544,9 @@ namespace AudioStudio
             }
         }
 
+        /// <summary>
+        /// Set volume of all sound effects, range from 0 to 100.
+        /// </summary>
         public static float SoundVolume
         {
             get
@@ -448,6 +563,9 @@ namespace AudioStudio
             }
         }
 
+        /// <summary>
+        /// Set volume of all voice dialogs, range from 0 to 100.
+        /// </summary>
         public static float VoiceVolume
         {
             get
@@ -464,6 +582,9 @@ namespace AudioStudio
             }
         }
         
+        /// <summary>
+        /// Set volume of all background musics, range from 0 to 100.
+        /// </summary>
         public static float MusicVolume
         {
             get
@@ -480,6 +601,7 @@ namespace AudioStudio
             }
         }
         
+        // convert linear volume to decibel value
         private static float LinearToDecibel(float linear)
         {
             return Mathf.Max(-80f, 20f * Mathf.Log10(linear) - 40f);

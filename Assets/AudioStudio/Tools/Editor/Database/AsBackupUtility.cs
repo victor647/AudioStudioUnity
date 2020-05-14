@@ -141,7 +141,7 @@ namespace AudioStudio.Tools
         
         private static bool ImportSyncBanks(ref SoundBank[] banks, XElement xComponent)
         {
-	        var bs = xComponent.Element("AsyncBanks");
+	        var bs = xComponent.Element("SyncBanks");
 	        if (bs == null) return false; 
 	        var xBanks = bs.Descendants("SoundBank");            
 	        var banksTemp = xBanks.Select(XmlToBank).ToList();

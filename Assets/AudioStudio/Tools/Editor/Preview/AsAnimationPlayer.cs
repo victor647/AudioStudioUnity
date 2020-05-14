@@ -24,7 +24,7 @@ namespace AudioStudio.Tools
         public AnimatorController Animator;
         public List<AnimationClip> Clips = new List<AnimationClip>();
         public GameObject ModelPrefab;
-        public List<SoundBankReference> SoundBanks = new List<SoundBankReference>();
+        public List<SoundBank> SoundBanks = new List<SoundBank>();
         private bool _useEmptyScene = true;
         private bool _legacyMode;
         private Animation _legacyAnimation;
@@ -47,7 +47,7 @@ namespace AudioStudio.Tools
             AudioInitSettings.Instance.Initialize(false);
             foreach (var bank in SoundBanks)
             {
-                bank.Load(); 
+                bank.Load();
             }
             _model = Instantiate(ModelPrefab);
             Reset();
@@ -128,7 +128,7 @@ namespace AudioStudio.Tools
                 gameObject = AssetDatabase.GetAssetPath(ModelPrefab),
                 animator = AssetDatabase.GetAssetPath(Animator),
                 clips = Clips.Select(AssetDatabase.GetAssetPath).ToArray(),
-                soundBank = SoundBanks.Select(b => b.Name).ToArray()
+                soundBank = SoundBanks.Select(b => b.name).ToArray()
             };
             File.WriteAllText(filePath, AsScriptingHelper.ToJson(obj));
         }
@@ -158,7 +158,10 @@ namespace AudioStudio.Tools
             var bankNameArray = AsScriptingHelper.FromJson(jsonString, "soundBank");
             foreach (var bankName in AsScriptingHelper.ParseJsonArray(bankNameArray))
             {
-                SoundBanks.Add(new SoundBankReference(bankName));
+                var bankPath = AsScriptingHelper.CombinePath("Assets", AudioPathSettings.Instance.SoundBanksPath, bankName + ".asset");
+                var bank = AssetDatabase.LoadAssetAtPath<SoundBank>(bankPath);
+                if (bank)
+                    SoundBanks.Add(bank);
             }
         }
 

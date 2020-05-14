@@ -251,6 +251,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\AsToolbarMenus.cs">
           <Link>Editor\Scripting\AsToolbarMenus.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Scripting\EnumFlagPropertyDrawer.cs">
+          <Link>Editor\Scripting\EnumFlagPropertyDrawer.cs</Link>
+        </Compile>
         <Compile Include="AsToolbarMenusExt.cs" />
     </ItemGroup>
     <ItemGroup>

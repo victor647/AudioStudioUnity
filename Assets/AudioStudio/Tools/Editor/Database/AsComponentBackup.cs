@@ -23,7 +23,7 @@ namespace AudioStudio.Tools
         private static readonly Dictionary<Type, ComponentImporter> _importers = new Dictionary<Type, ComponentImporter>();
         private readonly Dictionary<Type, XElement> _outputTypes = new Dictionary<Type, XElement>();
         internal bool SeparateXmlFiles = true;
-        internal bool IncludePrefabInScene = true;
+        internal bool IncludePrefabVariants = true;
 
         private static AsComponentBackup _instance;
         internal static AsComponentBackup Instance
@@ -171,7 +171,7 @@ namespace AudioStudio.Tools
                         var components = rootGameObject.GetComponentsInChildren(pair.Key, true);
                         foreach (var component in components)
                         {
-                            if (ComponentBelongsToScene(component))
+                            if (!ComponentBelongsToPrefab(component))
                                 xScene.Add(ParseComponent((AsComponent) component));
                         }
                     }
@@ -190,7 +190,7 @@ namespace AudioStudio.Tools
                     var components = rootGameObject.GetComponentsInChildren<AsComponent>(true);
                     foreach (var component in components)
                     {
-                        if (ComponentBelongsToScene(component))
+                        if (!ComponentBelongsToPrefab(component))
                             xScene.Add(ParseComponent(component));
                     }
                 }
@@ -202,7 +202,7 @@ namespace AudioStudio.Tools
             }
         }
 
-        private bool ComponentBelongsToScene(Component component)
+        private bool ComponentBelongsToPrefab(Component component)
         {
 #if UNITY_2018_3_OR_NEWER
             var prefab = PrefabUtility.GetNearestPrefabInstanceRoot(component.gameObject);
@@ -213,14 +213,15 @@ namespace AudioStudio.Tools
                 {
                     var c = objectOverride.instanceObject as AsComponent;
                     if (c == component)
-                        return true;
+                        return false;
                 }
-                return false;
+                return true;
             }
 #else
-            if (!IncludePrefabInScene && PrefabUtility.GetPrefabType(component.gameObject) != PrefabType.None) return false;
+            if (!IncludePrefabVariants && PrefabUtility.GetPrefabType(component.gameObject) != PrefabType.None) 
+                return true;
 #endif
-            return true;
+            return false;
         }
 
         private XElement ParseComponent(AsComponent component)
@@ -742,6 +743,7 @@ namespace AudioStudio.Tools
         internal void Combine()
         {
             ReadData();
+            XRoot.RemoveAll();
             foreach (var type in ComponentsToSearch.Keys)
             {                
                 LoadOrCreateXmlDoc(type);

@@ -19,37 +19,17 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("DebugLogLevel"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("PathSettings"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("AudioMixer"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("UseMicrophone"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("UseMidi"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("LoadBanks"));
-            if (_component.LoadBanks)
-                AsGuiDrawer.DrawList(serializedObject.FindProperty("StartBanks"), "", AddBank);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("PostEvents"));
-            if (_component.PostEvents)
-                AsGuiDrawer.DrawList(serializedObject.FindProperty("StartEvents"), "", AddEvent);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("DisableAudio"));
+            if (!_component.DisableAudio)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("DebugLogLevel"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("PathSettings"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("AudioMixer"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("UseMicrophone"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("UseMidi"));
+            }
             AsGuiDrawer.DrawSaveButton(_component);
             serializedObject.ApplyModifiedProperties();
-        }
-
-        private void AddEvent(Object[] objects)
-        {
-            var events = objects.Select(obj => obj as AudioEvent).Where(a => a).ToArray();
-            foreach (var evt in events)
-            {
-                AsScriptingHelper.AddToArray(ref _component.StartEvents, new PostEventReference(evt));
-            }
-        }
-
-        private void AddBank(Object[] objects)
-        {
-            var banks = objects.Select(obj => obj as SoundBank).Where(a => a).ToArray();
-            foreach (var bank in banks)
-            {
-                AsScriptingHelper.AddToArray(ref _component.StartBanks, new SoundBankReference(bank.name));
-            }
         }
     }
 }

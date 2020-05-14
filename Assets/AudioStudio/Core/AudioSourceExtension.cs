@@ -6,6 +6,9 @@ namespace AudioStudio
 {
 	public static class AudioSourceExtension
 	{
+		/// <summary>
+		/// Play AudioSource with fade in.
+		/// </summary>
 		public static IEnumerator Play(this AudioSource source, float fadeInTime)
 		{
 			var targetVolume = source.volume;
@@ -19,6 +22,9 @@ namespace AudioStudio
 			}
 		}
 
+		/// <summary>
+		/// Stop AudioSource with fade out.
+		/// </summary>
 		public static IEnumerator Stop(this AudioSource source, float fadeOutTime, Action onAudioEnd = null)
 		{
 			var initialVolume = source.volume;
@@ -32,6 +38,9 @@ namespace AudioStudio
 			onAudioEnd?.Invoke();
 		}
 		
+		/// <summary>
+		/// Mute AudioSource with fade out.
+		/// </summary>
 		public static IEnumerator Mute(this AudioSource source, float fadeOutTime)
 		{
 			var initialVolume = source.volume;
@@ -44,6 +53,9 @@ namespace AudioStudio
 			source.mute = true;
 		}
 		
+		/// <summary>
+		/// Unmute AudioSource with fade in.
+		/// </summary>
 		public static IEnumerator UnMute(this AudioSource source, float fadeInTime)
 		{
 			var targetVolume = source.volume;
@@ -57,6 +69,9 @@ namespace AudioStudio
 			}
 		}
 		
+		/// <summary>
+		/// Pause AudioSource with fade out.
+		/// </summary>
 		public static IEnumerator Pause(this AudioSource source, float fadeOutTime)
 		{
 			var initialVolume = source.volume;
@@ -69,6 +84,9 @@ namespace AudioStudio
 			source.Pause();
 		}
 		
+		/// <summary>
+		/// Resume AudioSource with fade in.
+		/// </summary>
 		public static IEnumerator Resume(this AudioSource source, float fadeInTime)
 		{
 			var targetVolume = source.volume;

@@ -1,31 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine;
 
 namespace AudioStudio
 {
-	internal static class AsAssetLoader
+	internal static partial class AsAssetLoader
 	{
-		private static Dictionary<string, AudioEvent> _audioEvents;
-		private static Dictionary<string, MusicInstrument> _musicInstruments;
-		private static Dictionary<string, AudioParameter> _audioParameters;
-		private static Dictionary<string, AudioSwitch> _audioSwitches;
-
-		internal static void Init()
+		public static void LoadAudioInitData()
 		{
-			_audioEvents = new Dictionary<string, AudioEvent>();
-			_musicInstruments = new Dictionary<string, MusicInstrument>();
-			_audioSwitches = new Dictionary<string, AudioSwitch>();
-			_audioParameters = new Dictionary<string, AudioParameter>();
-		}
-		
-		private static string ShortPath(string longPath)
-		{
-			longPath = longPath.Replace("\\", "/");
-			var index = longPath.IndexOf("Audio", StringComparison.Ordinal);
-			return index >= 0 ? longPath.Substring(index) : longPath;
+			var config = Resources.Load<AudioInitLoadData>("AudioStudio/AudioInitLoadData");
+			if (config)
+				config.LoadAudioData();
 		}
 
 		#region SoundBank
@@ -99,21 +85,6 @@ namespace AudioStudio
 				ac.Dispose();
 			}
 			Resources.UnloadAsset(bank);
-		}
-
-		internal static AudioEvent GetAudioEvent(string eventName)
-		{
-			return _audioEvents.ContainsKey(eventName) ? _audioEvents[eventName] : null;
-		}	
-		
-		internal static AudioParameter GetAudioParameter(string parameterName)
-		{
-			return _audioParameters.ContainsKey(parameterName) ? _audioParameters[parameterName] : null;
-		}	
-		
-		internal static AudioSwitch GetAudioSwitch(string switchName)
-		{
-			return _audioSwitches.ContainsKey(switchName) ? _audioSwitches[switchName] : null;
 		}
 		#endregion
 		

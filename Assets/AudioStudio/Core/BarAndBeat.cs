@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace AudioStudio
 {
+	/// <summary>
+	/// Representation of bar and beats in music engine.
+	/// </summary>
 	[Serializable]
 	public struct BarAndBeat
 	{
@@ -14,6 +17,9 @@ namespace AudioStudio
 			Beat = beat;
 		}
 
+		/// <summary>
+		/// Possible negative bar and beat position before pre-entry.
+		/// </summary>
 		public BarAndBeat Negative(int beatsPerBar)
 		{
 			Bar = -Bar;
@@ -25,24 +31,33 @@ namespace AudioStudio
 			return this;
 		}
 
+		/// <summary>
+		/// Convert to a float number of bars.
+		/// </summary>
 		public float ToBars(int beatsPerBar)
 		{
 			return Bar + Beat * 1f / beatsPerBar;
 		}
 		
+		/// <summary>
+		/// Convert to a float number of beats.
+		/// </summary>
 		public int ToBeats(int beatsPerBar)
 		{
 			return Bar * beatsPerBar + Beat;
 		}
 
+		/// <summary>
+		/// Convert bar and beat to number of beats.
+		/// </summary>
 		public static BarAndBeat ToBarAndBeat(float beats, int beatsPerBar)
 		{
 			var beatsInt = Mathf.CeilToInt(beats);
 			return new BarAndBeat(beatsInt / beatsPerBar, beatsInt % beatsPerBar);
 		}
 		
-		//operator for comparing
-		#region OPERATORS 
+		// operators for comparing
+		#region Operators 
 		public static bool operator ==(BarAndBeat x, BarAndBeat y)
 		{
 			return x.Bar == y.Bar && x.Beat == y.Beat;
@@ -96,21 +111,10 @@ namespace AudioStudio
 		}
 		#endregion
 
-		#region VALUES		
-		public static BarAndBeat Zero
-		{
-			get { return new BarAndBeat(0, 0); }
-		}
-
-		public static BarAndBeat OneBar
-		{
-			get { return new BarAndBeat(1, 0); }
-		}
-
-		public static BarAndBeat OneBeat
-		{
-			get { return new BarAndBeat(0, 1); }
-		}
+		#region StaticValues
+		public static BarAndBeat Zero => new BarAndBeat(0, 0);
+		public static BarAndBeat OneBar => new BarAndBeat(1, 0);
+		public static BarAndBeat OneBeat => new BarAndBeat(0, 1);
 		#endregion
 	}
 }

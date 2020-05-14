@@ -1,5 +1,4 @@
 ﻿using AudioStudio.Components;
-using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -22,58 +21,49 @@ namespace AudioStudio
         }
 
         public static bool Initialized;
+        public bool DisableAudio;
         public bool UseMicrophone;
         public bool UseMidi;
-        public SoundBankReference[] StartBanks = new SoundBankReference[0];
-        public PostEventReference[] StartEvents = new PostEventReference[0];                
-        public bool PostEvents;
-        public bool LoadBanks;        
         public AudioMixer AudioMixer;
         public AudioPathSettings PathSettings;
         public Severity DebugLogLevel = Severity.Error;
 
         public void Initialize(bool loadAudioData = false)
         {
-            if (Initialized) return;     
+            if (Initialized) return;
+            AudioManager.DisableAudio = DisableAudio;
+            if (DisableAudio) return;
+            
             Initialized = true;
+            
             AsUnityHelper.DebugLogLevel = DebugLogLevel;
             AudioPathSettings.Instance = PathSettings;
             AudioManager.AudioMixer = AudioMixer;
             CreateGlobalAudioEmitter();
-            ListenerManager.Init();
-            AsAssetLoader.Init();
-            AudioManager.LoadPreferenceSettings();
+            LoadVolumeSettings();
             if (loadAudioData)
-                LoadAudioData();
+                AsAssetLoader.LoadAudioInitData();
         }
 
         private void CreateGlobalAudioEmitter()
         {
             var gae = new GameObject("Global Audio Emitter");
             gae.AddComponent<GlobalAudioEmitter>();
+            gae.AddComponent<AudioListener>();
             if (UseMicrophone)
                 GlobalAudioEmitter.AddMicrophone();
             if (UseMidi)
                 GlobalAudioEmitter.AddMidi();
         }
 
-        public void LoadAudioData()
+        private static void LoadVolumeSettings()
         {
-            if (LoadBanks)
-            {
-                foreach (var bank in StartBanks)
-                {
-                    bank.Load(null, null, AudioTriggerSource.Initialization);
-                }
-            }
-
-            if (PostEvents)
-            {
-                foreach (var evt in StartEvents)
-                {
-                    evt.Post(null, AudioTriggerSource.Initialization);
-                }
-            }
+            AudioManager.SoundEnabled = AudioManager.SoundEnabled;
+            AudioManager.MusicEnabled = AudioManager.MusicEnabled;
+            AudioManager.VoiceEnabled = AudioManager.VoiceEnabled;
+            AudioManager.SoundVolume = AudioManager.SoundVolume;
+            AudioManager.MusicVolume = AudioManager.MusicVolume;
+            AudioManager.VoiceVolume = AudioManager.VoiceVolume;
         }
     }   
 }
