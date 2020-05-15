@@ -110,6 +110,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioImportProcessor.cs">
           <Link>Editor\Editor\AudioImportProcessor.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioInitLoadDataInspector.cs">
+          <Link>Editor\Editor\AudioInitLoadDataInspector.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\Editor\AudioPathSettingsInspector.cs">
           <Link>Editor\Editor\AudioPathSettingsInspector.cs</Link>
         </Compile>

@@ -607,6 +607,9 @@ namespace AudioStudio
             return Mathf.Max(-80f, 20f * Mathf.Log10(linear) - 40f);
         }
 
+        /// <summary>
+        /// Change the language of all voice dialogs.
+        /// </summary>
         public static Languages VoiceLanguage
         {
             get

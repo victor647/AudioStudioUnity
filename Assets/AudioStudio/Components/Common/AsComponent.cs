@@ -69,27 +69,35 @@ namespace AudioStudio.Components
 
     public abstract class AsUIHandler : AsComponent
     {
-        protected override void Start()
+        protected override void HandleEnableEvent()
         {
-            base.Start();
             AddListener();
         }
 
-        public virtual void AddListener()
+        protected override void HandleDisableEvent()
         {
+            RemoveListener();
         }
+
+        public virtual void AddListener() {}
+        public virtual void RemoveListener() {}
     }
     
-    //sound emitter when dealing with collision
+    /// <summary>
+    /// Sound emitter when dealing with collision.
+    /// </summary>
     public enum PostFrom
     {
         Self,
         Other
     }
     
-    //define when the event is triggered
+    /// <summary>
+    /// Define when the event is triggered. 
+    /// </summary>
     public enum TriggerCondition
     {
+        AwakeDestroy,
         EnableDisable,
         TriggerEnterExit,
         CollisionEnterExit,   
@@ -97,7 +105,7 @@ namespace AudioStudio.Components
     }
 
     // for any components that can be triggered by physics
-    public abstract class AsPhysicsHandler : AsComponent
+    public abstract class AsTriggerHandler : AsComponent
     {
         public TriggerCondition SetOn = TriggerCondition.EnableDisable;
         public PostFrom PostFrom = PostFrom.Self;
@@ -126,41 +134,54 @@ namespace AudioStudio.Components
         public virtual void Deactivate(GameObject source = null)
         {
         }
-        
+
+        protected override void Awake()
+        {
+            base.Awake();
+            if (SetOn == TriggerCondition.AwakeDestroy)
+                Activate(gameObject);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            if (SetOn == TriggerCondition.AwakeDestroy)
+                Deactivate(gameObject);
+        }
+
         protected override void HandleEnableEvent()
         {            
-            if (SetOn != TriggerCondition.EnableDisable) return;
-            Activate(gameObject);
+            if (SetOn == TriggerCondition.EnableDisable)
+                Activate(gameObject);
         }
         
         protected override void HandleDisableEvent()
         {            
-            if (SetOn != TriggerCondition.EnableDisable) return;
-            Deactivate(gameObject);
+            if (SetOn == TriggerCondition.EnableDisable)
+                Deactivate(gameObject);
         }
 
         private void OnTriggerEnter(Collider other)
         {
-            if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;
-            Activate(GetEmitter(other.gameObject));                         
+            if (SetOn == TriggerCondition.TriggerEnterExit && CompareAudioTag(other))
+                Activate(GetEmitter(other.gameObject));                         
         }
 
         private void OnTriggerExit(Collider other)
         {
-            if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;
-            Deactivate(GetEmitter(other.gameObject));                                          
+            if (SetOn == TriggerCondition.TriggerEnterExit && CompareAudioTag(other))
+                Deactivate(GetEmitter(other.gameObject));                                          
         }      
         
         private void OnCollisionEnter(Collision other)
         {
-            if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;
-            Activate(GetEmitter(other.gameObject));                         
+            if (SetOn == TriggerCondition.CollisionEnterExit && CompareAudioTag(other.collider))
+                Activate(GetEmitter(other.gameObject));                         
         }
 
         private void OnCollisionExit(Collision other)
         {
-            if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;
-            Deactivate(GetEmitter(other.gameObject));                        
+            if (SetOn == TriggerCondition.CollisionEnterExit && CompareAudioTag(other.collider))
+                Deactivate(GetEmitter(other.gameObject));                        
         }
     }
 }

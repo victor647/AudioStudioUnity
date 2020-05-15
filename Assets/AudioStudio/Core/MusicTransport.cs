@@ -58,8 +58,11 @@ namespace AudioStudio
     }
     #endregion
     
+    /// <summary>
+    /// Store the current playing music rhythm information.
+    /// </summary>
     [Serializable]
-    public class TransportData //this class stores the current playing music rhythm information
+    public class TransportData 
     {
         public TransportData(MusicTrack music)
         {
@@ -90,7 +93,7 @@ namespace AudioStudio
     
     public class MusicTransport : MonoBehaviour
     {
-        #region Instance
+        #region Singleton
         private static MusicTransport _instance;
         public static MusicTransport Instance
         {
@@ -121,7 +124,7 @@ namespace AudioStudio
             {
                 if (ActiveMusicData != null)
                     return ActiveMusicData.SampleRate;
-                Debug.LogError("AudioStudio: Can't find Active Music Data!");
+                Debug.LogError("AudioStudio: Can't find Active Music Data! Use 44100 instead.");
                 return 44100;
             }
         }

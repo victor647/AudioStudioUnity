@@ -21,6 +21,7 @@ namespace AudioStudio.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+            ShowPhysicalSettings(_component, false);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("AsyncMode"));
             if (_component.AsyncMode)
             {

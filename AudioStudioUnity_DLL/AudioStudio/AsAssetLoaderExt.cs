@@ -11,7 +11,7 @@ namespace AudioStudio
     {
         public static void LoadAudioInitData()
         {
-            ResourceManager.Instance.Load<AudioInitLoadData>("AudioStudio/AudioInitLoadData", config =>
+            ResourceManager.Instance.Load<AudioInitLoadData>("Audio/Configs/AudioInitLoadData", config =>
             {
                 if (config)
                     config.LoadAudioData();

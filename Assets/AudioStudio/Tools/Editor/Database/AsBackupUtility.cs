@@ -227,9 +227,9 @@ namespace AudioStudio.Tools
 	        return false;
         }
 
-        private static bool ImportPhysicsSettings(AsPhysicsHandler aph, XElement xComponent)
+        private static bool ImportTriggerSettings(AsTriggerHandler aph, XElement xComponent)
         {
-	        var xSettings = xComponent.Element("PhysicsSettings");
+	        var xSettings = xComponent.Element("TriggerSettings");
 	        var modified = ImportEnum(ref aph.MatchTags, AsScriptingHelper.GetXmlAttribute(xSettings, "MatchTags"));
 	        modified |= ImportEnum(ref aph.SetOn, AsScriptingHelper.GetXmlAttribute(xSettings, "SetOn"));
 	        modified |= ImportEnum(ref aph.PostFrom, AsScriptingHelper.GetXmlAttribute(xSettings, "PostFrom"));
@@ -284,9 +284,9 @@ namespace AudioStudio.Tools
 	        xComponent.Add(xSettings);
         }
         
-        private static void ExportPhysicsSettings(AsPhysicsHandler component, XElement xComponent)
+        private static void ExportTriggerSettings(AsTriggerHandler component, XElement xComponent)
         {
-	        var xSettings = new XElement("PhysicsSettings");
+	        var xSettings = new XElement("TriggerSettings");
 	        xSettings.SetAttributeValue("SetOn", component.SetOn);
 	        xSettings.SetAttributeValue("PostFrom", component.PostFrom);  
 	        xSettings.SetAttributeValue("MatchTags", component.MatchTags);                        
@@ -413,7 +413,7 @@ namespace AudioStudio.Tools
         {
             var s = (ColliderSound) component;           
             ExportSpatialSettings(s, xComponent);
-            ExportPhysicsSettings(s, xComponent);            
+            ExportTriggerSettings(s, xComponent);            
             ExportParameter(s.CollisionForceParameter, xComponent);
             var xEvents = new XElement("AudioEvents");
             ExportAudioEvents(s.EnterEvents, xEvents, "Enter");
@@ -490,6 +490,7 @@ namespace AudioStudio.Tools
             xSettings.SetAttributeValue("AsyncMode", s.AsyncMode);
             xComponent.Add(xSettings); 
             ExportSpatialSettings(s, xComponent);
+            ExportTriggerSettings(s, xComponent);
             ExportAsyncBankRefs(s.AsyncBanks, xComponent);
             ExportSyncBanks(s.SyncBanks, xComponent);
         }    
@@ -506,7 +507,7 @@ namespace AudioStudio.Tools
         private static void SetSwitchExporter(Component component, XElement xComponent)
         {
             var s = (SetSwitch) component;                    
-            ExportPhysicsSettings(s, xComponent);
+            ExportTriggerSettings(s, xComponent);
             var xSettings = new XElement("Settings");      
             xSettings.SetAttributeValue("IsGlobal", s.IsGlobal);
             xComponent.Add(xSettings);     
@@ -617,7 +618,7 @@ namespace AudioStudio.Tools
         private static bool ColliderSoundImporter(Component component, XElement xComponent)
         {
             var s = (ColliderSound) component;
-            var modified = ImportPhysicsSettings(s, xComponent);
+            var modified = ImportTriggerSettings(s, xComponent);
             modified |= ImportSpatialSettings(s, xComponent);
             modified |= ImportParameter(ref s.CollisionForceParameter, out s.ValueScale, xComponent);
             modified |= ImportEvents(ref s.EnterEvents, xComponent, "Enter");
@@ -710,6 +711,7 @@ namespace AudioStudio.Tools
             var xSettings = xComponent.Element("Settings");              
             var modified = ImportBool(ref s.AsyncMode, AsScriptingHelper.GetXmlAttribute(xSettings, "AsyncMode"));
             modified |= ImportSpatialSettings(s, xComponent);
+            modified |= ImportTriggerSettings(s, xComponent);
             modified |= ImportAsyncBankRefs(ref s.AsyncBanks, xComponent);
             modified |= ImportSyncBanks(ref s.SyncBanks, xComponent);
             return modified;
@@ -725,7 +727,7 @@ namespace AudioStudio.Tools
         private static bool SetSwitchImporter(Component component, XElement xComponent)
         {
             var s = (SetSwitch) component;                    
-            var modified = ImportPhysicsSettings(s, xComponent);
+            var modified = ImportTriggerSettings(s, xComponent);
             var xSettings = xComponent.Element("Settings");              
             modified |= ImportBool(ref s.IsGlobal, AsScriptingHelper.GetXmlAttribute(xSettings, "IsGlobal"));
             modified |= ImportSwitches(ref s.OnSwitches, xComponent, "On");

@@ -4,6 +4,9 @@ using AudioStudio.Configs;
 
 namespace AudioStudio
 {
+	/// <summary>
+	/// Load audio assets and store reference to them. Different load methods by project.
+	/// </summary>
 	internal static partial class AsAssetLoader
 	{
 		private static readonly Dictionary<string, AudioEvent> _audioEvents = new Dictionary<string, AudioEvent>();
