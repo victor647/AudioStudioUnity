@@ -2,7 +2,6 @@
 Library/
 Logs/
 obj/
-Temp/
 Packages/
 AudioStudioUnity_DLL/AudioStudioUnity_DLL.sln.DotSettings.user
 AudioStudioUnity_DLL/*/bin/
