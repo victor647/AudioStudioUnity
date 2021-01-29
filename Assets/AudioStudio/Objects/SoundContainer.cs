@@ -4,27 +4,18 @@ using System.Linq;
 using AudioStudio.Components;
 using AudioStudio.Tools;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace AudioStudio.Configs
-{   
-    public enum SoundPlayLogic
-    {
-        Layer, 
-        Random,		
-        Switch,        
-        SequenceStep
-    }
-
-    [CreateAssetMenu(fileName = "New Sound Container", menuName = "AudioStudio/Sound/Container")]
-    public class SoundContainer : AudioEvent
+{
+    public abstract class SoundContainer : AudioEvent
     {
         #region Fields    
-        public SoundPlayLogic PlayLogic;                
         public List<SoundContainer> ChildEvents = new List<SoundContainer>();
         public SoundContainer ParentContainer;
-        
-        //Spatial Setting
+        [Range(0, 100)]
+
+        // spatial Setting
+        public bool OverrideSpatial;
         public bool Is3D;
         public float MinDistance = 1f;
         public float MaxDistance = 50f;
@@ -36,15 +27,16 @@ namespace AudioStudio.Configs
         public AnimationCurve AttenuationCurve;
 
         public string Name => ParentContainer ? ParentContainer.Name : name;
-        
+        // audio controls
         public bool RandomizeVolume;
         public float VolumeRandomRange = 0.1f;
         public bool RandomizePitch;
         public float PitchRandomRange = 0.1f;
+        [Range(1, 100)]
+        public byte Probability = 100;
 
-        //voice limiting
+        // voice management
         public bool EnableVoiceLimit;
-        public bool OverrideVoicing;
         public VoiceLimiter VoiceLimiter;
         public byte VoiceLimitGlobal = 8;
         public byte VoiceLimitGameObject = 2;
@@ -54,22 +46,13 @@ namespace AudioStudio.Configs
         
         #region Editor
         public override void OnValidate()
-        {               
-            if (this is SoundClip) return;
-            if (PlayLogic != SoundPlayLogic.Switch)
+        {
+            for (var i = 0; i < ChildEvents.Count; i++)
             {
-                foreach (var child in ChildEvents)
-                {
-                    if (child) CopySettings(child);
-                }
-            }
-            else
-            {
-                foreach (var assignment in SwitchEventMappings)
-                {
-                    var sc = assignment.AudioEvent as SoundContainer;
-                    if (sc) CopySettings(sc);
-                }
+                if (ChildEvents[i] == this)
+                    ChildEvents[i] = null;
+                else if (ChildEvents[i])
+                    CopySettings(ChildEvents[i]);
             }
         }
 
@@ -81,17 +64,20 @@ namespace AudioStudio.Configs
             if (!child.OverrideSpatial)
             {
                 child.Is3D = Is3D;
-                child.RollOffMode = RollOffMode;
-                child.SpreadWidth = SpreadWidth;
-                child.SpatialBlend = SpatialBlend;
-                child.MinDistance = MinDistance;
-                child.MaxDistance = MaxDistance;
-                child.AttenuationCurve = AttenuationCurve;
+                if (Is3D)
+                {
+                    child.RollOffMode = RollOffMode;
+                    child.SpreadWidth = SpreadWidth;
+                    child.SpatialBlend = SpatialBlend;
+                    child.MinDistance = MinDistance;
+                    child.MaxDistance = MaxDistance;
+                    child.AttenuationCurve = AttenuationCurve;
+                }
             }
 
             child.EnableVoiceLimit = EnableVoiceLimit;
-            if (!child.OverrideVoicing)
-            {                
+            if (EnableVoiceLimit)
+            {
                 child.VoiceLimiter = VoiceLimiter;
                 child.Priority = Priority;
                 child.VoiceLimitGlobal = VoiceLimitGlobal;
@@ -106,14 +92,14 @@ namespace AudioStudio.Configs
                 child.HighPassFilter = HighPassFilter;
                 child.HighPassCutoff = HighPassCutoff;
                 child.HighPassResonance = HighPassResonance;
-                
+
+                child.Probability = Probability;
                 child.Volume = Volume;
                 child.RandomizeVolume = RandomizeVolume;
                 child.VolumeRandomRange = VolumeRandomRange;
                 child.Pitch = Pitch;
                 child.RandomizePitch = RandomizePitch;
                 child.PitchRandomRange = PitchRandomRange;
-                child.CrossFadeTime = CrossFadeTime;
 
                 child.SubMixer = SubMixer;
                 child.AudioMixer = AudioMixer;
@@ -126,31 +112,19 @@ namespace AudioStudio.Configs
         {
             if (IndependentEvent) 
                 ParentContainer = null;
-
-            if (this is SoundClip) return;
-            
-            if (PlayLogic != SoundPlayLogic.Switch)
-            {
-                SwitchEventMappings = new SwitchEventMapping[0];
-                if (ChildEvents.Any(c => !c)) 
-                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
-            }
-            else 
-            {
-                ChildEvents.Clear();
-                if (SwitchEventMappings.Any(c => !c.AudioEvent))
-                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
-            }                        
             
             foreach (var evt in ChildEvents)
             {
-                if (evt) evt.CleanUp();                    
-            }            
+                if (evt) 
+                    evt.CleanUp();
+                else
+                    Debug.LogError("Child Event of Sound Container " + name + " is missing!");
+            }       
         }
         
         public override bool IsValid()
         {
-            return PlayLogic != SoundPlayLogic.Switch ? ChildEvents.Any(c => c != null) : SwitchEventMappings.Any(m => m.AudioEvent != null);
+            return ChildEvents.Any(c => c != null);
         }
         
         internal override AudioObjectType GetEventType()
@@ -167,38 +141,21 @@ namespace AudioStudio.Configs
         #region Initialize
         internal override void Init()
         {
-            LastSelectedIndex = 255;
-            if (PlayLogic != SoundPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
+                if (evt)
                     evt.Init();
-                }
-            }
-            else
-            {
-                foreach (var mapping in SwitchEventMappings)
-                {
-                    mapping.AudioEvent.Init();
-                } 
+                else
+                    Debug.LogError("ChildEvent of SoundContainer " + name + " is missing!");
             }
         }
 
         internal override void Dispose()
         {
-            if (PlayLogic != SoundPlayLogic.Switch)
+            foreach (var evt in ChildEvents)
             {
-                foreach (var evt in ChildEvents)
-                {
+                if (evt)
                     evt.Dispose();
-                }
-            }
-            else
-            {
-                foreach (var mapping in SwitchEventMappings)
-                {
-                    mapping.AudioEvent.Dispose();
-                } 
             }
         }
         #endregion       
@@ -207,18 +164,33 @@ namespace AudioStudio.Configs
 
         public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
-            if (!soundSource)
+            // without a valid sound source or chance failed
+            if (!soundSource || !WillPlayByProbability())
                 return string.Empty;
+            // check voice limit
             if (EnableVoiceLimit)
             {
+                if (ReachVoiceLimit(soundSource)) 
+                    return string.Empty;
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
             }
             var chosenClip = GetChild(soundSource, fadeInTime, endCallback);
             if (!chosenClip)
-                return string.Empty;
+                return ChildEvents[0].name;
             chosenClip.Play(soundSource, fadeInTime, endCallback);
             return chosenClip.name;
+        }
+
+        protected bool WillPlayByProbability()
+        {
+            if (Probability < 100)
+            {
+                var roll = UnityEngine.Random.Range(0, 100);
+                if (roll >= Probability)
+                    return false;
+            }
+            return true;
         }
 
         public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
@@ -269,91 +241,21 @@ namespace AudioStudio.Configs
             }
         }
 
-        private void OnSwitchChanged(GameObject soundSource)
+        protected virtual SoundClip GetChild(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
         {
-            Stop(soundSource, CrossFadeTime);
-            Play(soundSource, CrossFadeTime);
-        }
-
-        private SoundClip GetChild(GameObject soundSource, float fadeInTime, Action<GameObject> endCallback = null)
-        {
-            if (PlayLogic == SoundPlayLogic.Layer)
-            {
-                for (var i = 0; i < ChildEvents.Count; i++)
-                {
-                    var evt = ChildEvents[i];
-                    if (i == 0) //only the first clip will have the end callback
-                        evt.Play(soundSource, fadeInTime, endCallback);
-                    else
-                        evt.Play(soundSource, fadeInTime);
-                }
-
-                return null;
-            }
             var soundContainer = GetChildByPlayLogic(soundSource);                
             var clip = soundContainer as SoundClip;
             return clip ? clip : soundContainer.GetChild(soundSource, fadeInTime, endCallback);                       
         }
 
-        private SoundContainer GetChildByPlayLogic(GameObject soundSource)
+        internal virtual SoundContainer GetChildByPlayLogic(GameObject soundSource)
         {
-            switch (PlayLogic)
-            {
-                case SoundPlayLogic.Random:
-                    return GetRandomContainer();
-                case SoundPlayLogic.Switch:
-                    return GetSwitchContainer(soundSource);
-                case SoundPlayLogic.SequenceStep:
-                    return GetSequenceContainer();
-            }
             return null;
-        }
-
-        public SoundContainer GetRandomContainer()
-        {
-            if (ChildEvents.Count < 2)
-                return ChildEvents[0];
-            var selectedIndex = Random.Range(0, ChildEvents.Count);
-            if (!AvoidRepeat) 
-                return ChildEvents[selectedIndex];
-            while (selectedIndex == LastSelectedIndex)
-            {
-                selectedIndex = Random.Range(0, ChildEvents.Count);
-            }
-            LastSelectedIndex = (byte)selectedIndex;
-            return ChildEvents[selectedIndex];
-        }
-
-        private SoundContainer GetSwitchContainer(GameObject soundSource)
-        {
-            var audioSwitch = AsAssetLoader.GetAudioSwitch(AudioSwitchReference.Name);
-            if (audioSwitch)
-            {
-                var asi = audioSwitch.GetOrAddSwitchInstance(soundSource);
-                if (SwitchImmediately)
-                {
-                    asi.OnSwitchChanged = OnSwitchChanged;
-                }
-
-                foreach (var assignment in SwitchEventMappings)
-                {
-                    if (assignment.SwitchName == asi.CurrentSwitch)
-                        return (SoundContainer) assignment.AudioEvent;
-                }
-            }
-            return (SoundContainer) SwitchEventMappings[0].AudioEvent;
-        }
-
-        private SoundContainer GetSequenceContainer()
-        {
-            LastSelectedIndex++;
-            if (LastSelectedIndex == ChildEvents.Count) LastSelectedIndex = 0;
-            return ChildEvents[LastSelectedIndex];
         }
         #endregion
         
         #region VoiceManagement        
-        public void AddVoicing(GameObject soundSource)
+        protected void AddVoicing(GameObject soundSource)
         {
             if (_voiceCount.ContainsKey(soundSource))
                 _voiceCount[soundSource]++;
@@ -361,7 +263,7 @@ namespace AudioStudio.Configs
                 _voiceCount[soundSource] = 1;
         }
 
-        public void RemoveVoicing(GameObject soundSource)
+        protected void RemoveVoicing(GameObject soundSource)
         {
             if (_voiceCount.ContainsKey(soundSource))
             {
@@ -369,14 +271,6 @@ namespace AudioStudio.Configs
                 if (_voiceCount[soundSource] == 0)
                     _voiceCount.Remove(soundSource);
             }                     
-        }
-
-        public void ClearVoicing(GameObject soundSource)
-        {
-            if (_voiceCount.ContainsKey(soundSource))
-            {
-                _voiceCount.Remove(soundSource);
-            }   
         }
 
         private int CurrentVoicesGlobal()
@@ -393,21 +287,21 @@ namespace AudioStudio.Configs
             return 0;
         }
 
-        internal bool ReachVoiceLimit(GameObject soundSource, AudioTriggerSource trigger = AudioTriggerSource.Code)
+        protected bool ReachVoiceLimit(GameObject soundSource)
         {
             if (!EnableVoiceLimit)
                 return false;
 
             if (CurrentVoicesGlobal() >= VoiceLimitGlobal)
             {
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, trigger, name, soundSource,
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, name, soundSource,
                     "Global voice limit of " + VoiceLimitGlobal + " reaches");
                 return true;
             }
 
             if (CurrentVoicesGameObject(soundSource) >= VoiceLimitGameObject)
             {
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, trigger, name, soundSource,
+                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, name, soundSource,
                     "GameObject voice limit of " + VoiceLimitGameObject + " reaches");
                 return true;
             }

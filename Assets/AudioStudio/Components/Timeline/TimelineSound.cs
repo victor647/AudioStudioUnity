@@ -5,7 +5,7 @@ namespace AudioStudio.Components
 {
     [AddComponentMenu("AudioStudio/TimelineSound")]
     [DisallowMultipleComponent]
-    public class TimelineSound : AudioEmitterObject
+    public class TimelineSound : AudioEmitter3D
     {                        
         public GameObject[] Emitters = new GameObject[0];
 

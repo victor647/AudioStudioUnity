@@ -89,6 +89,12 @@ namespace AudioStudio.Configs
 		
 		public AudioEventReference(string name = "") : base(name)
 		{
+			if (name.StartsWith("Music_"))
+				Type = AudioEventType.Music;
+			else if (name.StartsWith("Vo_"))
+				Type = AudioEventType.Voice;
+			else
+				Type = AudioEventType.SFX;
 		}
 
 		internal void Play(GameObject soundSource = null, AudioTriggerSource trigger = AudioTriggerSource.Code)

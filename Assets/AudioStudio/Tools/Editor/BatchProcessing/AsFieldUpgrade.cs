@@ -31,12 +31,12 @@ namespace AudioStudio.Tools
 		private void OnGUI()
 		{
 			GUILayout.BeginHorizontal();
-			GUILayout.Label("Script To Upgrade");
+			GUILayout.Label("Script Class To Upgrade");
 			_script = EditorGUILayout.ObjectField(_script, typeof(MonoScript), false) as MonoScript;
 			GUILayout.EndHorizontal();
 						 			
-			_oldString = GUILayout.TextField(_oldString);
-			_newString = GUILayout.TextField(_newString);
+			_oldString = EditorGUILayout.TextField("Old Field Name", _oldString);
+			_newString = EditorGUILayout.TextField("New Field Name", _newString);
 			
 			GUILayout.BeginHorizontal();
 			IncludeA = GUILayout.Toggle(IncludeA, "Search in prefabs");
@@ -55,9 +55,10 @@ namespace AudioStudio.Tools
 			}
 			TotalCount = 0;
 			_type = _script.GetClass();
-			if (IncludeA) FindFiles(Upgrade, "Exporting Prefabs", "*.prefab");
-			if (IncludeB) FindFiles(Upgrade, "Exporting Scenes", "*.unity");
+			if (IncludeA) FindFiles(Upgrade, "Upgrading Prefabs", "*.prefab");
+			if (IncludeB) FindFiles(Upgrade, "Upgrading Scenes", "*.unity");
 			AssetDatabase.SaveAssets();
+			EditorUtility.DisplayDialog("Finished", "Upgraded " + TotalCount + " Assets!", "OK");
 		}				
 	}
 }

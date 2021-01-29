@@ -14,13 +14,13 @@ namespace AudioStudio.Configs
         public AudioClip Clip;        
         public bool Loop;
         public bool SeekRandomPosition;
+        private List<SoundClipInstance> _playingInstances = new List<SoundClipInstance>(); 
         #endregion
         
         #region Editor
         public override void CleanUp()
-        {            
-            ChildEvents = null;            
-            SwitchEventMappings = null;
+        {
+            ChildEvents.Clear();
             if (!Clip)
                 Debug.LogError("AudioClip of SoundClip " + name + " is missing!");
         }
@@ -35,26 +35,30 @@ namespace AudioStudio.Configs
 
         internal override void Init()
         {            
-            _playingInstances = new List<AudioEventInstance>();
-            Clip.LoadAudioData();									                   
+            _playingInstances.Clear();
+            if (Clip)
+                Clip.LoadAudioData();
+            else
+                Debug.LogError("AudioClip of SoundClip " + name + " is missing!");
         }
 
         internal override void Dispose()
         {             
             _playingInstances.Clear();
-            Clip.UnloadAudioData();										            
+            if (Clip)
+                Clip.UnloadAudioData();										            
         }
 
         internal void AddInstance(SoundClipInstance instance)
         {
             _playingInstances.Add(instance);
-            AudioManager.GlobalSoundInstances.Add(name +  " @ " + instance.gameObject.name);  
+            EmitterManager.AddSoundInstance(instance);
         }
 
         internal void RemoveInstance(SoundClipInstance instance)
         {
             _playingInstances.Remove(instance);
-            AudioManager.GlobalSoundInstances.Remove(name +  " @ " + instance.gameObject.name);  
+            EmitterManager.RemoveSoundInstance(instance);
         }
         #endregion
 
@@ -62,19 +66,27 @@ namespace AudioStudio.Configs
 
         public override string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null)
         {
-            if (!soundSource)
+            // without a valid sound source or chance failed
+            if (!soundSource || !WillPlayByProbability())
                 return string.Empty;
+            // check voice limit
             if (EnableVoiceLimit)
             {
+                if (ReachVoiceLimit(soundSource)) 
+                    return string.Empty;
                 AddVoicing(soundSource);
                 endCallback += RemoveVoicing;
-            }  
-                                                
-            var sci = ParentContainer && ParentContainer.RandomOnLoop ? soundSource.AddComponent<RandomLoopClipsInstance>() : soundSource.AddComponent<SoundClipInstance>();
+            }
+
+            SoundClipInstance sci;
+            var randomContainer = ParentContainer as SoundRandomContainer;
+            if (randomContainer && randomContainer.RandomOnLoop)
+                sci = soundSource.AddComponent<RandomLoopClipsInstance>();
+            else
+                sci = soundSource.AddComponent<SoundClipInstance>();
             sci.Init(this, soundSource);            
             sci.Play(fadeInTime, endCallback);
             return Clip.name;
-
         }
 
         public override void Stop(GameObject soundSource, float fadeOutTime = 0f)
@@ -228,6 +240,32 @@ namespace AudioStudio.Configs
             return baseValue + Random.Range(-randomRange, randomRange);
         }
         #endregion
+        
+        #region Editor
+        private void OnDrawGizmosSelected()
+        {
+            if (!SoundClip.Is3D) return;
+            
+            switch (AudioPathSettings.Instance.GizmosSphereColor)
+            {
+                case GizmosColor.Disabled:
+                    return;
+                case GizmosColor.Red:
+                    Gizmos.color = new Color(1, 0, 0, 0.2f);
+                    break;
+                case GizmosColor.Yellow:
+                    Gizmos.color = new Color(1, 1, 0, 0.2f);
+                    break;
+                case GizmosColor.Green:
+                    Gizmos.color = new Color(0, 1, 0, 0.2f);
+                    break;
+                case GizmosColor.Blue:
+                    Gizmos.color = new Color(0, 0, 1, 0.2f);
+                    break;
+            }
+            Gizmos.DrawSphere(transform.position, SoundClip.MaxDistance);
+        }
+        #endregion
 
         #region Playback        
         protected AudioVoiceInstance AudioVoiceInstance;
@@ -265,7 +303,7 @@ namespace AudioStudio.Configs
                 AudioSource.Play();
         }
 
-        private void FixedUpdate()
+        internal override void UpdatePlayingStatus()
         {
             if (PlayingStatus != PlayingStatus.Playing) return;                
             
@@ -292,12 +330,12 @@ namespace AudioStudio.Configs
 
     public class RandomLoopClipsInstance : SoundClipInstance
     {
-        private SoundContainer _clipPool;
+        private SoundRandomContainer _clipPool;
         private SoundClip _originalClip;
         private AudioSource _source1;
         private AudioSource _source2;
         private float _volume;
-        private int CrossFadeStartSample => Mathf.CeilToInt(SoundClip.Clip.samples - SoundClip.CrossFadeTime * SoundClip.Clip.frequency * Mathf.Abs(SoundClip.Pitch));
+        private int CrossFadeStartSample => Mathf.CeilToInt(SoundClip.Clip.samples - _clipPool.CrossFadeTime * SoundClip.Clip.frequency * Mathf.Abs(SoundClip.Pitch));
         
         private void OnDestroy()
         {            
@@ -323,21 +361,21 @@ namespace AudioStudio.Configs
             SoundClip = _originalClip = clip;
             
             _originalClip.AddInstance(this);
-            _clipPool = clip.ParentContainer;
+            _clipPool = clip.ParentContainer as SoundRandomContainer;
             _volume = clip.Volume;
             InitAudioSource(_source1);
             InitAudioSource(_source2);
             InitFilters();
         }
 
-        private void FixedUpdate()
+        internal override void UpdatePlayingStatus()
         {
             if (PlayingStatus != PlayingStatus.Playing) return;    
             
             //random to next loop
             if (TimeSamples >= CrossFadeStartSample)
             {                
-                SoundClip = _clipPool.GetRandomContainer() as SoundClip;
+                SoundClip = _clipPool.GetChildByPlayLogic(gameObject) as SoundClip;
                 PlayAgain();
             }
             TimeSamples = AudioSource.timeSamples;
@@ -345,8 +383,8 @@ namespace AudioStudio.Configs
 
         private void PlayAgain()
         {
-            if (isActiveAndEnabled && SoundClip.CrossFadeTime > 0f)
-                StartCoroutine(AudioSource.Stop(SoundClip.CrossFadeTime));
+            if (isActiveAndEnabled && _clipPool.CrossFadeTime > 0f)
+                StartCoroutine(AudioSource.Stop(_clipPool.CrossFadeTime));
             else
                 AudioSource.Stop();
             AudioSource = AudioSource == _source1 ? _source2 : _source1;
@@ -354,7 +392,7 @@ namespace AudioStudio.Configs
             AudioSource.clip = SoundClip.Clip;
             AudioSource.panStereo = SoundClip.Pan;
             AudioSource.pitch = SoundClip.Pitch;
-            SeekPositionAndPlay(SoundClip.CrossFadeTime);		
+            SeekPositionAndPlay(_clipPool.CrossFadeTime);		
             AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, Emitter);
         }
 

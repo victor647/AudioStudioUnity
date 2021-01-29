@@ -9,3 +9,4 @@ AudioStudioUnity_DLL/*/bin/
 AudioStudioUnity.sln
 Assembly-CSharp.csproj
 Assembly-CSharp-Editor.csproj
+Temp/

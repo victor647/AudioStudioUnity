@@ -28,6 +28,13 @@ namespace AudioStudio.Editor
                 AsGuiDrawer.DrawPathDisplay("Build Assets Path", _component.BuildAssetsPath, SetupBuildAssetsPath);
                 AsGuiDrawer.DrawPathDisplay("Game Start Scene Path", _component.StartScenePath, SetupStartScenePath);
             }
+            
+            EditorGUILayout.LabelField("Gizmos Settings", EditorStyles.boldLabel);
+            using (new EditorGUILayout.VerticalScope(GUI.skin.box))
+            {
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("GizmosSphereColor"), "Attenuation Sphere", 120);
+                AsGuiDrawer.DrawProperty(serializedObject.FindProperty("GizmosIconScaling"), "Icon Scaling", 120);
+            }
 
             EditorGUILayout.LabelField("Import Settings", EditorStyles.boldLabel);
             using (new EditorGUILayout.VerticalScope(GUI.skin.box))

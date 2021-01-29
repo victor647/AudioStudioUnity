@@ -21,38 +21,40 @@ namespace AudioStudio.Configs
 	public class VoiceEvent : AudioEvent
 	{						
 		#region Fields
-		public VoicePlayLogic PlayLogic = VoicePlayLogic.Single;		
-		public SwitchClipMapping[] SwitchClipMappings;					
-		
+		public VoicePlayLogic PlayLogic = VoicePlayLogic.Single;
+		// random
+		public bool AvoidRepeat = true;
+		private byte _lastPlayedIndex = 255;
+		// switch
+		public AudioSwitchReference AudioSwitchReference = new AudioSwitchReference();	
+		public SwitchClipMapping[] SwitchClipMappings;
 		public AudioClip Clip;		
 		public List<AudioClip> Clips = new List<AudioClip>();
+		private List<VoiceEventInstance> _playingInstances = new List<VoiceEventInstance>(); 
 		#endregion
 		
 		#region Initialize					
 
 		internal override void Init()
 		{		
-			LastSelectedIndex = 255;
-			_playingInstances = new List<AudioEventInstance>();
-			switch (PlayLogic)
+			_lastPlayedIndex = 255;
+			_playingInstances.Clear();
+			if (PlayLogic == VoicePlayLogic.Single)
 			{
-				case VoicePlayLogic.Single:
+				if (Clip)
 					Clip.LoadAudioData();
-					break;
-				case VoicePlayLogic.Switch:
-					Clip = null;
-					foreach (var mapping in SwitchClipMappings)
-					{
-						mapping.Clip.LoadAudioData();
-					}
-					break;
-				default:
-					Clip = null;
-					foreach (var clip in Clips)
-					{
+				else
+					Debug.LogError("AudioClip of VoiceEvent " + name + " is missing!");
+			}
+			else
+			{
+				foreach (var clip in Clips)
+				{
+					if (clip)
 						clip.LoadAudioData();
-					}
-					break;
+					else
+						Debug.LogError("AudioClip of VoiceEvent " + name + " is missing!");
+				}
 			}
 		}
 
@@ -67,13 +69,15 @@ namespace AudioStudio.Configs
 				case VoicePlayLogic.Switch:
 					foreach (var mapping in SwitchClipMappings)
 					{
-						mapping.Clip.UnloadAudioData();
+						if (mapping.Clip)
+							mapping.Clip.UnloadAudioData();
 					}
 					break;
 				default:
 					foreach (var clip in Clips)
 					{
-						clip.UnloadAudioData();
+						if (clip)
+							clip.UnloadAudioData();
 					}
 					break;
 			}
@@ -82,13 +86,13 @@ namespace AudioStudio.Configs
 		internal void AddInstance(VoiceEventInstance instance)
 		{
 			_playingInstances.Add(instance);
-			AudioManager.GlobalVoiceInstances.Add(Clip.name +  " @ " + instance.gameObject.name);  
+			EmitterManager.AddVoiceInstance(instance);  
 		}
 
 		internal void RemoveInstance(VoiceEventInstance instance)
 		{
 			_playingInstances.Remove(instance);
-			AudioManager.GlobalVoiceInstances.Remove(Clip.name +  " @ " + instance.gameObject.name);  
+			EmitterManager.RemoveVoiceInstance(instance);  
 		}
 		#endregion
 		
@@ -102,11 +106,11 @@ namespace AudioStudio.Configs
 						return Clips[0];
 					var selectedIndex = Random.Range(0, Clips.Count);
 					if (!AvoidRepeat) return Clips[selectedIndex];
-					while (selectedIndex == LastSelectedIndex)
+					while (selectedIndex == _lastPlayedIndex)
 					{
 						selectedIndex = Random.Range(0, Clips.Count);
 					}
-					LastSelectedIndex = (byte)selectedIndex;
+					_lastPlayedIndex = (byte)selectedIndex;
 					return Clips[selectedIndex];					
 				case VoicePlayLogic.Switch:
 					var audioSwitch = AsAssetLoader.GetAudioSwitch(AudioSwitchReference.Name);
@@ -121,9 +125,9 @@ namespace AudioStudio.Configs
 					}
 					return SwitchClipMappings[0].Clip;
 				case VoicePlayLogic.SequenceStep:
-					LastSelectedIndex++;
-					if (LastSelectedIndex == Clips.Count) LastSelectedIndex = 0;
-					return Clips[LastSelectedIndex];		
+					_lastPlayedIndex++;
+					if (_lastPlayedIndex == Clips.Count) _lastPlayedIndex = 0;
+					return Clips[_lastPlayedIndex];		
 			}
 			return null;
 		}
@@ -215,22 +219,21 @@ namespace AudioStudio.Configs
 					break;
 				case VoicePlayLogic.Switch:
 					Clip = null;
-					Clips.Clear();
 					if (SwitchClipMappings.Any( c=> !c.Clip))
 						Debug.LogError("AudioClips of VoiceEvent " + name + " is missing!");
 					break;
 			}
-
-			if (PlayLogic != VoicePlayLogic.Switch)
-			{
-				SwitchEventMappings = null;
-				SwitchClipMappings = null;
-			}
+		}
+		
+		public override void OnValidate()
+		{
+			if (PlayLogic == VoicePlayLogic.Switch)
+				Clips = SwitchClipMappings.Select(mapping => mapping.Clip).ToList();
 		}
 		
 		public override bool IsValid()
 		{
-			return Clip != null || Clips.Any(c => c != null) || SwitchClipMappings.Any(m => m.Clip != null);
+			return Clip != null || Clips.Any(c => c != null);
 		}
 		
 		internal override AudioObjectType GetEventType()
@@ -243,15 +246,15 @@ namespace AudioStudio.Configs
 	public class VoiceEventInstance : AudioEventInstance
 	{	
 		#region Initialize
-		private VoiceEvent _voiceEvent;
+		internal VoiceEvent VoiceEvent;
 		
 		public void Init(VoiceEvent evt, GameObject emitter)
 		{			
 			AudioSource = gameObject.AddComponent<AudioSource>();
-			_voiceEvent = evt;
+			VoiceEvent = evt;
 			Emitter = emitter;
 			
-			_voiceEvent.AddInstance(this);
+			VoiceEvent.AddInstance(this);
 			AudioSource.clip = evt.Clip;			
 			AudioSource.pitch = evt.Pitch;
 			AudioSource.panStereo = evt.Pan;
@@ -287,12 +290,11 @@ namespace AudioStudio.Configs
 		{
 			OnAudioEnd?.Invoke(Emitter);
 			Destroy(AudioSource);
-			_voiceEvent.RemoveInstance(this);
+			VoiceEvent.RemoveInstance(this);
 		}
 		#endregion
 		
 		#region Playback				
-		
 		public void Play(float fadeInTime, Action<GameObject> endCallback = null)
 		{
 			OnAudioEnd = endCallback;
@@ -302,7 +304,7 @@ namespace AudioStudio.Configs
 				AudioSource.Play();
 		}
 
-		private void FixedUpdate()
+		internal override void UpdatePlayingStatus()
 		{
 			if (AudioSource.timeSamples < TimeSamples && !AudioSource.loop)
 			{
@@ -311,7 +313,6 @@ namespace AudioStudio.Configs
 			}
 			TimeSamples = AudioSource.timeSamples;
 		}
-		
 		#endregion
 	}
 }

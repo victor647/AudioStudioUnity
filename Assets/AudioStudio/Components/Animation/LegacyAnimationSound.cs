@@ -31,20 +31,21 @@ namespace AudioStudio.Components
     {
         public int FrameRate = 30;
         public AnimationAudioEvent[] AudioEvents = new AnimationAudioEvent[0];
-        private Animation _animation;
-        
-        private void Start()
+
+        protected override void Start()
         {
-            _animation = GetComponent<Animation>();
-            if (_animation == null) return;
+            base.Start();
             RegisterEvents();
         }
 
         private void RegisterEvents()
         {
+            var anim = GetComponent<Animation>();
+            if (!anim) return;
+            
             foreach (var evt in AudioEvents)
             {
-                var clip = _animation.GetClip(evt.ClipName);
+                var clip = anim.GetClip(evt.ClipName);
                 if (!clip) continue;
                 var existingEvent = clip.events.FirstOrDefault(e => e.stringParameter == evt.AudioEvent.Name);
                 if (existingEvent != null) continue;

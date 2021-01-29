@@ -58,17 +58,17 @@ namespace AudioStudio.Tools
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPathShort);
                 if (!prefab) continue;
                 
-                if (sampleLoadBank && sampleLoadBank.Banks.Length > 0)
+                if (sampleLoadBank && sampleLoadBank.AsyncBanks.Length > 0)
                 {
-                    var sampleBank = sampleLoadBank.Banks[0];
+                    var sampleBank = sampleLoadBank.AsyncBanks[0];
                     var prefabLoadBank = AsUnityHelper.GetOrAddComponent<LoadBank>(prefab);
-                    var bankName = sampleLoadBank.Banks[0].Name.Replace(_sampleCharacterName, prefabCharacterName);
+                    var bankName = sampleLoadBank.AsyncBanks[0].Name.Replace(_sampleCharacterName, prefabCharacterName);
                     var newBankRef = new LoadBankReference(bankName)
                     {
                         LoadFinishEvents = sampleBank.LoadFinishEvents.Select(evt => new AudioEventReference(evt.Name.Replace(_sampleCharacterName, prefabCharacterName)) {Type = evt.Type}).ToArray(),
                         UnloadOnDisable = sampleBank.UnloadOnDisable
                     };
-                    prefabLoadBank.Banks = new[] {newBankRef};
+                    prefabLoadBank.AsyncBanks = new[] {newBankRef};
                     if (_saveToXml)
                         AsComponentBackup.Instance.UpdateXmlFromComponent(prefabPathShort, prefabLoadBank);
                 }

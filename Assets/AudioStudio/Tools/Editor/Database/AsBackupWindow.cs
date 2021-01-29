@@ -30,7 +30,7 @@ namespace AudioStudio.Tools
                 EditorGUILayout.LabelField("Search Inclusion", GUILayout.Width(150));
                 DrawToggle(ref AsComponentBackup.Instance.IncludeA, "Prefabs");
                 DrawToggle(ref AsComponentBackup.Instance.IncludeB, "Scenes");
-                DrawToggle(ref AsComponentBackup.Instance.IncludePrefabInScene, "Prefabs in Scenes");
+                DrawToggle(ref AsComponentBackup.Instance.IncludePrefabVariants, "Prefabs Variants");
                 EditorGUILayout.EndHorizontal();
                 DrawToggle(ref AsComponentBackup.Instance.SeparateXmlFiles, "Create one xml per component");
 

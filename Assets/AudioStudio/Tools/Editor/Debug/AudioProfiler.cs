@@ -27,6 +27,7 @@ namespace AudioStudio.Tools
         private bool _includeParameter = true;
 
         private bool _paused;
+        private string _objectNameFilter;
 
         private void AddLog(ProfilerMessage message)
         {
@@ -86,8 +87,12 @@ namespace AudioStudio.Tools
         {
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Display Filter", EditorStyles.boldLabel);
-            if (GUILayout.Button("Select All", GUILayout.Width(100))) SelectAll(true);
-            if (GUILayout.Button("Deselect All", GUILayout.Width(100))) SelectAll(false);
+            EditorGUILayout.LabelField("Name Contains", GUILayout.Width(100));
+            _objectNameFilter = EditorGUILayout.TextField(_objectNameFilter);
+            if (GUILayout.Button("Select All", GUILayout.Width(100))) 
+                SelectAll(true);
+            if (GUILayout.Button("Deselect All", GUILayout.Width(100))) 
+                SelectAll(false);
             GUILayout.EndHorizontal();
 
             DrawSeverityOptions();
@@ -95,9 +100,12 @@ namespace AudioStudio.Tools
             DrawTypeOptions();
                 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Pause")) _paused = true;
-            if (GUILayout.Button("Resume")) _paused = false;
-            if (GUILayout.Button("Clear")) _ProfilerMessages.Clear();
+            if (GUILayout.Button("Pause")) 
+                _paused = true;
+            if (GUILayout.Button("Resume")) 
+                _paused = false;
+            if (GUILayout.Button("Clear")) 
+                _ProfilerMessages.Clear();
             _autoScroll = GUILayout.Toggle(_autoScroll, "Auto Scroll", GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
@@ -115,11 +123,13 @@ namespace AudioStudio.Tools
                 GUILayout.EndHorizontal();
 
                 _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition, GUILayout.Height(position.height - 130));
-                if (_autoScroll && Application.isPlaying && !EditorApplication.isPaused) _scrollPosition.y = Mathf.Infinity;
-                foreach (var ProfilerMessage in _ProfilerMessages)
+                if (_autoScroll && Application.isPlaying && !EditorApplication.isPaused) 
+                    _scrollPosition.y = Mathf.Infinity;
+                
+                foreach (var message in _ProfilerMessages)
                 {
-                    if (!FilterLog(ProfilerMessage)) continue;
-                    switch (ProfilerMessage.Severity)
+                    if (!FilterLog(message)) continue;
+                    switch (message.Severity)
                     {
                         case Severity.Error:
                             GUI.color = Color.red;
@@ -130,16 +140,16 @@ namespace AudioStudio.Tools
                     }
 
                     GUILayout.BeginHorizontal();
-                    EditorGUILayout.LabelField(ProfilerMessage.Severity.ToString(), GUILayout.Width(96));
+                    EditorGUILayout.LabelField(message.Severity.ToString(), GUILayout.Width(96));
                     GUI.color = Color.white;
-                    EditorGUILayout.LabelField(ProfilerMessage.Time, GUILayout.Width(80));
-                    DrawObject(ProfilerMessage.ObjectType);
-                    DrawAction(ProfilerMessage.Action);
-                    EditorGUILayout.LabelField(ProfilerMessage.ObjectName, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
-                    DrawTrigger(ProfilerMessage.TriggerFrom);
-                    if (GUILayout.Button(ProfilerMessage.GameObjectName, GUI.skin.label, GUILayout.MinWidth(120), GUILayout.MaxWidth(200)))
-                        Selection.activeGameObject = ProfilerMessage.GameObject;
-                    EditorGUILayout.LabelField(ProfilerMessage.Message);
+                    EditorGUILayout.LabelField(message.Time, GUILayout.Width(80));
+                    DrawObject(message.ObjectType);
+                    DrawAction(message.Action);
+                    EditorGUILayout.LabelField(message.ObjectName, GUILayout.MinWidth(150), GUILayout.MaxWidth(300));
+                    DrawTrigger(message.TriggerFrom);
+                    if (GUILayout.Button(message.GameObjectName, GUI.skin.label, GUILayout.MinWidth(120), GUILayout.MaxWidth(200)))
+                        Selection.activeGameObject = message.GameObject;
+                    EditorGUILayout.LabelField(message.Message);
                     GUILayout.EndHorizontal();
                 }
 
@@ -175,12 +185,12 @@ namespace AudioStudio.Tools
         {
             GUILayout.BeginHorizontal();
             EditorGUILayout.LabelField("Type:", GUILayout.Width(80));
-            DrawInstanceDropdown(ref _includeSound, "SFX", AudioManager.GlobalSoundInstances, 300);
-            DrawInstanceDropdown(ref _includeMusic, "Music", AudioManager.GlobalMusicInstances, 150);
-            DrawInstanceDropdown(ref _includeVoice, "Voice", AudioManager.GlobalVoiceInstances, 250);
+            DrawInstanceDropdown(ref _includeSound, "SFX", EmitterManager.GetSoundInstances(), 300);
+            DrawInstanceDropdown(ref _includeMusic, "Music", EmitterManager.GetMusicInstances(), 150);
+            DrawInstanceDropdown(ref _includeVoice, "Voice", EmitterManager.GetVoiceInstances(), 250);
             DrawInstanceDropdown(ref _includeBank, "Bank", BankManager.LoadedBankList, 150, 80);
-            DrawInstanceDropdown(ref _includeSwitch, "Switch", AudioManager.GlobalSwitchInstances, 200, 80);
-            DrawInstanceDropdown(ref _includeParameter, "Parameter", AudioManager.GlobalParameterInstances, 200);
+            DrawInstanceDropdown(ref _includeSwitch, "Switch", EmitterManager.GetSwitchInstances(), 200, 80);
+            DrawInstanceDropdown(ref _includeParameter, "Parameter", EmitterManager.GetParameterInstances(), 200);
             _includePlayback = GUILayout.Toggle(_includePlayback, "Playback", GUILayout.Width(100));
             GUILayout.EndHorizontal();
         }
@@ -192,9 +202,12 @@ namespace AudioStudio.Tools
                 AudioInstanceList.Init(instanceList, dropdownWidth);
         }
 
-        private bool FilterLog(ProfilerMessage ProfilerMessage)
+        private bool FilterLog(ProfilerMessage message)
         {
-            switch (ProfilerMessage.Severity)
+            if (!string.IsNullOrEmpty(_objectNameFilter) && !message.ObjectName.ToLower().Contains(_objectNameFilter.ToLower()))
+                return false;
+                
+            switch (message.Severity)
             {
                 case Severity.Notification:
                     if (!_includeNotification) return false;
@@ -207,7 +220,7 @@ namespace AudioStudio.Tools
                     break;
             }
 
-            switch (ProfilerMessage.ObjectType)
+            switch (message.ObjectType)
             {
                 case AudioObjectType.Music:
                     if (!_includeMusic) return false;
@@ -229,7 +242,7 @@ namespace AudioStudio.Tools
                     break;
             }
 
-            switch (ProfilerMessage.Action)
+            switch (message.Action)
             {
                 case AudioAction.End:
                 case AudioAction.Loop:
@@ -246,7 +259,7 @@ namespace AudioStudio.Tools
                     break;
             }
 
-            switch (ProfilerMessage.TriggerFrom)
+            switch (message.TriggerFrom)
             {
                 case AudioTriggerSource.Code:
                     if (!_includeCode) return false;
@@ -257,7 +270,7 @@ namespace AudioStudio.Tools
                 case AudioTriggerSource.Initialization:
                     return true;
                 default:
-                    if (!_includeComponents || !_componentInclusions[ProfilerMessage.TriggerFrom]) return false;
+                    if (!_includeComponents || !_componentInclusions[message.TriggerFrom]) return false;
                     break;
             }
             return true;

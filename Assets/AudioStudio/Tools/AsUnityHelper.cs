@@ -29,6 +29,7 @@ namespace AudioStudio.Tools
         Notification,
         Warning,
         Error,
+        None
     }
     
     public enum AudioTriggerSource

@@ -12,10 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d109e72d30c0ed4f87b0999d11db16c, type: 3}
   m_Name: Music_Login_Loop
   m_EditorClassIdentifier: 
-  Platform: 0
   IndependentEvent: 0
   OverrideControls: 0
-  OverrideSpatial: 0
   Volume: 1
   Pitch: 1
   Pan: 0
@@ -27,15 +25,8 @@ MonoBehaviour:
   HighPassCutoff: 10
   SubMixer: 0
   AudioMixer: 
-  AvoidRepeat: 1
-  RandomOnLoop: 0
-  AudioSwitchReference:
-    Name: 
-  SwitchEventMappings: []
-  SwitchImmediately: 0
-  CrossFadeTime: 0.5
   Mappings: []
-  PlayLogic: 0
+  ParentContainer: {fileID: 11400000, guid: bb59d060ed90453419da52dfa99fd076, type: 2}
   LoopCount: 0
   ChildEvents: []
   OverrideTransition: 0
@@ -43,20 +34,18 @@ MonoBehaviour:
   - Source:
       Name: 
     FadeInTime: 0
-    EntryOffset: 0
+    EntryOffset: 1
     TransitionSegment:
       Name: 
   TransitionExitConditions:
   - Target:
       Name: 
-    FadeOutTime: 0
+    FadeOutTime: 1
     ExitOffset: 0
     Interval: 0
     GridLength:
       Bar: 0
       Beat: 0
-  SwitchToSamePosition: 0
-  LoopEntireSequence: 0
   Markers:
   - BarNumber: 0
     Tempo: 150

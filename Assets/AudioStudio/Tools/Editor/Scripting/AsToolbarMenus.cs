@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace AudioStudio.Tools
 {
-    public partial class AsToolbarMenus : EditorWindow
+    public static partial class AsToolbarMenus
     {
         #region Configs
         [MenuItem("AudioStudio/Configs/Audio Init &F1")]
@@ -35,14 +35,14 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Open/Audio Profiler &F6")]
         public static void AudioProfiler()
         {
-            GetWindow<AudioProfiler>("Audio Profiler", true,
+            EditorWindow.GetWindow<AudioProfiler>("Audio Profiler", true,
                 typeof(EditorWindow).Assembly.GetType("UnityEditor.ConsoleWindow"));
         }
         
         [MenuItem("AudioStudio/Open/MIDI Console")]
         public static void MidiConsole()
         {
-            GetWindow<MidiConsole>("Midi Console", true,
+            EditorWindow.GetWindow<MidiConsole>("Midi Console", true,
                 typeof(EditorWindow).Assembly.GetType("UnityEditor.ConsoleWindow"));
         }
 
@@ -64,7 +64,7 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Audio Batch Processor &F5")]
         public static void AudioBatchProcessor()
         {
-            var window = GetWindow<AsBatchProcessor>();
+            var window = EditorWindow.GetWindow<AsBatchProcessor>();
             window.position = new Rect(500, 300, 400, 300);
             window.titleContent = new GUIContent("Audio Batch Processor");
         }
@@ -72,7 +72,7 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Implementation Backup  &F9")]
         public static void AudioStudioBackUp()
         {
-            var window = GetWindow<AsBackupWindow>();
+            var window = EditorWindow.GetWindow<AsBackupWindow>();
             window.position = new Rect(500, 300, 500, 450);
             window.titleContent = new GUIContent("BackUp");
         }
@@ -80,7 +80,7 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Animation Player &F10")]
         private static void AnimationPlayer()
         {
-            var window = GetWindow<AsAnimationPlayer>();
+            var window = EditorWindow.GetWindow<AsAnimationPlayer>();
             window.position = new Rect(500, 300, 320, 400);
             window.titleContent = new GUIContent("Animation Player");
         }
@@ -88,7 +88,7 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Script Migration &F11")]
         public static void ScriptMigration()
         {
-            var window = GetWindow<AsScriptMigration>();
+            var window = EditorWindow.GetWindow<AsScriptMigration>();
             window.position = new Rect(500, 300, 690, 360);
             window.titleContent = new GUIContent("Script Migration");
         }
@@ -133,7 +133,7 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Replace by Regex in Text File")]
         public static void RegexReplacer()
         {
-            var window = GetWindow<RegexReplacer>();
+            var window = EditorWindow.GetWindow<RegexReplacer>();
             window.position = new Rect(500, 300, 300, 150);
             window.titleContent = new GUIContent("Regex Replacer");
         }
@@ -141,15 +141,23 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Field Upgrade")]
         public static void FieldUpgrade()
         {
-            var window = GetWindow<AsFieldUpgrade>();
+            var window = EditorWindow.GetWindow<AsFieldUpgrade>();
             window.position = new Rect(500, 300, 300, 150);
             window.titleContent = new GUIContent("Filed Upgrade");
+        }
+        
+        [MenuItem("AudioStudio/Tools/Script Reference Update")]
+        public static void ScriptReferenceUpdate()
+        {
+            var window = EditorWindow.GetWindow<AsScriptReferenceUpdate>();
+            window.position = new Rect(500, 300, 400, 100);
+            window.titleContent = new GUIContent("Script Reference Update");
         }
 
         [MenuItem("AudioStudio/Tools/Remove Missing and Duplicate Components")]
         public static void RemoveMissingDuplicate()
         {
-            var window = GetWindow<RemoveMissingDuplicate>();
+            var window = EditorWindow.GetWindow<RemoveMissingDuplicate>();
             window.position = new Rect(500, 300, 500, 120);
             window.titleContent = new GUIContent("Remove");
         }
@@ -157,14 +165,14 @@ namespace AudioStudio.Tools
         [MenuItem("AudioStudio/Tools/Search Linked Components")]
         private static void SearchLinkedComponents()
         {
-            var window = GetWindow<AsComponentLink>();
+            var window = EditorWindow.GetWindow<AsComponentLink>();
             window.position = new Rect(500, 300, 500, 500);
         }
         
         [MenuItem("AudioStudio/Tools/Character Component Sync")]
         public static void CharacterComponentSync()
         {
-            var window = GetWindow<CharacterComponentSync>();
+            var window = EditorWindow.GetWindow<CharacterComponentSync>();
             window.position = new Rect(500, 300, 300, 100);
             window.titleContent = new GUIContent("Character Component Sync");
         }

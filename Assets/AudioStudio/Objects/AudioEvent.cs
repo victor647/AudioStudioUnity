@@ -11,9 +11,8 @@ namespace AudioStudio.Configs
 	{							
 		#region Fields				
 		public bool IndependentEvent = true;
-		public bool OverrideControls;
-		public bool OverrideSpatial;
 		//Audio Control Settings
+		public bool OverrideControls;
 		[Range(0f, 1f)]
 		public float Volume = 1f;
 		[Range(-4f, 4f)]
@@ -27,26 +26,13 @@ namespace AudioStudio.Configs
 		public bool HighPassFilter;	
 		public float HighPassResonance = 1f;
 		[Range(10f, 22000f)]
-		public float HighPassCutoff = 10f;			
-		
-		//Audio Mixer Settings
+		public float HighPassCutoff = 10f;
 		public bool SubMixer;
 		public string AudioMixer;
-		//For Random		
-		protected byte LastSelectedIndex = 255;
-		public bool AvoidRepeat = true;
-		public bool RandomOnLoop;
-		//For Switch			 
-		public AudioSwitchReference AudioSwitchReference = new AudioSwitchReference();		
-		public SwitchEventMapping[] SwitchEventMappings = new SwitchEventMapping[0];
-		public bool SwitchImmediately;
-		public float CrossFadeTime = 0.5f;
-		//For Parameter
 		public ParameterMapping[] Mappings = new ParameterMapping[0];						
 		#endregion								
 
 		#region Initialize
-		protected List<AudioEventInstance> _playingInstances = new List<AudioEventInstance>(); 
 		//When an event is loaded, before playing
 		internal abstract void Init();
 		//When an event is unloaded
@@ -89,6 +75,10 @@ namespace AudioStudio.Configs
 			}
 			else
 				Destroy(this);
+		}
+
+		internal virtual void UpdatePlayingStatus()
+		{
 		}
 
 		internal void Stop(float fadeOutTime)

@@ -13,6 +13,20 @@ namespace AudioStudio.Configs
 		public List<AudioController> AudioControllers = new List<AudioController>();
 		#endregion
 		
+		#region Playback
+		public void Load()
+		{
+			if (IsValid())
+				BankManager.LoadBank(this);
+		}
+
+		public void Unload()
+		{
+			if (IsValid())
+				BankManager.UnloadBank(this);
+		}
+		#endregion
+		
 		#region Editor		
 		public string EventsFolder;
 		
