@@ -73,38 +73,59 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\AsComponent.cs">
           <Link>Components\Common\AsComponent.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioEmitterObject.cs">
-          <Link>Components\Common\AudioEmitterObject.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioEmitter3D.cs">
+          <Link>Components\Common\AudioEmitter3D.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioInit.cs">
-          <Link>Components\Common\AudioInit.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioListener3D.cs">
+          <Link>Components\Common\AudioListener3D.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Common\AudioTransformFollower.cs">
-          <Link>Components\Common\AudioTransformFollower.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\EffectSound.cs">
+          <Link>Components\Common\EffectSound.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\GlobalAudioEmitter.cs">
           <Link>Components\Common\GlobalAudioEmitter.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\LoadBank.cs">
-          <Link>Components\LoadBank.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\LoadBank.cs">
+          <Link>Components\Common\LoadBank.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\SetSwitch.cs">
-          <Link>Components\SetSwitch.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\SetSwitch.cs">
+          <Link>Components\Common\SetSwitch.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\AudioListener3D.cs">
-          <Link>Components\Spatial\AudioListener3D.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Environment\AudioTransformFollower.cs">
+          <Link>Components\Environment\AudioTransformFollower.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\AudioTag.cs">
-          <Link>Components\Spatial\AudioTag.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Environment\EmitterSound.cs">
+          <Link>Components\Environment\EmitterSound.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\ColliderSound.cs">
-          <Link>Components\Spatial\ColliderSound.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\ButtonSound.cs">
+          <Link>Components\Interface\ButtonSound.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\EffectSound.cs">
-          <Link>Components\Spatial\EffectSound.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\DropdownSound.cs">
+          <Link>Components\Interface\DropdownSound.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\Spatial\EmitterSound.cs">
-          <Link>Components\Spatial\EmitterSound.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\EventSound.cs">
+          <Link>Components\Interface\EventSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\MenuSound.cs">
+          <Link>Components\Interface\MenuSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\ScrollSound.cs">
+          <Link>Components\Interface\ScrollSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\SliderSound.cs">
+          <Link>Components\Interface\SliderSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Interface\ToggleSound.cs">
+          <Link>Components\Interface\ToggleSound.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Other\MicrophoneInput.cs">
+          <Link>Components\Other\MicrophoneInput.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Physics\AudioTag.cs">
+          <Link>Components\Physics\AudioTag.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Physics\ColliderSound.cs">
+          <Link>Components\Physics\ColliderSound.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Timeline\AudioTimelineClip.cs">
           <Link>Components\Timeline\AudioTimelineClip.cs</Link>
@@ -118,35 +139,8 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Timeline\TimelineSound.cs">
           <Link>Components\Timeline\TimelineSound.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\ButtonSound.cs">
-          <Link>Components\UI\ButtonSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\DropdownSound.cs">
-          <Link>Components\UI\DropdownSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\EventSound.cs">
-          <Link>Components\UI\EventSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\MenuSound.cs">
-          <Link>Components\UI\MenuSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\ScrollSound.cs">
-          <Link>Components\UI\ScrollSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\SliderSound.cs">
-          <Link>Components\UI\SliderSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Components\UI\ToggleSound.cs">
-          <Link>Components\UI\ToggleSound.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\AudioEventHandler.cs">
-          <Link>Core\AudioEventHandler.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\AudioInitSettings.cs">
-          <Link>Core\AudioInitSettings.cs</Link>
-        </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\AudioManager.cs">
-          <Link>Core\AudioManager.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Core\AsAssetLoader.cs">
+          <Link>Core\AsAssetLoader.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\AudioPathSettings.cs">
           <Link>Core\AudioPathSettings.cs</Link>
@@ -154,32 +148,50 @@
         <Compile Include="..\..\Assets\AudioStudio\Core\AudioSourceExtension.cs">
           <Link>Core\AudioSourceExtension.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\BankManager.cs">
-          <Link>Core\BankManager.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\BarAndBeat.cs">
           <Link>Core\BarAndBeat.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\EnumFlagAttribute.cs">
           <Link>Core\EnumFlagAttribute.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\ListenerManager.cs">
-          <Link>Core\ListenerManager.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Initialization\AudioInit.cs">
+          <Link>Core\Initialization\AudioInit.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Core\MidiManager.cs">
-          <Link>Core\MidiManager.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Initialization\AudioInitLoadData.cs">
+          <Link>Core\Initialization\AudioInitLoadData.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Initialization\AudioInitSettings.cs">
+          <Link>Core\Initialization\AudioInitSettings.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Managers\AudioManager.cs">
+          <Link>Core\Managers\AudioManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Managers\BankManager.cs">
+          <Link>Core\Managers\BankManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Managers\EmitterManager.cs">
+          <Link>Core\Managers\EmitterManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Managers\ListenerManager.cs">
+          <Link>Core\Managers\ListenerManager.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\Managers\MidiManager.cs">
+          <Link>Core\Managers\MidiManager.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\MusicTransport.cs">
           <Link>Core\MusicTransport.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Extensions\AsAssetLoader.cs">
-          <Link>AsAssetLoader.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Core\WebMusicPlayer.cs">
+          <Link>Core\WebMusicPlayer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Extensions\AsAssetLoaderExt.cs">
+          <Link>Extensions\AsAssetLoaderExt.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Extensions\AsEnumItems.cs">
           <Link>Extensions\AsEnumItems.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Extensions\MicrophoneInput.cs">
-          <Link>Extensions\MicrophoneInput.cs</Link>
+        <Compile Include="..\..\Assets\AudioStudio\Extensions\AudioPathSettingsExt.cs">
+          <Link>Extensions\AudioPathSettingsExt.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\AudioController.cs">
           <Link>Objects\AudioController.cs</Link>
@@ -202,8 +214,20 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicInstrument.cs">
           <Link>Objects\MusicInstrument.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicLayerContainer.cs">
+          <Link>Objects\MusicLayerContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicRandomContainer.cs">
+          <Link>Objects\MusicRandomContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicSequenceContainer.cs">
+          <Link>Objects\MusicSequenceContainer.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicStinger.cs">
           <Link>Objects\MusicStinger.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\MusicSwitchContainer.cs">
+          <Link>Objects\MusicSwitchContainer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\MusicTrack.cs">
           <Link>Objects\MusicTrack.cs</Link>
@@ -211,11 +235,23 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundBank.cs">
           <Link>Objects\SoundBank.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundBlendContainer.cs">
+          <Link>Objects\SoundBlendContainer.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundClip.cs">
           <Link>Objects\SoundClip.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\SoundContainer.cs">
           <Link>Objects\SoundContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundRandomContainer.cs">
+          <Link>Objects\SoundRandomContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundSequenceContainer.cs">
+          <Link>Objects\SoundSequenceContainer.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Objects\SoundSwitchContainer.cs">
+          <Link>Objects\SoundSwitchContainer.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Objects\VoiceEvent.cs">
           <Link>Objects\VoiceEvent.cs</Link>
@@ -223,7 +259,6 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\VoiceLimiter.cs">
           <Link>Objects\VoiceLimiter.cs</Link>
         </Compile>
-        <Compile Include="AudioPathSettingsExt.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\AudioStudio_Deployment\AudioStudio_Deployment.csproj">
