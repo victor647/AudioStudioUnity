@@ -516,7 +516,7 @@ namespace AudioStudio.Tools
             {
 #if UNITY_2018_3_OR_NEWER //2018.3 and later moves prefab editing to a separate stage
                 var stage = UnityEditor.Experimental.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage();
-                path = stage != null ? stage.prefabAssetPath : SceneManager.GetActiveScene().path;
+                path = stage != null ? stage.assetPath : SceneManager.GetActiveScene().path;
 #else
                 // if the component is from part of a prefab
                 if (PrefabUtility.GetPrefabType(component.gameObject) != PrefabType.None)

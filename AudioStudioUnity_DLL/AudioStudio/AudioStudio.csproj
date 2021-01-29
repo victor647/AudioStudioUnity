@@ -9,7 +9,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>AudioStudio</RootNamespace>
         <AssemblyName>AudioStudio</AssemblyName>
-        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -18,7 +18,7 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>UNITY_2017_3_OR_NEWER</DefineConstants>
+        <DefineConstants>UNITY_2017_3_OR_NEWER;UNITY_2018_3_OR_NEWER</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
@@ -27,28 +27,37 @@
         <DebugType>pdbonly</DebugType>
         <Optimize>true</Optimize>
         <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>UNITY_2017_3_OR_NEWER</DefineConstants>
+        <DefineConstants>UNITY_2017_3_OR_NEWER;UNITY_2018_3_OR_NEWER</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="CSharp-Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Core.dll</HintPath>
-        </Reference>
-        <Reference Include="CSharp-Unity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\..\..\..\..\..\IOE\Assets\Plugins\Thirdparty\Framework\CSharp-Unity.dll</HintPath>
-        </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Xml" />
-        <Reference Include="UnityEngine">
-            <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\Managed\UnityEngine.dll</HintPath>
+        <Reference Include="Unity.Timeline, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\..\Library\ScriptAssemblies\Unity.Timeline.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine.Timeline, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\UnityExtensions\Unity\Timeline\Runtime\UnityEngine.Timeline.dll</HintPath>
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.AnimationModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.AudioModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.DirectorModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.DirectorModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+          <HintPath>..\..\Library\ScriptAssemblies\UnityEngine.UI.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>
@@ -151,6 +160,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Core\BarAndBeat.cs">
           <Link>Core\BarAndBeat.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Core\EnumFlagAttribute.cs">
+          <Link>Core\EnumFlagAttribute.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\ListenerManager.cs">
           <Link>Core\ListenerManager.cs</Link>
         </Compile>
@@ -159,6 +171,9 @@
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Core\MusicTransport.cs">
           <Link>Core\MusicTransport.cs</Link>
+        </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Extensions\AsAssetLoader.cs">
+          <Link>AsAssetLoader.cs</Link>
         </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Extensions\AsEnumItems.cs">
           <Link>Extensions\AsEnumItems.cs</Link>
@@ -208,10 +223,6 @@
         <Compile Include="..\..\Assets\AudioStudio\Objects\VoiceLimiter.cs">
           <Link>Objects\VoiceLimiter.cs</Link>
         </Compile>
-        <Compile Include="..\..\Assets\AudioStudio\Plugins\WebGLStreaming\WebGLStreamingAudioSourceInterop.cs">
-          <Link>Plugins\WebGLStreaming\WebGLStreamingAudioSourceInterop.cs</Link>
-        </Compile>
-        <Compile Include="AsAssetLoader.cs" />
         <Compile Include="AudioPathSettingsExt.cs" />
     </ItemGroup>
     <ItemGroup>
@@ -221,7 +232,6 @@
       </ProjectReference>
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Plugins" />
       <Folder Include="Properties" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

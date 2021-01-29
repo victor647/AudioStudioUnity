@@ -9,7 +9,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>AudioStudio_Core</RootNamespace>
         <AssemblyName>AudioStudio_Deployment</AssemblyName>
-        <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -18,7 +18,7 @@
         <DebugType>full</DebugType>
         <Optimize>false</Optimize>
         <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>UNITY_2017_3_OR_NEWER;UNITY_EDITOR</DefineConstants>
+        <DefineConstants>UNITY_2017_3_OR_NEWER;UNITY_EDITOR;UNITY_2018_3_OR_NEWER</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
@@ -27,7 +27,7 @@
         <DebugType>pdbonly</DebugType>
         <Optimize>true</Optimize>
         <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>UNITY_2017_3_OR_NEWER</DefineConstants>
+        <DefineConstants>UNITY_2017_3_OR_NEWER;UNITY_2018_3_OR_NEWER</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
@@ -36,16 +36,13 @@
         <Reference Include="System.Core" />
         <Reference Include="System.Xml" />
         <Reference Include="UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\Managed\UnityEditor.dll</HintPath>
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEditor.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine">
-            <HintPath>C:\Program Files\Unity 2017.4.29f1\Editor\Data\Managed\UnityEngine.dll</HintPath>
+        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>C:\Program Files\Unity\Hub\Editor\2020.2.2f1c1\Editor\Data\Managed\UnityEngine.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="..\..\Assets\AudioStudio\Core\EnumFlagAttribute.cs">
-          <Link>EnumFlagAttribute.cs</Link>
-        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Tools\AsUnityHelper.cs">
           <Link>Tools\AsUnityHelper.cs</Link>
         </Compile>
