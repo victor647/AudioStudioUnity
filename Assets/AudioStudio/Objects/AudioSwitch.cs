@@ -47,7 +47,7 @@ namespace AudioStudio.Configs
 		{
 			if (!SwitchNames.Contains(newSwitch))
 			{
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Switch, AudioAction.SetValue, trigger, name + " / " + newSwitch, null, "Invalid Switch name");
+				AsUnityHelper.AddLogEntry(Severity.Error, AudioObjectType.Switch, AudioAction.SetValue, trigger, name + " / " + newSwitch, null, "Invalid Switch name");
 				return;
 			}
 			foreach (var asi in _activeInstances)
@@ -60,7 +60,7 @@ namespace AudioStudio.Configs
 		{
 			if (!SwitchNames.Contains(newSwitch))
 			{
-				AsUnityHelper.DebugToProfiler(Severity.Error, AudioObjectType.Switch, AudioAction.SetValue, trigger, name + " / " + newSwitch, affectedGameObject, "Invalid Switch name");
+				AsUnityHelper.AddLogEntry(Severity.Error, AudioObjectType.Switch, AudioAction.SetValue, trigger, name + " / " + newSwitch, affectedGameObject, "Invalid Switch name");
 				return;
 			}			
 			GetOrAddSwitchInstance(affectedGameObject).SetSwitch(newSwitch, trigger);			
@@ -70,7 +70,7 @@ namespace AudioStudio.Configs
 		{			
 			var asi = GetOrAddSwitchInstance(affectedGameObject);
 			var switchName = asi.CurrentSwitch;
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Switch, AudioAction.GetValue, AudioTriggerSource.Code, name + " / " + switchName, asi.gameObject);							
+			AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Switch, AudioAction.GetValue, AudioTriggerSource.Code, name + " / " + switchName, asi.gameObject);							
 			return switchName;
 		}
 
@@ -132,17 +132,17 @@ namespace AudioStudio.Configs
 					DoSetSwitch(newSwitch, trigger);
 				}
 				else
-					AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject, "Switch still in cooldown");
+					AsUnityHelper.AddLogEntry(Severity.Warning, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject, "Switch still in cooldown");
 			}
 			else
-				AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject, "Same switch already set");
+				AsUnityHelper.AddLogEntry(Severity.Warning, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject, "Same switch already set");
 		}
 
 		private void DoSetSwitch(string newSwitch, AudioTriggerSource trigger)
 		{
 			CurrentSwitch = newSwitch;
 			OnSwitchChanged?.Invoke(gameObject);
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject);
+			AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Switch, AudioAction.SetValue, trigger, AudioSwitch.name + " / " + newSwitch, gameObject);
 		}
 
 		internal void CheckPendingSwitch()

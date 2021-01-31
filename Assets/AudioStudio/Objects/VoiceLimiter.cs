@@ -93,7 +93,7 @@ namespace AudioStudio.Configs
 
 		private void DebugMessage(string soundName, AudioVoiceInstance toBeRemoved, string rule)
 		{
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, soundName, toBeRemoved.SoundClipInstance.Emitter, "Voice limit of " + MaxVoicesLimit + " reached, " + rule);
+			AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, soundName, toBeRemoved.SoundClipInstance.Emitter, "Voice limit of " + MaxVoicesLimit + " reached, " + rule);
 		}
 	}
 }

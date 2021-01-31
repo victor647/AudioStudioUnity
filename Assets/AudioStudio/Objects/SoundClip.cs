@@ -310,10 +310,10 @@ namespace AudioStudio.Configs
             if (AudioSource.timeSamples < TimeSamples)
             {                                        
                 if (AudioSource.isPlaying) //loop back
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, gameObject);
+                    AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, gameObject);
                 else //finish playing
                 {
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.End, AudioTriggerSource.Code, SoundClip.name, gameObject);
+                    AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.SFX, AudioAction.End, AudioTriggerSource.Code, SoundClip.name, gameObject);
                     OnAudioEndOrStop();
                 }
             }
@@ -393,7 +393,7 @@ namespace AudioStudio.Configs
             AudioSource.panStereo = SoundClip.Pan;
             AudioSource.pitch = SoundClip.Pitch;
             SeekPositionAndPlay(_clipPool.CrossFadeTime);		
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, Emitter);
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.SFX, AudioAction.Loop, AudioTriggerSource.Code, SoundClip.name, Emitter);
         }
 
         #region Controls

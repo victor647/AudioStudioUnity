@@ -12,7 +12,7 @@ namespace AudioStudio.Components
         public PostEventReference[] ExitEvents = new PostEventReference[0];
         public SetSwitchReference[] EnterSwitches = new SetSwitchReference[0];
         public SetSwitchReference[] ExitSwitches = new SetSwitchReference[0];
-        public bool ResetStateOnExit = true;
+        public bool ResetSwitchesOnExit = true;
         public AnimationAudioState AnimationAudioState = AnimationAudioState.None;
         
         private AnimationSound _animationSound;
@@ -44,7 +44,7 @@ namespace AudioStudio.Components
             {
                 evt.Post(animator.gameObject, AudioTriggerSource.AudioState);               
             }
-            if (ResetStateOnExit && _animationSound)
+            if (ResetSwitchesOnExit && _animationSound)
                 _animationSound.SetAnimationState(AnimationAudioState.None);
         }
         

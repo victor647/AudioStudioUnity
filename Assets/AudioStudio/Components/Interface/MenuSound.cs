@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/MenuSound")]
+    [AddComponentMenu("AudioStudio/Menu Sound")]
     [DisallowMultipleComponent]
     public class MenuSound : AsUIHandler
     {

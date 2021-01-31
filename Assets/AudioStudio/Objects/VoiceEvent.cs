@@ -308,7 +308,7 @@ namespace AudioStudio.Configs
 		{
 			if (AudioSource.timeSamples < TimeSamples && !AudioSource.loop)
 			{
-				AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Voice, AudioAction.End, AudioTriggerSource.Code, AudioSource.clip.name, gameObject);
+				AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Voice, AudioAction.End, AudioTriggerSource.Code, AudioSource.clip.name, gameObject);
 				OnAudioEndOrStop();
 			}
 			TimeSamples = AudioSource.timeSamples;

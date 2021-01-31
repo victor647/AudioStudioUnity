@@ -34,8 +34,7 @@ namespace AudioStudio.Editor
             EditorGUILayout.LabelField("Set Audio State:");
             EditorGUILayout.PropertyField(serializedObject.FindProperty("AnimationAudioState"), GUIContent.none);
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("ResetStateOnExit"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("StopEventsOnExit"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("ResetSwitchesOnExit"));
 
             AsGuiDrawer.DrawList(serializedObject.FindProperty("EnterEvents"), "Enter Events", AddEnterEvent);
             AsGuiDrawer.DrawList(serializedObject.FindProperty("ExitEvents"), "Exit Events", AddExitEvent);

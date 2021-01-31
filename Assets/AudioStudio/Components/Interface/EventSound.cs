@@ -26,7 +26,7 @@ namespace AudioStudio.Components
         }
     }
     
-    [AddComponentMenu("AudioStudio/EventSound")]
+    [AddComponentMenu("AudioStudio/Event Sound")]
     public class EventSound : AsUIHandler
     {
         public UIAudioEvent[] AudioEvents = new UIAudioEvent[0];

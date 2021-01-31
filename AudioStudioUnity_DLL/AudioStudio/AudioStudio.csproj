@@ -88,6 +88,9 @@
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\LoadBank.cs">
           <Link>Components\Common\LoadBank.cs</Link>
         </Compile>
+        <Compile Include="..\..\Assets\AudioStudio\Components\Common\SimpleAudioPlayer.cs">
+          <Link>Components\Common\SimpleAudioPlayer.cs</Link>
+        </Compile>
         <Compile Include="..\..\Assets\AudioStudio\Components\Common\SetSwitch.cs">
           <Link>Components\Common\SetSwitch.cs</Link>
         </Compile>

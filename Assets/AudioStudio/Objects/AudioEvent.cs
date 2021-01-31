@@ -39,7 +39,7 @@ namespace AudioStudio.Configs
 		internal abstract void Dispose();
 		#endregion
 		
-		#region Playback		
+		#region Playback
 		public abstract string Play(GameObject soundSource, float fadeInTime = 0f, Action<GameObject> endCallback = null);
 		public abstract void Stop(GameObject soundSource, float fadeOutTime = 0f);
 		internal abstract void StopAll(float fadeOutTime = 0f);

@@ -2,7 +2,7 @@
 
 namespace AudioStudio.Components
 {
-	[AddComponentMenu("AudioStudio/AudioTag")]
+	[AddComponentMenu("AudioStudio/Audio Tag")]
 	[DisallowMultipleComponent]
 	public class AudioTag : AsComponent
 	{

@@ -32,7 +32,7 @@ namespace AudioStudio
             set => _instance = value;
         }
         
-        public string AudioResourcesPath = "Resources/Audio";
+        public string AudioResourcesPath = "AudioStudio";
         public string EventsPath => Path.Combine(AudioResourcesPath, "Events");
         public string OriginalsPath => Path.Combine(AudioResourcesPath, "Originals");
         public string SoundEventsPath => Path.Combine(EventsPath, "SFX");

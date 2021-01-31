@@ -32,10 +32,10 @@ namespace AudioStudio.Tools
             EditorApplication.isPlaying = true;
         }
         
-        [MenuItem("AudioStudio/Open/Audio Profiler &F6")]
-        public static void AudioProfiler()
+        [MenuItem("AudioStudio/Open/Audio Console &F6")]
+        public static void AudioConsole()
         {
-            EditorWindow.GetWindow<AudioProfiler>("Audio Profiler", true,
+            EditorWindow.GetWindow<AudioConsole>("Audio Console", true,
                 typeof(EditorWindow).Assembly.GetType("UnityEditor.ConsoleWindow"));
         }
         

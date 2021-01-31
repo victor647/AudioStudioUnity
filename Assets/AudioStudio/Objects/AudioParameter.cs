@@ -91,7 +91,7 @@ namespace AudioStudio.Configs
 		{			
 			var api = GetOrAddParameterInstance(affectedGameObject);
 			var value = api.CurrentValue;
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Parameter, AudioAction.GetValue, AudioTriggerSource.Code, name, api.gameObject, value.ToString("0.000"));
+			AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Parameter, AudioAction.GetValue, AudioTriggerSource.Code, name, api.gameObject, value.ToString("0.000"));
 			return value;
 		}
 		#endregion
@@ -130,7 +130,7 @@ namespace AudioStudio.Configs
 		internal void SetParameterValue(float newValue)
 		{
 			if (_targetSetValue == newValue) return;
-			AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Parameter, AudioAction.SetValue, AudioTriggerSource.Code, name, gameObject, newValue.ToString("0.000"));
+			AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Parameter, AudioAction.SetValue, AudioTriggerSource.Code, name, gameObject, newValue.ToString("0.000"));
 			_targetSetValue = newValue;		
 			SlewValue(newValue);
 		}

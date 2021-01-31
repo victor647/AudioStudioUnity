@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {   
-    [AddComponentMenu("AudioStudio/ColliderSound")]
+    [AddComponentMenu("AudioStudio/Collider Sound")]
     [DisallowMultipleComponent]
     public class ColliderSound : AudioEmitter3D
     {        
@@ -17,26 +17,26 @@ namespace AudioStudio.Components
         private void OnTriggerEnter(Collider other)
         {
             if (!CompareAudioTag(other)) return;
-            PostEvents(EnterEvents, AudioTriggerSource.ColliderSound, GetEmitter(other.gameObject));         
+            PostEvents(EnterEvents, AudioTriggerSource.ColliderSound, GetEmitter);         
         }
         
         private void OnTriggerExit(Collider other)
         {
             if (!CompareAudioTag(other)) return;
-            PostEvents(ExitEvents, AudioTriggerSource.ColliderSound, GetEmitter(other.gameObject));       
+            PostEvents(ExitEvents, AudioTriggerSource.ColliderSound, GetEmitter);       
         }
 
         private void OnCollisionEnter(Collision other)
         {
             if (!CompareAudioTag(other.collider)) return;
-            CollisionForceParameter.SetValue(other.relativeVelocity.magnitude * ValueScale, GetEmitter(other.gameObject), AudioTriggerSource.ColliderSound);             
-            PostEvents(EnterEvents, AudioTriggerSource.ColliderSound, GetEmitter(other.gameObject));           
+            CollisionForceParameter.SetValue(other.relativeVelocity.magnitude * ValueScale, GetEmitter, AudioTriggerSource.ColliderSound);             
+            PostEvents(EnterEvents, AudioTriggerSource.ColliderSound, GetEmitter);           
         }
         
         private void OnCollisionExit(Collision other)
         {
             if (!CompareAudioTag(other.collider)) return;
-            PostEvents(ExitEvents, AudioTriggerSource.ColliderSound, GetEmitter(other.gameObject));           
+            PostEvents(ExitEvents, AudioTriggerSource.ColliderSound, GetEmitter);           
         }
 
         public override bool IsValid()

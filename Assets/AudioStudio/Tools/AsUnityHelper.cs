@@ -7,7 +7,7 @@ using UnityEditor;
 
 namespace AudioStudio.Tools
 {
-    #region ProfilerEnums
+    #region ConsoleEnums
     public enum AudioObjectType
     {        
         SFX,
@@ -48,6 +48,7 @@ namespace AudioStudio.Tools
         EventSound,
         LoadBank,
         MenuSound,
+        SimpleAudioPlayer,
         ScrollSound,
         SetSwitch,
         SliderSound,
@@ -84,7 +85,7 @@ namespace AudioStudio.Tools
     }
     
 #if UNITY_EDITOR
-    public struct ProfilerMessage
+    public struct AudioConsoleMessage
     {
         public Severity Severity;
         public string Time;
@@ -151,18 +152,18 @@ namespace AudioStudio.Tools
             return component;
         }
 
-        #region Profiler
+        #region AudioConsole
         public static Severity DebugLogLevel = Severity.Error;
 #if UNITY_EDITOR
-        public static Action<ProfilerMessage> ProfilerCallback;
+        public static Action<AudioConsoleMessage> AudioConsoleCallback;
 #endif
         
-        public static void DebugToProfiler(Severity severity, AudioObjectType objectType, AudioAction action, AudioTriggerSource triggerFrom, string eventName, GameObject gameObject = null, string message = "")
+        public static void AddLogEntry(Severity severity, AudioObjectType objectType, AudioAction action, AudioTriggerSource triggerFrom, string eventName, GameObject gameObject = null, string message = "")
         {
 #if UNITY_EDITOR
-            if (ProfilerCallback != null)
+            if (AudioConsoleCallback != null)
             {
-                var newMessage = new ProfilerMessage
+                var newMessage = new AudioConsoleMessage
                 {
                     Severity = severity,
                     Time = Time.time.ToString("0.000"),
@@ -174,7 +175,7 @@ namespace AudioStudio.Tools
                     GameObjectName = gameObject ? gameObject.name : "Global Audio Emitter",
                     Message = message,
                 };
-                ProfilerCallback.Invoke(newMessage);
+                AudioConsoleCallback.Invoke(newMessage);
                 return;
             }
 #endif

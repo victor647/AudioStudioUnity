@@ -25,7 +25,7 @@ namespace AudioStudio.Components
         }
     }
     
-    [AddComponentMenu("AudioStudio/LegacyAnimationSound")]
+    [AddComponentMenu("AudioStudio/Legacy Animation Sound")]
     [DisallowMultipleComponent]
     public class LegacyAnimationSound : AnimationSound
     {

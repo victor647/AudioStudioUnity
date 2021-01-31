@@ -294,14 +294,14 @@ namespace AudioStudio.Configs
 
             if (CurrentVoicesGlobal() >= VoiceLimitGlobal)
             {
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, name, soundSource,
+                AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, name, soundSource,
                     "Global voice limit of " + VoiceLimitGlobal + " reaches");
                 return true;
             }
 
             if (CurrentVoicesGameObject(soundSource) >= VoiceLimitGameObject)
             {
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, name, soundSource,
+                AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.SFX, AudioAction.VoiceLimit, AudioTriggerSource.Code, name, soundSource,
                     "GameObject voice limit of " + VoiceLimitGameObject + " reaches");
                 return true;
             }

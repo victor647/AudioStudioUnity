@@ -3,7 +3,7 @@ using UnityEngine.Playables;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/TimelineSound")]
+    [AddComponentMenu("AudioStudio/Timeline Sound")]
     [DisallowMultipleComponent]
     public class TimelineSound : AudioEmitter3D
     {                        

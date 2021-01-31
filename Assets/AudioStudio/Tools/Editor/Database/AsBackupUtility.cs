@@ -552,7 +552,7 @@ namespace AudioStudio.Tools
         {
             var xSettings = new XElement("Settings");			
             xSettings.SetAttributeValue("AudioState", s.AnimationAudioState.ToString());						            
-            xSettings.SetAttributeValue("ResetStateOnExit", s.ResetStateOnExit);
+            xSettings.SetAttributeValue("ResetSwitchesOnExit", s.ResetSwitchesOnExit);
             xComponent.Add(xSettings);
             
             var xEvents = new XElement("AudioEvents");
@@ -770,7 +770,7 @@ namespace AudioStudio.Tools
         {
             var xSettings = xComponent.Element("Settings");
             var modified = ImportEnum(ref audioState.AnimationAudioState, AsScriptingHelper.GetXmlAttribute(xSettings, "AudioState"));						            
-            modified |= ImportBool(ref audioState.ResetStateOnExit, AsScriptingHelper.GetXmlAttribute(xSettings, "ResetStateOnExit"));
+            modified |= ImportBool(ref audioState.ResetSwitchesOnExit, AsScriptingHelper.GetXmlAttribute(xSettings, "ResetSwitchesOnExit"));
             modified |= ImportEvents(ref audioState.EnterEvents, xComponent, "Enter");
             modified |= ImportEvents(ref audioState.ExitEvents, xComponent, "Exit");
             modified |= ImportSwitches(ref audioState.EnterSwitches, xComponent, "Enter");

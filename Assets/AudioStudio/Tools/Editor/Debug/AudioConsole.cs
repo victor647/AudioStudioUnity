@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace AudioStudio.Tools
 {
-    public class AudioProfiler : EditorWindow
+    public class AudioConsole : EditorWindow
     {
-        private readonly Queue<ProfilerMessage> _ProfilerMessages = new Queue<ProfilerMessage>();
+        private readonly Queue<AudioConsoleMessage> _messages = new Queue<AudioConsoleMessage>();
         private static readonly Dictionary<AudioTriggerSource, bool> _componentInclusions = new Dictionary<AudioTriggerSource, bool>();
         private bool _includeComponents = true;
         private bool _includeCode = true;
@@ -29,11 +29,11 @@ namespace AudioStudio.Tools
         private bool _paused;
         private string _objectNameFilter;
 
-        private void AddLog(ProfilerMessage message)
+        private void AddLog(AudioConsoleMessage message)
         {
             if (_paused) return;
             if (FilterLog(message)) 
-                _ProfilerMessages.Enqueue(message);       			
+                _messages.Enqueue(message);       			
             Repaint();
         }
 
@@ -41,7 +41,7 @@ namespace AudioStudio.Tools
 
         private void OnEnable()
         {
-            AsUnityHelper.ProfilerCallback = AddLog;
+            AsUnityHelper.AudioConsoleCallback = AddLog;
             RegisterComponents();
         }
 
@@ -60,6 +60,7 @@ namespace AudioStudio.Tools
             _componentInclusions[AudioTriggerSource.MenuSound] = true;
             _componentInclusions[AudioTriggerSource.ScrollSound] = true;
             _componentInclusions[AudioTriggerSource.SetSwitch] = true;
+            _componentInclusions[AudioTriggerSource.SimpleAudioPlayer] = true;
             _componentInclusions[AudioTriggerSource.SliderSound] = true;
             _componentInclusions[AudioTriggerSource.TimelineSound] = true;
             _componentInclusions[AudioTriggerSource.ToggleSound] = true;
@@ -68,13 +69,13 @@ namespace AudioStudio.Tools
 
         private void OnDestroy()
         {
-            AsUnityHelper.ProfilerCallback = null;
+            AsUnityHelper.AudioConsoleCallback = null;
         }
 
         private void Update()
         {
-            if (_ProfilerMessages.Count > 200)
-                _ProfilerMessages.Dequeue();
+            if (_messages.Count > 200)
+                _messages.Dequeue();
         }
 
         #endregion
@@ -105,7 +106,7 @@ namespace AudioStudio.Tools
             if (GUILayout.Button("Resume")) 
                 _paused = false;
             if (GUILayout.Button("Clear")) 
-                _ProfilerMessages.Clear();
+                _messages.Clear();
             _autoScroll = GUILayout.Toggle(_autoScroll, "Auto Scroll", GUILayout.Width(100));
             GUILayout.EndHorizontal();
 
@@ -126,7 +127,7 @@ namespace AudioStudio.Tools
                 if (_autoScroll && Application.isPlaying && !EditorApplication.isPaused) 
                     _scrollPosition.y = Mathf.Infinity;
                 
-                foreach (var message in _ProfilerMessages)
+                foreach (var message in _messages)
                 {
                     if (!FilterLog(message)) continue;
                     switch (message.Severity)
@@ -175,7 +176,7 @@ namespace AudioStudio.Tools
             
             _includeComponents = GUILayout.Toggle(_includeComponents, GUIContent.none, GUILayout.Width(10));
             if (GUILayout.Button("Components", GUI.skin.label, GUILayout.Width(86)))
-                ProfilerComponentToggle.Init();
+                AudioConsoleComponentToggle.Init();
             
             _includeAudition = GUILayout.Toggle(_includeAudition, "Inspector Audition");
             GUILayout.EndHorizontal();
@@ -202,7 +203,7 @@ namespace AudioStudio.Tools
                 AudioInstanceList.Init(instanceList, dropdownWidth);
         }
 
-        private bool FilterLog(ProfilerMessage message)
+        private bool FilterLog(AudioConsoleMessage message)
         {
             if (!string.IsNullOrEmpty(_objectNameFilter) && !message.ObjectName.ToLower().Contains(_objectNameFilter.ToLower()))
                 return false;
@@ -410,13 +411,13 @@ namespace AudioStudio.Tools
             }
         }
 
-        private class ProfilerComponentToggle : EditorWindow
+        private class AudioConsoleComponentToggle : EditorWindow
         {
             public static void Init()
             {					
                 var position = GUIUtility.GUIToScreenPoint(Event.current.mousePosition);
                 position.y += 10;
-                var window = CreateInstance<ProfilerComponentToggle>();
+                var window = CreateInstance<AudioConsoleComponentToggle>();
                 var optionsCount = Enum.GetNames(typeof(AudioTriggerSource)).Length;
                 window.ShowAsDropDown(new Rect(position, Vector2.zero), new Vector2(130, optionsCount * 15));
             }

@@ -5,72 +5,76 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {
+	[AddComponentMenu("AudioStudio/Set Switch")]
+	[DisallowMultipleComponent]
 	public class SetSwitch : AsTriggerHandler
 	{		
 		public SetSwitchReference[] OnSwitches = new SetSwitchReference[0];
 		public SetSwitchReference[] OffSwitches = new SetSwitchReference[0];
 		public bool IsGlobal;
 		
-		public override void Activate(GameObject source = null)
+		public override void Activate(int index = 0)
 		{
-			SetSwitches(OnSwitches, source);
+			SetSwitches(OnSwitches, GetEmitter, index);
 		}
 
-		public override void Deactivate(GameObject source = null)
+		public override void Deactivate(int index = 0)
 		{
-			SetSwitches(OffSwitches, source);
+			SetSwitches(OffSwitches, GetEmitter, index);
 		}
 		
 		protected override void HandleEnableEvent()
 		{            
 			if (SetOn != TriggerCondition.EnableDisable || OnSwitches.Length == 0) return;
-			Activate(gameObject);
+			Activate();
 		}
         
 		protected override void HandleDisableEvent()
 		{            
 			if (SetOn != TriggerCondition.EnableDisable) return;
-			Deactivate(gameObject);
+			Deactivate();
 		}
 
 		private void OnTriggerEnter(Collider other)
 		{
 			if (SetOn != TriggerCondition.TriggerEnterExit || OnSwitches.Length == 0 || !CompareAudioTag(other)) return;
-			Activate(GetEmitter(other.gameObject));
+			Activate();
 		}
 
 		private void OnTriggerExit(Collider other)
 		{
 			if (SetOn != TriggerCondition.TriggerEnterExit || !CompareAudioTag(other)) return;
-			Deactivate(GetEmitter(other.gameObject));                           
+			Deactivate();                           
 		}      
         
 		private void OnCollisionEnter(Collision other)
 		{
 			if (SetOn != TriggerCondition.CollisionEnterExit || OnSwitches.Length == 0 || !CompareAudioTag(other.collider)) return;
-			Activate(GetEmitter(other.gameObject));                           
+			Activate();                           
 		}
 
 		private void OnCollisionExit(Collision other)
 		{
 			if (SetOn != TriggerCondition.CollisionEnterExit || !CompareAudioTag(other.collider)) return;
-			Deactivate(GetEmitter(other.gameObject));                           
+			Deactivate();                           
 		} 
 
-        private void SetSwitches(SetSwitchReference[] switches, GameObject go)
+        private void SetSwitches(SetSwitchReference[] switches, GameObject go, int index = 0)
         {
 	        if (IsGlobal)
 	        {
-		        foreach (var swc in switches)
+		        for (var i = 0; i < switches.Length; i++)
 		        {
-			        swc.SetValueGlobal(AudioTriggerSource.SetSwitch);    
+			        if (index == 0 || index == i + 1)
+				        switches[i].SetValueGlobal(AudioTriggerSource.SetSwitch);
 		        }
 	        }
 	        else
 	        {
-		        foreach (var swc in switches)
+		        for (var i = 0; i < switches.Length; i++)
 		        {
-			        swc.SetValue(go, AudioTriggerSource.SetSwitch);  
+			        if (index == 0 || index == i + 1)
+				        switches[i].SetValue(go, AudioTriggerSource.SetSwitch);
 		        }
 	        }		        
         }

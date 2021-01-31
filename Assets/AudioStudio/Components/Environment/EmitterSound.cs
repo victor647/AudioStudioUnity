@@ -13,7 +13,7 @@ namespace AudioStudio.Components
         PeriodTrigger
     }
     
-    [AddComponentMenu("AudioStudio/EmitterSound")]
+    [AddComponentMenu("AudioStudio/Emitter Sound")]
     [DisallowMultipleComponent]
     public class EmitterSound : AudioEmitter3D
     {        

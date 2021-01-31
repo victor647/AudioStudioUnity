@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/ToggleSound")]
+    [AddComponentMenu("AudioStudio/Toggle Sound")]
     [DisallowMultipleComponent]
     public class ToggleSound : AsUIHandler
     {

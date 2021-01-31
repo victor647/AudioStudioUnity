@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/EffectSound")]
+    [AddComponentMenu("AudioStudio/Effect Sound")]
     [DisallowMultipleComponent]
     public class EffectSound : AudioEmitter3D
     {

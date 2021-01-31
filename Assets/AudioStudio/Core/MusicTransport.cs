@@ -249,7 +249,7 @@ namespace AudioStudio
             PlayingStatus = PlayingStatus.PreEntry;
             var pickupBeats = Mathf.CeilToInt(ActiveMusicData.MusicTrack.PickupBeats);
             PlayHeadPosition = BarAndBeat.ToBarAndBeat(pickupBeats, BeatsPerBar).Negative(BeatsPerBar);
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.PreEntry, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.PreEntry, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
         }
         
         private void OnLoopStartPosition()
@@ -264,7 +264,7 @@ namespace AudioStudio
             LoopCallback?.Invoke();
             
             if (RemainingLoops != 1) //more loops to go
-                AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Loop, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
+                AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.Loop, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
             else
             {
                 var seqeunceContainer = CurrentEvent as MusicSequenceContainer;
@@ -322,7 +322,7 @@ namespace AudioStudio
             PlayingStatus = PlayingStatus.PostExit;
             Invoke(nameof(Stop), SamplesToTime(TrackLengthSamples - ExitPositionSamples));
             ExitCallback?.Invoke();
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.PostExit, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.PostExit, AudioTriggerSource.Code, ActiveTracks[0].name, gameObject);
         }
 
         public void Stop(float fadeOutTime = 0f)
@@ -472,7 +472,7 @@ namespace AudioStudio
             ActiveMusicData = QueuedMusicData;
             QueuedMusicData = null;
             
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionEnter, AudioTriggerSource.Code, CurrentEvent.name, gameObject, _currentTransitionEntryData.FadeInTime + "s fade in");
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionEnter, AudioTriggerSource.Code, CurrentEvent.name, gameObject, _currentTransitionEntryData.FadeInTime + "s fade in");
             CreatePlayingInstances(FadeInTime);            
             PreEntry();
             // call transition exit if new music should play before old music stops
@@ -506,7 +506,7 @@ namespace AudioStudio
         
         private void OnTransitionEnd()
         {
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionExit, AudioTriggerSource.Code, CurrentEvent.name, gameObject, _currentTransitionExitData.FadeOutTime + "s fade out");
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.TransitionExit, AudioTriggerSource.Code, CurrentEvent.name, gameObject, _currentTransitionExitData.FadeOutTime + "s fade out");
             if (TransitioningStatus == TransitioningStatus.Transitioning)
                 TransitioningStatus = TransitioningStatus.None;
         }
@@ -595,7 +595,7 @@ namespace AudioStudio
         private void SequenceEnter() //next sequence track plays
         {   
             if (QueuedMusicData == null) return;
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SequenceEnter, AudioTriggerSource.Code, QueuedTracks[0].name, gameObject);
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.SequenceEnter, AudioTriggerSource.Code, QueuedTracks[0].name, gameObject);
             ActiveTracks = QueuedTracks;
             QueuedTracks = new List<MusicTrack>();
             ActiveMusicData = QueuedMusicData;
@@ -619,7 +619,7 @@ namespace AudioStudio
         private void SequenceExit() //old sequence track finishes
         {
             if (ActiveMusicData == null) return;
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SequenceExit, AudioTriggerSource.Code, _exitingInstances[0].MusicTrack.name, gameObject);
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.SequenceExit, AudioTriggerSource.Code, _exitingInstances[0].MusicTrack.name, gameObject);
             // stop the old tracks
             foreach (var mti in _exitingInstances)
             {
@@ -657,7 +657,7 @@ namespace AudioStudio
                     {
                         _triggerStingerSample += BeatsPerBar * BeatDurationSamples;
                     }
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "Stinger will play next bar");
+                    AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "Stinger will play next bar");
                     break;
                 case TransitionInterval.NextBeat:
                     _triggerStingerSample = Mathf.FloorToInt(_beatSample + BeatDurationSamples - stinger.PickUpLength * SampleRate);                                            
@@ -665,7 +665,7 @@ namespace AudioStudio
                     {
                         _triggerStingerSample += BeatDurationSamples;
                     }
-                    AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "Stinger will play next beat");
+                    AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.SetQueue, AudioTriggerSource.Code, stinger.name, gameObject, "Stinger will play next beat");
                     break;
             }            
         }
@@ -675,7 +675,7 @@ namespace AudioStudio
             _triggerStingerSample = 0;
             if (_playingInstances.Count == 0)
             {
-                AsUnityHelper.DebugToProfiler(Severity.Warning, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, "Stinger won't play without music");
+                AsUnityHelper.AddLogEntry(Severity.Warning, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, "Stinger won't play without music");
                 return;
             }
             // find stinger for current key
@@ -684,7 +684,7 @@ namespace AudioStudio
                 if ((keyAssignment.Keys & CurrentKey) != MusicKey.None)
                     PlayHeadAudioSource.PlayOneShot(keyAssignment.Clip, _queuedStinger.Volume);       
             }
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, CurrentKey.ToString());
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.Music, AudioAction.Stinger, AudioTriggerSource.Code, _queuedStinger.name, gameObject, CurrentKey.ToString());
         }
         #endregion
 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/AnimationSound")]
+    [AddComponentMenu("AudioStudio/Animation Sound")]
     [DisallowMultipleComponent]
     public class AnimationSound : AudioEmitter3D
     {
@@ -13,7 +13,7 @@ namespace AudioStudio.Components
         {
             if (_animationAudioState == newState) return;
             _animationAudioState = newState;
-            AsUnityHelper.DebugToProfiler(Severity.Notification, AudioObjectType.AudioState, AudioAction.SetValue, AudioTriggerSource.AudioState, newState.ToString(), gameObject);
+            AsUnityHelper.AddLogEntry(Severity.Notification, AudioObjectType.AudioState, AudioAction.SetValue, AudioTriggerSource.AudioState, newState.ToString(), gameObject);
         }
 
         public void PlaySound(AnimationEvent evt)

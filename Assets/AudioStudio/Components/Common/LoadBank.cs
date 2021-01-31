@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 
 namespace AudioStudio.Components
 {    
-    [AddComponentMenu("AudioStudio/LoadBank")]
+    [AddComponentMenu("AudioStudio/Load Bank")]
     [DisallowMultipleComponent]
     public class LoadBank : AudioEmitter3D
     {
@@ -14,53 +14,66 @@ namespace AudioStudio.Components
         public SoundBank[] SyncBanks = new SoundBank[0];
         [FormerlySerializedAs("Banks")] public LoadBankReference[] AsyncBanks = new LoadBankReference[0];
 
-        public override void Activate(GameObject source = null)
+        public override void Activate(int index = 0)
         {
             if (AsyncMode)
             {
-                foreach (var bank in AsyncBanks)
+                for (var i = 0; i < AsyncBanks.Length; i++)
                 {
-                    bank.Load(source, AudioTriggerSource.LoadBank);
+                    if (index == 0 || index == i + 1)
+                        AsyncBanks[i].Load(gameObject, AudioTriggerSource.LoadBank);
                 }
             }
             else
             {
-                foreach (var bank in SyncBanks)
+                for (var i = 0; i < SyncBanks.Length; i++)
                 {
-                    if (bank.IsValid())
-                        BankManager.LoadBank(bank, gameObject);
+                    var bank = SyncBanks[i];
+                    if (index == 0 || index == i + 1)
+                    {
+                        if (bank.IsValid())
+                            BankManager.LoadBank(bank, gameObject);
+                    }
                 }
             }
         }
 
-        public override void Deactivate(GameObject source = null)
+        public override void Deactivate(int index = 0)
         {
             if (AsyncMode)
             {
-                foreach (var bank in AsyncBanks)
+                for (var i = 0; i < AsyncBanks.Length; i++)
                 {
-                    if (bank.UnloadOnDisable)
-                        bank.Unload(source, AudioTriggerSource.LoadBank);
+                    if (index == 0 || index == i + 1)
+                    {
+                        var bank = AsyncBanks[i];
+                        if (bank.UnloadOnDisable)
+                            bank.Unload(gameObject, AudioTriggerSource.LoadBank);
+                    }
                 }
             }
             else
             {
-                foreach (var bank in SyncBanks)
+                for (var i = 0; i < SyncBanks.Length; i++)
                 {
-                    if (bank.IsValid())
-                        BankManager.UnloadBank(bank, gameObject);
+                    if (index == 0 || index == i + 1)
+                    {
+                        var bank = SyncBanks[i];
+                        if (bank.IsValid())
+                            BankManager.UnloadBank(bank, gameObject);
+                    }
                 }
             }
         }
         
         protected override void HandleEnableEvent()
         {                        
-            Activate(gameObject);
+            Activate();
         }
 
         protected override void HandleDisableEvent()
         {                                 
-            Deactivate(gameObject);
+            Deactivate();
         }
 
         public override bool IsValid()

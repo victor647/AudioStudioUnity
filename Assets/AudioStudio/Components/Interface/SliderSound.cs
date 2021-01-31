@@ -1,12 +1,11 @@
 ﻿using AudioStudio.Configs;
 using AudioStudio.Tools;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/SliderSound")]
+    [AddComponentMenu("AudioStudio/Slider Sound")]
     [DisallowMultipleComponent]
     public class SliderSound : AsUIHandler
     {        

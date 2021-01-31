@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/ButtonSound")]
+    [AddComponentMenu("AudioStudio/Button Sound")]
     [DisallowMultipleComponent]    
     public class ButtonSound : AsUIHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {

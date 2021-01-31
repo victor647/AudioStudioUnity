@@ -156,6 +156,9 @@
       <Compile Include="..\..\Assets\AudioStudio\Components\Editor\SetSwitchInspector.cs">
         <Link>Components\Editor\SetSwitchInspector.cs</Link>
       </Compile>
+      <Compile Include="..\..\Assets\AudioStudio\Components\Editor\SimpleAudioPlayerInspector.cs">
+        <Link>Components\Editor\SimpleAudioPlayerInspector.cs</Link>
+      </Compile>
       <Compile Include="..\..\Assets\AudioStudio\Components\Editor\SliderSoundInspector.cs">
         <Link>Components\Editor\SliderSoundInspector.cs</Link>
       </Compile>
@@ -297,8 +300,8 @@
       <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Database\AsTimelineAudioBackup.cs">
         <Link>Tools\Editor\Database\AsTimelineAudioBackup.cs</Link>
       </Compile>
-      <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Debug\AudioProfiler.cs">
-        <Link>Tools\Editor\Debug\AudioProfiler.cs</Link>
+      <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Debug\AudioConsole.cs">
+        <Link>Tools\Editor\Debug\AudioConsole.cs</Link>
       </Compile>
       <Compile Include="..\..\Assets\AudioStudio\Tools\Editor\Debug\MidiConsole.cs">
         <Link>Tools\Editor\Debug\MidiConsole.cs</Link>

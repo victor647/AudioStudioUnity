@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/DropdownSound")]
+    [AddComponentMenu("AudioStudio/Dropdown Sound")]
     [DisallowMultipleComponent]
     public class DropdownSound : AsUIHandler
     {

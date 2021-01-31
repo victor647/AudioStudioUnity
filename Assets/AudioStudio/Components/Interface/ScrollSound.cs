@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace AudioStudio.Components
 {
-    [AddComponentMenu("AudioStudio/ScrollSound")]    
+    [AddComponentMenu("AudioStudio/Scroll Sound")]    
     [DisallowMultipleComponent]
     public class ScrollSound : AsUIHandler
     {        
